@@ -1,0 +1,6 @@
+@DrakkarVpn.Core.Api_HostAddress = http://localhost:5102
+
+GET {{DrakkarVpn.Core.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

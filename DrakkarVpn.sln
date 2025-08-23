@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrakkarVpn.Core.Api", "DrakkarVpn.Core.Api\DrakkarVpn.Core.Api.csproj", "{00571020-03C3-4EE8-80E0-B30FA64D6BE3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrakkarVpn.Bot", "DrakkarVpn.Bot\DrakkarVpn.Bot.csproj", "{536EF018-4F81-40AA-887E-8DCF2734E574}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrakkarVpn.Agent", "DrakkarVpn.Agent\DrakkarVpn.Agent.csproj", "{84A3E652-6E8A-435C-9489-61C9216A3DBA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrakkarVpn.Shared", "DrakkarVpn.Shared\DrakkarVpn.Shared.csproj", "{6B277813-E3E9-4F46-AC6E-588F0E8652DE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{00571020-03C3-4EE8-80E0-B30FA64D6BE3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{00571020-03C3-4EE8-80E0-B30FA64D6BE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{00571020-03C3-4EE8-80E0-B30FA64D6BE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{00571020-03C3-4EE8-80E0-B30FA64D6BE3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{536EF018-4F81-40AA-887E-8DCF2734E574}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{536EF018-4F81-40AA-887E-8DCF2734E574}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{536EF018-4F81-40AA-887E-8DCF2734E574}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{536EF018-4F81-40AA-887E-8DCF2734E574}.Release|Any CPU.Build.0 = Release|Any CPU
+		{84A3E652-6E8A-435C-9489-61C9216A3DBA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84A3E652-6E8A-435C-9489-61C9216A3DBA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{84A3E652-6E8A-435C-9489-61C9216A3DBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{84A3E652-6E8A-435C-9489-61C9216A3DBA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B277813-E3E9-4F46-AC6E-588F0E8652DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B277813-E3E9-4F46-AC6E-588F0E8652DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B277813-E3E9-4F46-AC6E-588F0E8652DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B277813-E3E9-4F46-AC6E-588F0E8652DE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
