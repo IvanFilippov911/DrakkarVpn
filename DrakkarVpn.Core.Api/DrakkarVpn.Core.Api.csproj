@@ -15,7 +15,6 @@
       <Folder Include="Modules\Peers\" />
       <Folder Include="Modules\Provisioning\" />
       <Folder Include="Modules\Servers\" />
-      <Folder Include="Modules\Users\" />
     </ItemGroup>
 
 </Project>
