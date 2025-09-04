@@ -21,6 +21,14 @@ public sealed class AppUser
 
     public static AppUser CreateNew(TelegramId telegramId, DateTime nowUtc) =>
         new(Guid.NewGuid(), telegramId, nowUtc);
+    
+    public void SetStatus(UserStatus newStatus)
+    {
+        if (!Enum.IsDefined(typeof(UserStatus), newStatus))
+            throw new ArgumentOutOfRangeException(nameof(newStatus));
+        if (Status == newStatus) return;
+        Status = newStatus;
+    }
 
     public void Ban()   => Status = UserStatus.Banned;
     public void Unban() => Status = UserStatus.Active;

@@ -1,8 +1,12 @@
-var builder = WebApplication.CreateBuilder(args);
+using DrakkarVpn.Core.Api.Extensions;
+using DrakkarVpn.Core.Api.Middlewares;
+using DrakkarVpn.Core.Api.Modules.Users.Application;
 
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+var builder = WebApplication.CreateBuilder(args);
+var services = builder.Services;
+
+services.AddApiBasics();
+services.AddUsersApplication();
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
@@ -11,11 +15,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseExceptionHandling();
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
-
 app.MapControllers();
-
 app.Run();
