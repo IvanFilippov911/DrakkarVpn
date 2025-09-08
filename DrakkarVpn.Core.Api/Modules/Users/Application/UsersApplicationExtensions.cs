@@ -17,7 +17,8 @@ public static class UsersApplicationExtensions
         services.AddValidatorsFromAssemblyContaining<UsersApplicationMarker>();
         
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
-
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(EfTransactionBehavior<,>));
+        
         return services;
     }
 }

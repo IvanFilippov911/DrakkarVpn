@@ -25,7 +25,6 @@ public sealed class RegisterOrGetByTelegramHandler
 
         var created = AppUser.CreateNew(tgId, DateTime.UtcNow);
         await _repo.AddAsync(created, ct);
-        await _repo.SaveChangesAsync(ct);
 
         return ToDto(created);
     }

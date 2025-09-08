@@ -8,5 +8,5 @@ public interface IAppUserRepository
     Task<AppUser?> GetByIdAsync(Guid id, CancellationToken ct);
     Task<AppUser?> GetByTelegramIdAsync(TelegramId telegramId, CancellationToken ct);
     Task AddAsync(AppUser user, CancellationToken ct);
-    Task SaveChangesAsync(CancellationToken ct);
+    Task<IReadOnlyList<AppUser>> GetAllAsync(CancellationToken ct);
 }

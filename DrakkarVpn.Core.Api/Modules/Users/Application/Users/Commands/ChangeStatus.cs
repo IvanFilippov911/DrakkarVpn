@@ -19,7 +19,6 @@ public sealed class ChangeStatusHandler : IRequestHandler<ChangeStatus, AppUserD
                    ?? throw new InvalidOperationException("User not found");
 
         user.SetStatus(req.NewStatus);
-        await _repo.SaveChangesAsync(ct);
 
         return new AppUserDto(user.Id, (long)user.TelegramId, user.CreatedAt, user.Status.ToString());
     }

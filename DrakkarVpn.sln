@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrakkarVpn.Agent", "Drakkar
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrakkarVpn.Shared", "DrakkarVpn.Shared\DrakkarVpn.Shared.csproj", "{6B277813-E3E9-4F46-AC6E-588F0E8652DE}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "infra", "infra", "{72DB4E43-AED3-4562-B18C-E3BFCE802C47}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
