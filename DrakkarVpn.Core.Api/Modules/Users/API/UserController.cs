@@ -1,6 +1,9 @@
 using DrakkarVpn.Core.Api.Modules.Users.Application.DTOs;
-using DrakkarVpn.Core.Api.Modules.Users.Application.Users.Commands;
-using DrakkarVpn.Core.Api.Modules.Users.Application.Users.Queries;
+using DrakkarVpn.Core.Api.Modules.Users.Application.Features.Commands.ChangeStatus;
+using DrakkarVpn.Core.Api.Modules.Users.Application.Features.Commands.Register;
+using DrakkarVpn.Core.Api.Modules.Users.Application.Features.Queries.GetAllUsers;
+using DrakkarVpn.Core.Api.Modules.Users.Application.Features.Queries.GetUserById;
+using DrakkarVpn.Core.Api.Modules.Users.Application.Features.Queries.GetUserByTelegramId;
 using DrakkarVpn.Core.Api.Modules.Users.Domain;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -11,51 +14,43 @@ namespace DrakkarVpn.Core.Api.Modules.Users.API;
 [Route("api/users")]
 public sealed class UsersController : ControllerBase
 {
-    private readonly IMediator _m;
-    public UsersController(IMediator m) => _m = m;
+    private readonly IMediator _mediator;
+    public UsersController(IMediator mediator) => _mediator = mediator;
     
+    
+    public sealed record RegisterOrGetBody(long TelegramId);
     
     [HttpPost("register-or-get")]
-    [ProducesResponseType(typeof(AppUserDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public Task<AppUserDto> RegisterOrGet([FromBody] RegisterOrGetBody body, CancellationToken ct)
-        => _m.Send(new RegisterOrGetByTelegram(body.TelegramId), ct);
+        => _mediator.Send(new RegisterRequest(body.TelegramId), ct);
 
     
+    public sealed record UserChangeStatusBody(UserStatus Status);
+    
     [HttpPatch("{id:guid}/status")]
-    [ProducesResponseType(typeof(AppUserDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public Task<AppUserDto> ChangeStatus([FromRoute] Guid id, [FromBody] ChangeStatusBody body, CancellationToken ct)
-        => _m.Send(new ChangeStatus(id, body.Status), ct);
+    public Task<AppUserDto> ChangeStatus([FromRoute] Guid id, [FromBody] UserChangeStatusBody body, CancellationToken ct)
+        => _mediator.Send(new ChangeStatusRequest(id, body.Status), ct);
 
     
     [HttpGet("{id:guid}")]
-    [ProducesResponseType(typeof(AppUserDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<AppUserDto>> GetById([FromRoute] Guid id, CancellationToken ct)
     {
-        var dto = await _m.Send(new GetUserById(id), ct);
+        var dto = await _mediator.Send(new GetUserByIdRequest(id), ct);
         return dto is null ? NotFound() : Ok(dto);
     }
 
     
     [HttpGet("by-tg/{telegramId:long}")]
-    [ProducesResponseType(typeof(AppUserDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<AppUserDto>> GetByTelegramId([FromRoute] long telegramId, CancellationToken ct)
     {
-        var dto = await _m.Send(new GetUserByTelegramId(telegramId), ct);
+        var dto = await _mediator.Send(new GetUserByTelegramIdRequest(telegramId), ct);
         return dto is null ? NotFound() : Ok(dto);
     }
     
     
     [HttpGet("all")]
-    [ProducesResponseType(typeof(IReadOnlyList<AppUserDto>), StatusCodes.Status200OK)]
     public Task<IReadOnlyList<AppUserDto>> GetAll(CancellationToken ct) =>
-        _m.Send(new GetAllUsers(), ct);
+        _mediator.Send(new GetAllUsersRequest(), ct);
 
 }
 
-public sealed record RegisterOrGetBody(long TelegramId);
-public sealed record ChangeStatusBody(UserStatus Status);

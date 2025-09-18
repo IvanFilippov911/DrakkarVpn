@@ -24,7 +24,6 @@
     <ItemGroup>
       <Folder Include="Modules\Peers\" />
       <Folder Include="Modules\Provisioning\" />
-      <Folder Include="Modules\Servers\" />
     </ItemGroup>
 
 </Project>

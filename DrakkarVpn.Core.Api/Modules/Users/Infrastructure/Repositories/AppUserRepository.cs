@@ -1,3 +1,4 @@
+using DrakkarVpn.Core.Api.Infrastructure.EF;
 using DrakkarVpn.Core.Api.Modules.Users.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Users.Domain;
 using DrakkarVpn.Core.Api.Modules.Users.Domain.ValueObjects;

@@ -1,5 +1,7 @@
 using DrakkarVpn.Core.Api.Extensions;
 using DrakkarVpn.Core.Api.Middlewares;
+using DrakkarVpn.Core.Api.Modules.Servers.Application;
+using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure;
 using DrakkarVpn.Core.Api.Modules.Users.Application;
 using DrakkarVpn.Core.Api.Modules.Users.Infrastructure;
 
@@ -8,8 +10,13 @@ var services = builder.Services;
 var configuration = builder.Configuration;
 
 services.AddApiBasics();
-services.AddUsersApplication();
-services.AddUsersInfrastructure(configuration.GetConnectionString("Default")); 
+services.AddCoreApplication(
+    typeof(UsersApplicationMarker).Assembly,
+    typeof(ServerApplicationMarker).Assembly);
+
+services.AddCoreInfrastructure(configuration.GetConnectionString("Default"));
+services.AddUsersInfrastructure();
+services.AddServersInfrastructure();
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
