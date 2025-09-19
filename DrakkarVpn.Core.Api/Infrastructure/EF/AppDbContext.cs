@@ -1,3 +1,4 @@
+using DrakkarVpn.Core.Api.Modules.Peers.Domain;
 using DrakkarVpn.Core.Api.Modules.Servers.Domain;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.EF.Configurations;
 using DrakkarVpn.Core.Api.Modules.Users.Domain;
@@ -12,6 +13,7 @@ public sealed class AppDbContext : DbContext
 
     public DbSet<AppUser> Users => Set<AppUser>();
     public DbSet<Server> Servers => Set<Server>();
+    public DbSet<Peer> Peers => Set<Peer>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
