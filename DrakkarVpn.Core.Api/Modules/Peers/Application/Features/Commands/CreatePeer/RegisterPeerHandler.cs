@@ -44,7 +44,7 @@ public sealed class RegisterPeerHandler: IRequestHandler<RegisterPeerRequest, Pe
 
         try
         {
-            var agentResult = await _agentClient.RegisterPeerAsync(server, req.UserId, ct);
+            var agentResult = await _agentClient.RegisterPeerAsync(server, ct);
             createdPeerUuid = agentResult.PeerUuid;
             
             var peer = Peer.CreateNew(

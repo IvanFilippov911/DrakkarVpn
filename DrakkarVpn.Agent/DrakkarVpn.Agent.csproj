@@ -21,9 +21,16 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Protobuf Include="Infrastructure/Grpc/Protos/v2ray.proto"
+        <Protobuf Include="Infrastructure/gRpc/Protos/**/*.proto"
                   GrpcServices="Client"
-                  ProtoRoot="Infrastructure/Grpc/Protos" />
+                  ProtoRoot="Infrastructure/gRpc/Protos" />
     </ItemGroup>
     
+    <ItemGroup>
+        <PackageReference Include="Google.Protobuf" Version="3.27.2" />
+    </ItemGroup>
+
+
+
+
 </Project>

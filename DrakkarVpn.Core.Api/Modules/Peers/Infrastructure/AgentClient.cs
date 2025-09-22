@@ -11,10 +11,10 @@ public sealed class AgentClient : IAgentClient
     private readonly HttpClient _http;
     public AgentClient(HttpClient http) => _http = http;
 
-    public async Task<PeerAgentRegisterResponseDto> RegisterPeerAsync(Server server, Guid userId, CancellationToken ct)
+    public async Task<PeerAgentRegisterResponseDto> RegisterPeerAsync(Server server, CancellationToken ct)
     {
         var url = $"{server.AgentBaseUrl}/peers";
-        var response = await _http.PostAsJsonAsync(url, new { userId }, ct);
+        var response = await _http.PostAsJsonAsync(url, ct);
 
         if (!response.IsSuccessStatusCode)
             throw new InvalidOperationException($"Agent {server.Id} refused peer creation: {response.StatusCode}");

@@ -1,8 +1,13 @@
-var builder = WebApplication.CreateBuilder(args);
+using DrakkarVpn.Agent.Infrastructure.Extensions;
 
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+var builder = WebApplication.CreateBuilder(args);
+var services = builder.Services;
+
+services.AddControllers();
+services.AddEndpointsApiExplorer();
+services.AddSwaggerGen();
+
+services.AddV2RayGrpc(builder.Configuration);
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
