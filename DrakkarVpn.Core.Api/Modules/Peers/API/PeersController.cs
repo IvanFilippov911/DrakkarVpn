@@ -1,4 +1,5 @@
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Features.Commands.CreatePeer;
+using DrakkarVpn.Core.Api.Modules.Peers.Application.Features.Commands.DeletePeer;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Features.Commands.RenewPeer;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Features.Commands.RevokePeer;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Features.Queries.GetActivePeersCount;
@@ -39,6 +40,13 @@ public sealed class PeersController : ControllerBase
         var req = new RevokePeerRequest(peerId, serverId);
         var result = await _mediator.Send(req, ct);
         return result ? Ok() : NotFound();
+    }
+    
+    [HttpDelete("{id:guid}/hard")]
+    public async Task<IActionResult> HardDelete(Guid id, CancellationToken ct)
+    {
+        var ok = await _mediator.Send(new DeletePeerRequest(id), ct);
+        return ok ? NoContent() : NotFound();
     }
 
 

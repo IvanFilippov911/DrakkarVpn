@@ -7,4 +7,5 @@ public interface IServerRepository
     Task<Server?> GetAsync(ServerId id, CancellationToken ct);
     Task AddAsync(Server server, CancellationToken ct);
     IQueryable<Server> Query();
+    Task DeleteAsync(Server server, CancellationToken ct);
 }

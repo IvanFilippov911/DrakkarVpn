@@ -13,8 +13,9 @@ public sealed class AgentClient : IAgentClient
 
     public async Task<PeerAgentRegisterResponseDto> RegisterPeerAsync(Server server, CancellationToken ct)
     {
-        var url = $"{server.AgentBaseUrl}/peers";
-        var response = await _http.PostAsJsonAsync(url, ct);
+        var url = $"{server.AgentBaseUrl}peers";
+
+        var response = await _http.PostAsync(url, null, ct);
 
         if (!response.IsSuccessStatusCode)
             throw new InvalidOperationException($"Agent {server.Id} refused peer creation: {response.StatusCode}");
@@ -26,9 +27,10 @@ public sealed class AgentClient : IAgentClient
         return new PeerAgentRegisterResponseDto(new AgentPeerUuid(wire.PeerUuid), wire.ConfigRaw);
     }
 
+
     public async Task<bool> RevokePeerAsync(Server server, AgentPeerUuid peerUuid, CancellationToken ct)
     {
-        var url = $"{server.AgentBaseUrl}/peers/{peerUuid.Value}";
+        var url = $"{server.AgentBaseUrl}peers/{peerUuid.Value}";
         var resp = await _http.DeleteAsync(url, ct);
         return resp.IsSuccessStatusCode;
     }

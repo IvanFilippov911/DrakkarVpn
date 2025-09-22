@@ -1,4 +1,5 @@
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Commands.ChangeServerStatus;
+using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Commands.DeleteServer;
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Commands.RegisterServer;
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Commands.UpdateServerHealth;
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Queries.GetServers;
@@ -26,6 +27,13 @@ public sealed class ServersController : ControllerBase
     {
         var id = await _mediator.Send(body, ct);
         return CreatedAtAction(nameof(Get), new { id }, id);
+    }
+    
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
+    {
+        var ok = await _mediator.Send(new DeleteServerRequest(id), ct);
+        return ok ? NoContent() : NotFound();
     }
 
     

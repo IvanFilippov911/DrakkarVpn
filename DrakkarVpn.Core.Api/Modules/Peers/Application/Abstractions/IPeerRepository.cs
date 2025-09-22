@@ -14,4 +14,6 @@ public interface IPeerRepository
     IQueryable<Peer> Query();
 
     Task<int> GetActiveCountByServerIdAsync(Guid serverId, CancellationToken ct);
+
+    void Remove(Peer peer);
 }

@@ -12,7 +12,6 @@ public sealed class PeerRepository : IPeerRepository
 
     public Task<Peer?> GetByIdAsync(PeerId id, CancellationToken ct) =>
         _db.Peers
-            .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Id == id, ct);
 
     public async Task AddAsync(Peer peer, CancellationToken ct) =>
@@ -48,4 +47,10 @@ public sealed class PeerRepository : IPeerRepository
                     p.Status == PeerStatus.Active && 
                     (p.ExpiresAt == null || p.ExpiresAt > DateTime.UtcNow),
                 ct);
+    
+    public void Remove(Peer peer)
+    {
+        _db.Peers.Remove(peer);
+    }
+
 }

@@ -18,6 +18,11 @@ public sealed class ServerRepository : IServerRepository
     {
         await _db.Servers.AddAsync(server, ct);
     }
+
+    public async Task DeleteAsync(Server server, CancellationToken ct)
+    {
+        _db.Servers.Remove(server);
+    }
     
     public IQueryable<Server> Query() => _db.Servers.AsQueryable();
 }
