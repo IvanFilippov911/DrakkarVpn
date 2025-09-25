@@ -25,7 +25,7 @@ public sealed class Server : IAggregateRoot
 
         MaxPeers = maxPeers;
         Status = ServerStatus.Enabled;
-        Health = new HealthSnapshot(false, 0, DateTime.MinValue);
+        Health = new HealthSnapshot(true, 0, DateTime.MinValue);
         CreatedAt = DateTime.UtcNow;
     }
     

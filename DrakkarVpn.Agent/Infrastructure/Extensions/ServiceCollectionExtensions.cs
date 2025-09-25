@@ -20,6 +20,7 @@ public static class ServiceCollectionExtensions
         });
         
         services.AddScoped<IV2RayService, V2RayService>();
+        services.AddScoped<IHealthService, HealthService>();
 
         return services;
     }

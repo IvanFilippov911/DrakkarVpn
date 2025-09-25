@@ -1,7 +1,5 @@
-using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Commands.ChangeServerStatus;
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Commands.DeleteServer;
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Commands.RegisterServer;
-using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Commands.UpdateServerHealth;
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Queries.GetServers;
 using DrakkarVpn.Core.Api.Modules.Servers.Domain;
 using MediatR;
@@ -18,7 +16,7 @@ public sealed class ServersController : ControllerBase
     
     
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<GetServersDto>>> Get([FromQuery] string? region, [FromQuery] string? status, CancellationToken ct)
+    public async Task<ActionResult<IReadOnlyList<GetServerDto>>> Get([FromQuery] string? region, [FromQuery] string? status, CancellationToken ct)
         => Ok(await _mediator.Send(new GetServersRequest(region, status), ct));
 
     
@@ -33,26 +31,6 @@ public sealed class ServersController : ControllerBase
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
         var ok = await _mediator.Send(new DeleteServerRequest(id), ct);
-        return ok ? NoContent() : NotFound();
-    }
-
-    
-    public sealed record ServerChangeStatusBody(ServerStatus Status);
-
-    [HttpPatch("{id:guid}/status")]
-    public async Task<IActionResult> ChangeStatus([FromRoute] Guid id, [FromBody] ServerChangeStatusBody body, CancellationToken ct)
-    {
-        var ok = await _mediator.Send(new ChangeServerStatusRequest(id, body.Status), ct);
-        return ok ? NoContent() : NotFound();
-    }
-
-    
-    public sealed record UpdateHealthBody(bool Reachable, int PeersActive);
-
-    [HttpPost("{id:guid}/health")]
-    public async Task<IActionResult> UpdateHealth([FromRoute] Guid id, [FromBody] UpdateHealthBody body, CancellationToken ct)
-    {
-        var ok = await _mediator.Send(new UpdateServerHealthRequest(id, body.Reachable, body.PeersActive), ct);
         return ok ? NoContent() : NotFound();
     }
 }

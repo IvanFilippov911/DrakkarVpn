@@ -5,12 +5,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Queries.GetServers;
 
-public sealed class GetServersHandler : IRequestHandler<GetServersRequest, IReadOnlyList<GetServersDto>>
+public sealed class GetServersHandler : IRequestHandler<GetServersRequest, IReadOnlyList<GetServerDto>>
 {
     private readonly IServerRepository _repo;
     public GetServersHandler(IServerRepository repo) => _repo = repo;
 
-    public async Task<IReadOnlyList<GetServersDto>> Handle(GetServersRequest request, CancellationToken ct)
+    public async Task<IReadOnlyList<GetServerDto>> Handle(GetServersRequest request, CancellationToken ct)
     {
         var query = _repo.Query();
 
@@ -24,11 +24,12 @@ public sealed class GetServersHandler : IRequestHandler<GetServersRequest, IRead
         return await query
             .OrderByDescending(s => s.Health.Reachable)
             .ThenBy(s => s.Health.PeersActive)
-            .Select(s => new GetServersDto(
+            .Select(s => new GetServerDto(
                 s.Id.Value,
                 s.Name,
                 s.Region.Code,
                 s.PublicHost.Value,
+                s.AgentBaseUrl.ToString(),
                 s.Status.ToString(),
                 s.Health.Reachable,
                 s.Health.PeersActive,

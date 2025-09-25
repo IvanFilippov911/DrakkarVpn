@@ -22,8 +22,10 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Modules\Orchestrator\Domain\Events\" />
+      <Folder Include="Modules\Orchestrator\Domain\ValueObjects\" />
+      <Folder Include="Modules\Orchestrator\Infrastructure\EF\" />
       <Folder Include="Modules\Peers\" />
-      <Folder Include="Modules\Provisioning\" />
     </ItemGroup>
 
 </Project>

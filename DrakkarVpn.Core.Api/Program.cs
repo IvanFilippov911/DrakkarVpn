@@ -1,5 +1,6 @@
 using DrakkarVpn.Core.Api.Extensions;
 using DrakkarVpn.Core.Api.Middlewares;
+using DrakkarVpn.Core.Api.Modules.Orchestrator.Infrastructure.BackgroundWorkers;
 using DrakkarVpn.Core.Api.Modules.Peers.Infrastructure;
 using DrakkarVpn.Core.Api.Modules.Servers.Application;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure;
@@ -20,6 +21,9 @@ services.AddUsersInfrastructure();
 services.AddServersInfrastructure();
 services.AddPeersInfrastructure();
 services.AddAgentInfrastructure();
+services.AddHostedService<ServerHealthBackgroundWorker>();
+services.AddHttpClient();
+
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())

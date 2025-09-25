@@ -1,3 +1,4 @@
+using DrakkarVpn.Agent.Application.Abstractions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DrakkarVpn.Agent.Controllers;
@@ -6,6 +7,17 @@ namespace DrakkarVpn.Agent.Controllers;
 [Route("health")]
 public class HealthController : ControllerBase
 {
+    private readonly IHealthService _healthService;
+
+    public HealthController(IHealthService healthService)
+    {
+        _healthService = healthService;
+    }
+
     [HttpGet]
-    public IActionResult Get() => Ok(new { status = "ok", timestamp = DateTime.UtcNow });
+    public async Task<IActionResult> Get(CancellationToken ct)
+    {
+        var result = await _healthService.GetHealthAsync(ct);
+        return Ok(result);
+    }
 }

@@ -1,5 +1,6 @@
 using DrakkarVpn.Core.Api.Infrastructure.EF;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
+using System.Linq;
 using DrakkarVpn.Core.Api.Modules.Peers.Domain;
 using Microsoft.EntityFrameworkCore;
 
@@ -52,5 +53,15 @@ public sealed class PeerRepository : IPeerRepository
     {
         _db.Peers.Remove(peer);
     }
+    
+    public async Task<IReadOnlyList<Peer>> GetExpiredAsync(DateTime until, CancellationToken ct)
+    {
+        return await _db.Peers
+            .AsNoTracking()
+            .Where(p => p.ExpiresAt <= until && p.Status == PeerStatus.Active)
+            .ToListAsync(ct);
+    }
+
+
 
 }
