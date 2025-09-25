@@ -7,13 +7,17 @@ namespace DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Commands.Upda
 public sealed class UpdateServerHealthHandler : IRequestHandler<UpdateServerHealthRequest, bool>
 {
     private readonly IServerRepository _repo;
+
     public UpdateServerHealthHandler(IServerRepository repo) => _repo = repo;
 
-    public async Task<bool> Handle(UpdateServerHealthRequest request, CancellationToken ct)
+    public async Task<bool> Handle(UpdateServerHealthRequest req, CancellationToken ct)
     {
-        var server = await _repo.GetAsync(new ServerId(request.ServerId), ct);
+        var server = await _repo.GetAsync(new ServerId(req.ServerId), ct);
         if (server is null) return false;
-        server.UpdateHealth(request.Reachable, request.PeersActive);
+
+        server.SetStatus(req.Status);
+        server.UpdateHealth(req.Reachable, req.PeersActive);
+
         return true;
     }
 }

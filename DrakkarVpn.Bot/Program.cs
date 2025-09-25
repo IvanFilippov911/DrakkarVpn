@@ -1,3 +1,43 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿using System.Reflection;
+using DrakkarVpn.Bot.Application.Pipeline;
+using DrakkarVpn.Bot.Infrastructure.Telegram;
+using DrakkarVpn.Bot.Infrastructure.Telegram.Abstraction;
+using DrakkarVpn.Bot.Infrastructure.Telegram.Options;
+using MediatR;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+using Telegram.Bot;
 
-Console.WriteLine("Hello, World!");
+var host = Host.CreateDefaultBuilder(args)
+    .ConfigureServices((context, services) =>
+    {
+        services.Configure<TelegramOptions>(
+            context.Configuration.GetSection(TelegramOptions.SectionName));
+        
+        services.AddSingleton<ITelegramBotClient>(sp =>
+        {
+            var opts = sp.GetRequiredService<IOptions<TelegramOptions>>().Value;
+            return new TelegramBotClient(opts.Token);
+        });
+        
+        services.Scan(scan => scan
+            .FromApplicationDependencies()
+            .AddClasses(classes => classes.AssignableTo<ITelegramCommandFactory>())
+            .AsImplementedInterfaces()
+            .WithSingletonLifetime());
+
+        
+        services.AddHostedService<BotWorker>();
+        services.AddSingleton<ICommandRegistry, CommandRegistry>();
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ErrorHandlingBehavior<,>));
+        services.AddSingleton<UpdateHandler>();
+        
+        services.AddMediatR(cfg =>
+            cfg.RegisterServicesFromAssemblies(Assembly.GetExecutingAssembly()));
+
+
+    })
+    .Build();
+
+await host.RunAsync();
