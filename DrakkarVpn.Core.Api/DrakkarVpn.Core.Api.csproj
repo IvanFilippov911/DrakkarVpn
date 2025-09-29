@@ -26,6 +26,7 @@
       <Folder Include="Modules\Orchestrator\Domain\ValueObjects\" />
       <Folder Include="Modules\Orchestrator\Infrastructure\EF\" />
       <Folder Include="Modules\Peers\" />
+      <Folder Include="Modules\Subscriptions\Application\DTOs\" />
     </ItemGroup>
 
     <ItemGroup>

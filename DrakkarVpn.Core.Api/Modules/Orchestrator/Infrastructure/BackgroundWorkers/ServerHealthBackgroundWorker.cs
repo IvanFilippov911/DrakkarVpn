@@ -37,7 +37,6 @@ public sealed class ServerHealthBackgroundWorker : BackgroundService
 
                 foreach (var server in servers)
                 {
-                    Console.WriteLine("1");
                     var client = _httpClientFactory.CreateClient();
                     AgentHealthDto health;
 
@@ -50,8 +49,6 @@ public sealed class ServerHealthBackgroundWorker : BackgroundService
                     }
                     catch(Exception ex)
                     {
-                        Console.WriteLine($"[Worker] Error fetching health for {server.Name} ({server.Id}): {ex.GetType().Name} - {ex.Message}");
-                        Console.WriteLine(ex.StackTrace);
                         health = new AgentHealthDto(false, GetLastPeers(server.Id));
                     }
 
@@ -69,9 +66,6 @@ public sealed class ServerHealthBackgroundWorker : BackgroundService
                         stoppingToken
                     );
                     
-                    Console.WriteLine(
-                        $"[ServerHealth] Server={server.Name} ({server.Id}) | Reachable={health.Reachable} | Peers={health.PeersActive}"
-                    );
                 }
             }
             catch (Exception ex)
