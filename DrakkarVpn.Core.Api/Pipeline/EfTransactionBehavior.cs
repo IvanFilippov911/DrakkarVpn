@@ -21,7 +21,7 @@ public sealed class EfTransactionBehavior<TReq, TRes> : IPipelineBehavior<TReq, 
             return await next();
 
         await using var tx = await _db.Database.BeginTransactionAsync(ct);
-        var result = await next();           
+        var result = await next();    
         await _db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
         return result;

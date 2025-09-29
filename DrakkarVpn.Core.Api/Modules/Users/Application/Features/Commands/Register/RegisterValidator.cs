@@ -1,9 +1,10 @@
+using DrakkarVpn.Shared.Users;
 using FluentValidation;
 
 namespace DrakkarVpn.Core.Api.Modules.Users.Application.Features.Commands.Register;
 
 public sealed class RegisterOrGetByTelegramValidator 
-    : AbstractValidator<RegisterRequest>
+    : AbstractValidator<RegisterUserRequest>
 {
     public RegisterOrGetByTelegramValidator()
     {

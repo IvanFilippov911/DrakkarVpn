@@ -5,6 +5,7 @@ using DrakkarVpn.Core.Api.Modules.Users.Application.Features.Queries.GetAllUsers
 using DrakkarVpn.Core.Api.Modules.Users.Application.Features.Queries.GetUserById;
 using DrakkarVpn.Core.Api.Modules.Users.Application.Features.Queries.GetUserByTelegramId;
 using DrakkarVpn.Core.Api.Modules.Users.Domain;
+using DrakkarVpn.Shared.Users;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,8 +22,8 @@ public sealed class UsersController : ControllerBase
     public sealed record RegisterOrGetBody(long TelegramId);
     
     [HttpPost("register-or-get")]
-    public Task<AppUserDto> RegisterOrGet([FromBody] RegisterOrGetBody body, CancellationToken ct)
-        => _mediator.Send(new RegisterRequest(body.TelegramId), ct);
+    public Task<RegisterUserResponse> RegisterOrGet([FromBody] RegisterOrGetBody body, CancellationToken ct)
+        => _mediator.Send(new RegisterRequest(new RegisterUserRequest(body.TelegramId)), ct);
 
     
     public sealed record UserChangeStatusBody(UserStatus Status);

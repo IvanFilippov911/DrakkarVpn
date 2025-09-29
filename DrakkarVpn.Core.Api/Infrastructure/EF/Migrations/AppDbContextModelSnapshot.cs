@@ -126,6 +126,33 @@ namespace DrakkarVpn.Core.Api.Infrastructure.EF.Migrations
                     b.ToTable("servers", (string)null);
                 });
 
+            modelBuilder.Entity("DrakkarVpn.Core.Api.Modules.Tariffs.Domain.Tariff", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<TimeSpan>("Duration")
+                        .HasColumnType("interval");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("tariffs", (string)null);
+                });
+
             modelBuilder.Entity("DrakkarVpn.Core.Api.Modules.Users.Domain.AppUser", b =>
                 {
                     b.Property<Guid>("Id")

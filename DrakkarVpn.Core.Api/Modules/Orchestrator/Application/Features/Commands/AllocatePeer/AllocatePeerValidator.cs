@@ -6,7 +6,7 @@ public sealed class AllocatePeerValidator : AbstractValidator<AllocatePeerReques
 {
     public AllocatePeerValidator()
     {
-        RuleFor(x => x.UserId)
-            .NotEmpty().WithMessage("UserId is required");
+        RuleFor(x => x.TelegramId)
+            .NotEmpty().WithMessage("TelegramId is required");
     }
 }

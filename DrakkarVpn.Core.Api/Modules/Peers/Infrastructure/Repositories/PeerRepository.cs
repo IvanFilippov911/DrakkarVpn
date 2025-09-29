@@ -23,6 +23,7 @@ public sealed class PeerRepository : IPeerRepository
             .AsNoTracking()
             .Where(p => p.UserId == userId)
             .ToListAsync(ct);
+    
 
     public async Task<IReadOnlyList<Peer>> GetByServerAsync(Guid serverId, CancellationToken ct) =>
         await _db.Peers

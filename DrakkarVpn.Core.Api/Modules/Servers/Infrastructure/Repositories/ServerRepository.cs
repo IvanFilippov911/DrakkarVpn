@@ -24,5 +24,6 @@ public sealed class ServerRepository : IServerRepository
         _db.Servers.Remove(server);
     }
     
-    public IQueryable<Server> Query() => _db.Servers.AsQueryable();
+    public IQueryable<Server> Query() => _db.Servers.AsNoTracking();
+
 }

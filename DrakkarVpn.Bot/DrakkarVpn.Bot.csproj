@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <Folder Include="Application\Features\Commands\" />
       <Folder Include="Domain\" />
     </ItemGroup>
 
@@ -22,6 +23,10 @@
 
     <ItemGroup>
         <None Update="appsettings.json" CopyToOutputDirectory="Always" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\DrakkarVpn.Shared\DrakkarVpn.Shared.csproj" />
     </ItemGroup>
 
 

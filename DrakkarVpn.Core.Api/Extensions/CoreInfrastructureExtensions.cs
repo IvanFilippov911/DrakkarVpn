@@ -13,7 +13,10 @@ public static class CoreInfrastructureExtensions
             throw new InvalidOperationException("Connection string 'Db' is not configured.");
 
         services.AddDbContext<AppDbContext>(opt =>
-            opt.UseNpgsql(connectionString));
+                opt.UseNpgsql(connectionString),
+            contextLifetime: ServiceLifetime.Scoped,
+            optionsLifetime: ServiceLifetime.Scoped);
+
 
         return services;
     }

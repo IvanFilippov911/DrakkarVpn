@@ -28,4 +28,8 @@
       <Folder Include="Modules\Peers\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\DrakkarVpn.Shared\DrakkarVpn.Shared.csproj" />
+    </ItemGroup>
+
 </Project>
