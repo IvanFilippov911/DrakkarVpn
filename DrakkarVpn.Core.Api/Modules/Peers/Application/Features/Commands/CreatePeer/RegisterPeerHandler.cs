@@ -3,12 +3,13 @@ using DrakkarVpn.Core.Api.Modules.Peers.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Peers.Domain;
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Servers.Domain;
+using DrakkarVpn.Core.Api.Modules.Subscriptions.Domain.ValueObjects;
 using DrakkarVpn.Core.Api.Modules.Users.Application.Abstractions;
 using MediatR;
 
 namespace DrakkarVpn.Core.Api.Modules.Peers.Application.Features.Commands.CreatePeer;
 
-public sealed class RegisterPeerHandler: IRequestHandler<RegisterPeerRequest, PeerRegisterResponseDto>
+public sealed class RegisterPeerHandler : IRequestHandler<RegisterPeerRequest, PeerRegisterResponseDto>
 {
     private readonly IPeerRepository _peers;
     private readonly IAppUserRepository _users;
@@ -39,25 +40,26 @@ public sealed class RegisterPeerHandler: IRequestHandler<RegisterPeerRequest, Pe
 
         if (!server.IsEligible())
             throw new InvalidOperationException($"Server {req.ServerId} is not eligible");
-        
+
         AgentPeerUuid? createdPeerUuid = null;
 
         try
         {
             var agentResult = await _agentClient.RegisterPeerAsync(server, ct);
             createdPeerUuid = agentResult.PeerUuid;
-            
+
             var peer = Peer.CreateNew(
                 req.UserId,
                 req.ServerId,
+                new SubscriptionId(req.SubscriptionId),    
                 agentResult.PeerUuid,
                 agentResult.ConfigRaw,
                 DateTime.UtcNow,
                 req.ExpiresAt
             );
-            
+
             await _peers.AddAsync(peer, ct);
-            
+
             return new PeerRegisterResponseDto(
                 peer.Id.Value,
                 peer.ServerId,
@@ -73,7 +75,7 @@ public sealed class RegisterPeerHandler: IRequestHandler<RegisterPeerRequest, Pe
                 await _agentClient.RevokePeerAsync(server, createdPeerUuid.Value, ct);
             }
 
-            throw; 
+            throw;
         }
     }
 }

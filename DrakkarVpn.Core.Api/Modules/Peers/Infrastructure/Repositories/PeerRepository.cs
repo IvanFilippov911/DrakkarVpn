@@ -2,6 +2,7 @@ using DrakkarVpn.Core.Api.Infrastructure.EF;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
 using System.Linq;
 using DrakkarVpn.Core.Api.Modules.Peers.Domain;
+using DrakkarVpn.Core.Api.Modules.Subscriptions.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
 namespace DrakkarVpn.Core.Api.Modules.Peers.Infrastructure.Repositories;
@@ -62,6 +63,9 @@ public sealed class PeerRepository : IPeerRepository
             .Where(p => p.ExpiresAt <= until && p.Status == PeerStatus.Active)
             .ToListAsync(ct);
     }
+    
+    public async Task<IReadOnlyList<Peer>> GetBySubscriptionAsync(SubscriptionId subscriptionId, CancellationToken ct) =>
+        await _db.Peers.Where(p => p.SubscriptionId == subscriptionId).ToListAsync(ct);
 
 
 

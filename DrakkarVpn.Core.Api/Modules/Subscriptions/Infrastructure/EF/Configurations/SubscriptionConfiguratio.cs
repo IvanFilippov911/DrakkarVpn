@@ -31,5 +31,9 @@ internal sealed class SubscriptionConfiguration : IEntityTypeConfiguration<Subsc
         builder.Property(x => x.Status)
             .IsRequired()
             .HasConversion<int>();
+        
+        builder.HasIndex(x => x.UserId)
+            .IsUnique()
+            .HasFilter("\"Status\" = 1");
     }
 }

@@ -1,4 +1,5 @@
 using DrakkarVpn.Core.Api.Modules.Peers.Domain;
+using DrakkarVpn.Core.Api.Modules.Subscriptions.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -22,6 +23,10 @@ public sealed class PeerConfiguration : IEntityTypeConfiguration<Peer>
         b.Property(x => x.ServerId)
             .IsRequired()
             .HasColumnName("server_id");
+        
+        b.Property(x => x.SubscriptionId)
+            .HasConversion(id => id.Value, v => new SubscriptionId(v))
+            .IsRequired();
 
         b.Property(x => x.AgentPeerUuid)
             .HasConversion(id => id.Value, v => new AgentPeerUuid(v))

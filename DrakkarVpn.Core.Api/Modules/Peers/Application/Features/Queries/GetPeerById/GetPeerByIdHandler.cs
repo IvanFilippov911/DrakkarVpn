@@ -21,7 +21,7 @@ public sealed class GetPeerByIdHandler : IRequestHandler<GetPeerByIdRequest, Pee
             peer.Id.Value,
             peer.UserId,
             peer.ServerId,
-            peer.Status.ToString(),
+            peer.Status,
             peer.ConfigRaw,
             peer.CreatedAt,
             peer.ExpiresAt

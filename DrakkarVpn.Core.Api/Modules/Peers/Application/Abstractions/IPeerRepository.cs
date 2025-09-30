@@ -1,5 +1,6 @@
 using DrakkarVpn.Core.Api.Modules.Peers.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Peers.Domain;
+using DrakkarVpn.Core.Api.Modules.Subscriptions.Domain.ValueObjects;
 
 namespace DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
 
@@ -18,4 +19,5 @@ public interface IPeerRepository
 
     void Remove(Peer peer);
     Task<IReadOnlyList<Peer>> GetExpiredAsync(DateTime until, CancellationToken ct);
+    Task<IReadOnlyList<Peer>> GetBySubscriptionAsync(SubscriptionId subscriptionId, CancellationToken ct);
 }

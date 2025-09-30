@@ -1,5 +1,6 @@
 using DrakkarVpn.Core.Api.Extensions;
 using DrakkarVpn.Core.Api.Middlewares;
+using DrakkarVpn.Core.Api.Modules.Idempotency.Infrastructure;
 using DrakkarVpn.Core.Api.Modules.Orchestrator.Infrastructure.BackgroundWorkers;
 using DrakkarVpn.Core.Api.Modules.Peers.Infrastructure;
 using DrakkarVpn.Core.Api.Modules.Servers.Application;
@@ -25,6 +26,7 @@ services.AddPeersInfrastructure();
 services.AddAgentInfrastructure();
 services.AddTariffsInfrastructure();
 services.AddSubscriptionsInfrastructure();
+services.AddIdempotencyInfrastructure();
 services.AddHostedService<ServerHealthBackgroundWorker>();
 services.AddHostedService<SubscriptionExpirationWorker>();
 services.AddHttpClient();

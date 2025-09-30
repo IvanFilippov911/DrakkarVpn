@@ -19,7 +19,7 @@ public sealed class GetExpiredPeersHandler
             p.Id.Value,
             p.UserId,
             p.ServerId,
-            p.Status.ToString(),
+            p.Status,
             p.ConfigRaw,
             p.CreatedAt,
             p.ExpiresAt

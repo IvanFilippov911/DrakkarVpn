@@ -1,11 +1,12 @@
 using DrakkarVpn.Core.Api.Modules.Subscriptions.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Tariffs.Application.Abstracts;
 using DrakkarVpn.Core.Api.Modules.Tariffs.Domain;
+using DrakkarVpn.Shared.Subscriptions;
 using MediatR;
 
 namespace DrakkarVpn.Core.Api.Modules.Subscriptions.Application.Features.Commands.RenewSubscription;
 
-public sealed class RenewSubscriptionHandler : IRequestHandler<RenewSubscriptionRequest, Unit>
+public sealed class RenewSubscriptionHandler : IRequestHandler<RenewSubscriptionRequest, SubscriptionDto>
 {
     private readonly ISubscriptionRepository _repository;
     private readonly ITariffRepository _tariffs;
@@ -18,7 +19,7 @@ public sealed class RenewSubscriptionHandler : IRequestHandler<RenewSubscription
         _tariffs = tariffs;
     }
 
-    public async Task<Unit> Handle(RenewSubscriptionRequest request, CancellationToken ct)
+    public async Task<SubscriptionDto> Handle(RenewSubscriptionRequest request, CancellationToken ct)
     {
         var subscription = await _repository.GetByIdAsync(new(request.SubscriptionId), ct);
         if (subscription is null)
@@ -34,6 +35,13 @@ public sealed class RenewSubscriptionHandler : IRequestHandler<RenewSubscription
 
         subscription.Renew(newEndAt);
 
-        return Unit.Value;
+        return new SubscriptionDto(
+            subscription.Id.Value,
+            subscription.UserId,
+            subscription.TariffId.Value,
+            subscription.StartAt,
+            subscription.EndAt,
+            subscription.Status.ToString()
+        );
     }
 }

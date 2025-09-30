@@ -1,6 +1,6 @@
 using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Commands.AllocatePeer;
-using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Commands.RenewDuePeers;
+using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Commands.PurchaseSubscription;
 using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Queries.GetUserPeers;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Queries.GetRegions;
@@ -28,12 +28,13 @@ public sealed class OrchestratorController : ControllerBase
         return Ok(peer);
     }
     
-    [HttpPost("renew-due")]
-    public async Task<IActionResult> RenewDue(CancellationToken ct)
+    [HttpPost("purchase")]
+    public async Task<ActionResult<Guid>> Purchase([FromBody] PurchaseSubscriptionRequest body, CancellationToken ct)
     {
-        var count = await _mediator.Send(new RenewDuePeersRequest(), ct);
-        return Ok(new { revoked = count });
+        var subId = await _mediator.Send(body, ct);
+        return Ok(subId);
     }
+    
     
     [HttpGet("peers")]
     public async Task<ActionResult<IReadOnlyList<GetTgPeersDto>>> GetUserPeersByTelegram(

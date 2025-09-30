@@ -18,7 +18,7 @@ public sealed class GetPeersByUserHandler : IRequestHandler<GetPeersByUserReques
                 p.Id.Value,
                 p.UserId,
                 p.ServerId,
-                p.Status.ToString(),
+                p.Status,
                 p.ConfigRaw,
                 p.CreatedAt,
                 p.ExpiresAt

@@ -3,4 +3,9 @@ using MediatR;
 
 namespace DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Commands.AllocatePeer;
 
-public sealed record AllocatePeerRequest(long TelegramId, string? Region) : IRequest<PeerRegisterResponseDto>;
+public sealed record AllocatePeerRequest(
+    long TelegramId,
+    string? Region,
+    Guid SubscriptionId,
+    DateTime EndAt
+) : IRequest<PeerRegisterResponseDto>;
