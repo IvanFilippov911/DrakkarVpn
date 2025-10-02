@@ -21,6 +21,7 @@ public sealed class GetPeersBySubscriptionHandler
                 p.Id.Value,
                 p.UserId,
                 p.ServerId,
+                p.AgentPeerUuid.Value,
                 p.Status,
                 p.ConfigRaw,
                 p.CreatedAt,

@@ -6,6 +6,7 @@ public sealed record PeerResponseDto(
     Guid Id,
     Guid UserId,
     Guid ServerId,
+    Guid AgentPeerId,
     PeerStatus Status,
     string ConfigRaw,
     DateTime CreatedAt,

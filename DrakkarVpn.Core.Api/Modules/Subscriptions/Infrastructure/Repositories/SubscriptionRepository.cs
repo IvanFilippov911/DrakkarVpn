@@ -27,5 +27,11 @@ public sealed class SubscriptionRepository : ISubscriptionRepository
         await _db.Subscriptions
             .Where(s => s.Status == SubscriptionStatus.Active && s.EndAt <= now)
             .ToListAsync(ct);
+    
+    public Task DeleteAsync(Subscription subscription, CancellationToken ct = default)
+    {
+        _db.Subscriptions.Remove(subscription);
+        return Task.CompletedTask;
+    }
 
 }

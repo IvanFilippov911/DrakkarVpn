@@ -1,4 +1,5 @@
 using DrakkarVpn.Core.Api.Modules.Subscriptions.Application.Features.Commands.CreateSubscription;
+using DrakkarVpn.Core.Api.Modules.Subscriptions.Application.Features.Commands.DeleteSubscription;
 using DrakkarVpn.Core.Api.Modules.Subscriptions.Application.Features.Commands.RenewSubscription;
 using DrakkarVpn.Core.Api.Modules.Subscriptions.Application.Features.Queries.GetActiveSubscriptionByUser;
 using DrakkarVpn.Shared.Subscriptions;
@@ -33,5 +34,12 @@ public sealed class SubscriptionsController : ControllerBase
     {
         var result = await _mediator.Send(new GetActiveSubscriptionByUserRequest(userId), ct);
         return Ok(result);
+    }
+    
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new DeleteSubscriptionRequest(id), ct);
+        return result ? Ok() : NotFound();
     }
 }

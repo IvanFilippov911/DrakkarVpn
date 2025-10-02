@@ -19,11 +19,6 @@ internal sealed class SubscriptionConfiguration : IEntityTypeConfiguration<Subsc
             .ValueGeneratedNever();
 
         builder.Property(x => x.UserId).IsRequired();
-
-        builder.Property(x => x.TariffId)
-            .HasConversion(id => id.Value, v => new TariffId(v))
-            .IsRequired();
-
         builder.Property(x => x.StartAt).IsRequired();
         builder.Property(x => x.EndAt).IsRequired();
         builder.Property(x => x.CreatedAt).IsRequired();

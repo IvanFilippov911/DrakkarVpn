@@ -19,6 +19,7 @@ public sealed class GetPeersByServerHandler : IRequestHandler<GetPeersByServerRe
                 p.Id.Value,
                 p.UserId,
                 p.ServerId,
+                p.AgentPeerUuid.Value,
                 p.Status,
                 p.ConfigRaw,
                 p.CreatedAt,

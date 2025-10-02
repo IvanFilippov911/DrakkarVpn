@@ -1,9 +1,9 @@
-using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.DTOs;
-using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Commands.AllocatePeer;
 using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Commands.PurchaseSubscription;
 using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Queries.GetUserPeers;
+using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Queries.GetVpnConfig;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.DTOs;
-using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Queries.GetRegions;
+using DrakkarVpn.Core.Api.Modules.Peers.Application.Features.Queries.GetPeerByUuid;
+using DrakkarVpn.Core.Api.Modules.Tariffs.Application.Features.Queries.GetActiveTariffs;
 using DrakkarVpn.Core.Api.Modules.Users.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Users.Application.Features.Commands.Register;
 using DrakkarVpn.Shared.Users;
@@ -18,15 +18,6 @@ public sealed class OrchestratorController : ControllerBase
 {
     private readonly IMediator _mediator;
     public OrchestratorController(IMediator mediator) => _mediator = mediator;
-    
-    [HttpPost("allocate")]
-    public async Task<ActionResult<PeerRegisterResponseDto>> Allocate(
-        [FromBody] AllocatePeerRequest body,
-        CancellationToken ct)
-    {
-        var peer = await _mediator.Send(body, ct);
-        return Ok(peer);
-    }
     
     [HttpPost("purchase")]
     public async Task<ActionResult<Guid>> Purchase([FromBody] PurchaseSubscriptionRequest body, CancellationToken ct)
@@ -53,12 +44,31 @@ public sealed class OrchestratorController : ControllerBase
         return Ok(isNew);
     }
     
-    [HttpGet("regions")]
-    public async Task<ActionResult<IReadOnlyList<string>>> GetRegions(CancellationToken ct)
+    [HttpGet("tariffs")]
+    public async Task<ActionResult<Guid>> GetActiveTariffs(CancellationToken ct)
     {
-        var regions = await _mediator.Send(new GetRegionsRequest(), ct);
-        return Ok(regions);
+        var tattifs = await _mediator.Send(new GetActiveTariffsRequest(), ct);
+        return Ok(tattifs);
     }
     
+    [HttpGet("vpn-config/{telegramId:long}")]
+    public async Task<IActionResult> GetVpnConfig(long telegramId, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new GetVpnConfigRequest(telegramId), ct);
+        if (result is null)
+            return NotFound("Активная подписка или пир не найдены");
+
+        return Ok(result);
+    }
+    
+    [HttpGet("s/{peerUuid:guid}")]
+    public async Task<IActionResult> GetPeerConfig(Guid peerUuid, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new GetPeerByUuidRequest(peerUuid), ct);
+        if (result is null)
+            return NotFound("Пир не найден");
+        
+        return Content(result.ConfigRaw, "text/plain");
+    }
 
 }

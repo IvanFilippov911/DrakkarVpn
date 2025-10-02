@@ -16,11 +16,7 @@ internal sealed class IdempotencyConfiguration : IEntityTypeConfiguration<Idempo
         builder.Property(x => x.Action).IsRequired().HasMaxLength(100);
         builder.Property(x => x.RequestId).IsRequired();
         builder.Property(x => x.Status).IsRequired().HasConversion<int>();
-
         builder.Property(x => x.CreatedAt).IsRequired();
-        builder.Property(x => x.RowVersion)
-            .IsRowVersion()
-            .IsConcurrencyToken();
         
         builder.HasIndex(x => new { x.ActorKey, x.Action, x.RequestId })
             .IsUnique();

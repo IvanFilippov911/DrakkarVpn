@@ -10,13 +10,11 @@ public sealed class Subscription
     private Subscription(
         SubscriptionId id,
         Guid userId,
-        TariffId tariffId,
         DateTime startAt,
         DateTime endAt)
     {
         Id = id;
         UserId = userId;
-        TariffId = tariffId;
         StartAt = startAt;
         EndAt = endAt;
         Status = SubscriptionStatus.Active;
@@ -25,14 +23,18 @@ public sealed class Subscription
 
     public SubscriptionId Id { get; private set; }
     public Guid UserId { get; private set; }
-    public TariffId TariffId { get; private set; }
     public DateTime StartAt { get; private set; }
     public DateTime EndAt { get; private set; }
     public SubscriptionStatus Status { get; private set; }
     public DateTime CreatedAt { get; private set; }
 
-    public static Subscription CreateNew(Guid userId, TariffId tariffId, DateTime startAt, DateTime endAt) =>
-        new(SubscriptionId.New(), userId, tariffId, startAt, endAt);
+    public static Subscription CreateNew(Guid userId, DateTime startAt, DateTime endAt)
+    {
+        var sub = new Subscription(SubscriptionId.New(), userId, startAt, endAt);
+        sub.Status = SubscriptionStatus.Active;
+        return sub;
+    }
+
 
     public void Renew(DateTime newEndAt)
     {

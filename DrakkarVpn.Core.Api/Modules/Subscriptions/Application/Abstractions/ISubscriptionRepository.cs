@@ -9,5 +9,5 @@ public interface ISubscriptionRepository
     Task<Subscription?> GetByIdAsync(SubscriptionId id, CancellationToken ct = default);
     Task AddAsync(Subscription subscription, CancellationToken ct = default);
     Task<IReadOnlyList<Subscription>> GetExpiredActiveAsync(DateTime now, CancellationToken ct = default);
-
+    Task DeleteAsync(Subscription subscription, CancellationToken ct = default);
 }

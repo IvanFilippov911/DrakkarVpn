@@ -14,7 +14,6 @@ public sealed class IdempotencyKey
     public DateTime CreatedAt { get; private set; }
     public DateTime? CompletedAt { get; private set; }
     public DateTime? ExpiresAt { get; private set; }         
-    public byte[] RowVersion { get; private set; } = default!;
 
     private IdempotencyKey() { }
     private IdempotencyKey(string actorKey, string action, Guid requestId, DateTime nowUtc, TimeSpan? ttl)

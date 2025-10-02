@@ -67,6 +67,8 @@ public sealed class PeerRepository : IPeerRepository
     public async Task<IReadOnlyList<Peer>> GetBySubscriptionAsync(SubscriptionId subscriptionId, CancellationToken ct) =>
         await _db.Peers.Where(p => p.SubscriptionId == subscriptionId).ToListAsync(ct);
 
-
+    public async Task<Peer?> GetByAgentUuidAsync(AgentPeerUuid uuid, CancellationToken ct) =>
+        await _db.Peers
+            .FirstOrDefaultAsync(p => p.AgentPeerUuid == uuid, ct);
 
 }

@@ -1,6 +1,7 @@
 using DrakkarVpn.Core.Api.Modules.Subscriptions.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Tariffs.Application.Abstracts;
 using DrakkarVpn.Core.Api.Modules.Tariffs.Domain;
+using DrakkarVpn.Core.Api.Modules.Tariffs.Domain.ValueObjects;
 using DrakkarVpn.Shared.Subscriptions;
 using MediatR;
 
@@ -25,9 +26,9 @@ public sealed class RenewSubscriptionHandler : IRequestHandler<RenewSubscription
         if (subscription is null)
             throw new InvalidOperationException($"Subscription {request.SubscriptionId} not found");
 
-        var tariff = await _tariffs.GetByIdAsync(subscription.TariffId, ct);
+        var tariff = await _tariffs.GetByIdAsync(new (request.TariffId), ct);
         if (tariff is null || tariff.Status != TariffStatus.Active)
-            throw new InvalidOperationException($"Tariff {subscription.TariffId.Value} not available");
+            throw new InvalidOperationException($"Tariff {request.TariffId} not available");
 
         var newEndAt = subscription.IsActive()
             ? subscription.EndAt.Add(tariff.Duration)
@@ -38,7 +39,6 @@ public sealed class RenewSubscriptionHandler : IRequestHandler<RenewSubscription
         return new SubscriptionDto(
             subscription.Id.Value,
             subscription.UserId,
-            subscription.TariffId.Value,
             subscription.StartAt,
             subscription.EndAt,
             subscription.Status.ToString()

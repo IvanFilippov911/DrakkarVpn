@@ -11,53 +11,36 @@ public class StartCommandHandler : IRequestHandler<StartCommand, Unit>
 {
     private readonly ITelegramBotClient _bot;
     private readonly IOrchestratorClient _orchestrator;
-
-    public StartCommandHandler(
-        ITelegramBotClient bot,
-        IOrchestratorClient orchestrator)
+    public StartCommandHandler(ITelegramBotClient bot, IOrchestratorClient orchestrator)
     {
         _bot = bot;
         _orchestrator = orchestrator;
-        
     }
 
     public async Task<Unit> Handle(StartCommand req, CancellationToken ct)
     {
         var chatId = req.Message.Chat.Id;
-        var tgId = req.Message.From!.Id;
-        
-        var result = await _orchestrator.RegisterUserAsync(tgId, ct);
-        
-        if (!result.IsNewUser)
-        {
-            await _bot.SendTextMessageAsync(
-                chatId: chatId,
-                text: "⚡ Ты уже с нами на борту!\n" +
-                      "Используй /mykeys чтобы посмотреть свои ключи 🔑",
-                cancellationToken: ct);
+        var firstName = req.Message.From?.FirstName ?? "друг";
+        var tgId = req.Message.From?.Id ?? 0;
 
-            return Unit.Value;
-        }
+        await _orchestrator.RegisterUserAsync(tgId, ct);
         
-        var regions = await _orchestrator.GetRegionsAsync(ct);
-        
+        var webAppUrl = "https://info-construct-utility-colours.trycloudflare.com";
+
+        var webApp = new WebAppInfo { Url = webAppUrl };
         var keyboard = new InlineKeyboardMarkup(
-            regions.Select(r =>
-                    InlineKeyboardButton.WithCallbackData(r.Code.ToUpper(), $"region:{r.Code}"))
-                .Chunk(2)
+            InlineKeyboardButton.WithWebApp("🚀 Открыть VPN WebApp", webApp)
         );
-        
+
         await _bot.SendTextMessageAsync(
             chatId: chatId,
-            text: $"Привет, {req.Message.From.FirstName}! 🚀\n" +
-                  $"Вступай на наш Драккар! Здесь ты в безопасности.\n" +
-                  $"Выбери, куда хочешь отправиться:",
+            text: $"Привет, {firstName}! 🚀\n" +
+                  $"Добро пожаловать на Драккар!\n" +
+                  $"Нажми кнопку ниже, чтобы открыть приложение:",
             replyMarkup: keyboard,
             cancellationToken: ct);
 
         return Unit.Value;
     }
-    
-    
 }
 

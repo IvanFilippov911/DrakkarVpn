@@ -25,22 +25,21 @@ public sealed class PurchaseSubscriptionHandler
 
         if (activeSub is not null)
         {
-            subscription = await _mediator.Send(new RenewSubscriptionRequest(activeSub.Id), ct);
+            subscription = await _mediator.Send(new RenewSubscriptionRequest(activeSub.Id, req.TariffId), ct);
         }
         else
         {
             subscription = await _mediator.Send(new CreateSubscriptionRequest(user.Id, req.TariffId), ct);
+            await _mediator.Send(
+                new AllocatePeerRequest(
+                    req.TelegramId,
+                    req.Region,
+                    subscription.Id,
+                    subscription.EndAt
+                ),
+                ct);
         }
         
-        await _mediator.Send(
-            new AllocatePeerRequest(
-                req.TelegramId, 
-                req.Region, 
-                subscription.Id, 
-                subscription.EndAt
-            ),
-            ct
-        );
 
         return subscription.Id;
     }

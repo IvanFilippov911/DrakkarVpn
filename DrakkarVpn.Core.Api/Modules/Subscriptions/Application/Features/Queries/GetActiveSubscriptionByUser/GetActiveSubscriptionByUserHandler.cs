@@ -20,7 +20,6 @@ public sealed class GetActiveSubscriptionByUserHandler
 
         return new GetActiveSubscriptionDto(
             subscription.Id.Value,
-            subscription.TariffId.Value,
             subscription.StartAt,
             subscription.EndAt
         );

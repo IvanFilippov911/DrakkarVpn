@@ -15,7 +15,10 @@ public static class CoreApplicationExtensions
         services.AddValidatorsFromAssemblies(assemblies);
         
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(IdempotencyBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(EfTransactionBehavior<,>));
+        
+
 
         return services;
     }
