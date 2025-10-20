@@ -19,13 +19,12 @@ public sealed class GetPeerByIdHandler : IRequestHandler<GetPeerByIdRequest, Pee
 
         return new PeerResponseDto(
             peer.Id.Value,
-            peer.UserId,
+            peer.DeviceId,
             peer.ServerId,
             peer.AgentPeerUuid.Value,
             peer.Status,
             peer.ConfigRaw,
-            peer.CreatedAt,
-            peer.ExpiresAt
+            peer.CreatedAt
         );
     }
 }

@@ -7,7 +7,7 @@ public static class AgentInfrastructureExtensions
     public static IServiceCollection AddAgentInfrastructure(this IServiceCollection services)
     {
         
-        services.AddHttpClient<IAgentClient, AgentClient>();
+        services.AddHttpClient<IPeersAgentClient, PeersAgentClient>();
 
         return services;
     }

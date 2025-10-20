@@ -25,7 +25,7 @@ public sealed class V2RayGrpcClient : IV2RayClient
     {
         var peerUuid = Guid.NewGuid();
 
-        using var channel = GrpcChannel.ForAddress($"http://{_options.ServerHost}:{_options.ApiPort}");
+        using var channel = GrpcChannel.ForAddress($"http://{_options.LocalApiHost}:{_options.ApiPort}");
         var client = new HandlerService.HandlerServiceClient(channel);
         
         var vless = new Account
@@ -66,7 +66,7 @@ public sealed class V2RayGrpcClient : IV2RayClient
         await client.AlterInboundAsync(request, cancellationToken: ct);
         
         var vlessUrl =
-            $"vless://{peerUuid}@{_options.ServerHost}:{_options.VlessPort}" +
+            $"vless://{peerUuid}@{_options.PublicHost}:{_options.VlessPort}" +
             $"?security=tls&encryption=none&type=tcp&allowInsecure=1#Drakkar-{peerUuid.ToString()[..8]}";
 
         return new RegisterPeerResponseDto(peerUuid, vlessUrl);
@@ -74,7 +74,7 @@ public sealed class V2RayGrpcClient : IV2RayClient
 
     public async Task<bool> RevokePeerAsync(Guid peerUuid, CancellationToken ct)
     {
-        using var channel = GrpcChannel.ForAddress($"http://{_options.ServerHost}:{_options.ApiPort}");
+        using var channel = GrpcChannel.ForAddress($"http://{_options.LocalApiHost}:{_options.ApiPort}");
         var client = new HandlerService.HandlerServiceClient(channel);
 
         var removeUser = new RemoveUserOperation
@@ -111,7 +111,7 @@ public sealed class V2RayGrpcClient : IV2RayClient
     
     public async Task<IReadOnlyList<PeersResultDto>> GetListPeersAsync(CancellationToken ct)
     {
-        using var channel = GrpcChannel.ForAddress($"http://{_options.ServerHost}:{_options.ApiPort}");
+        using var channel = GrpcChannel.ForAddress($"http://{_options.LocalApiHost}:{_options.ApiPort}");
         var client = new HandlerService.HandlerServiceClient(channel);
 
         var response = await client.GetInboundUsersAsync(new GetInboundUserRequest

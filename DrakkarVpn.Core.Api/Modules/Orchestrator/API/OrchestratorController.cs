@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Commands.PurchaseSubscription;
 using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Queries.GetUserPeers;
 using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Queries.GetVpnConfig;
@@ -6,8 +7,10 @@ using DrakkarVpn.Core.Api.Modules.Peers.Application.Features.Queries.GetPeerByUu
 using DrakkarVpn.Core.Api.Modules.Tariffs.Application.Features.Queries.GetActiveTariffs;
 using DrakkarVpn.Core.Api.Modules.Users.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Users.Application.Features.Commands.Register;
+using DrakkarVpn.Core.Api.Modules.Users.Infrastructure;
 using DrakkarVpn.Shared.Users;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DrakkarVpn.Core.Api.Modules.Orchestrator.API;
@@ -51,14 +54,24 @@ public sealed class OrchestratorController : ControllerBase
         return Ok(tattifs);
     }
     
-    [HttpGet("vpn-config/{telegramId:long}")]
-    public async Task<IActionResult> GetVpnConfig(long telegramId, CancellationToken ct)
+    [Authorize]
+    [HttpGet("config")]
+    public async Task<IActionResult> GetConfig(
+        [FromQuery] string? region,
+        [FromQuery] string? deviceName,
+        [FromQuery] string? platform,
+        CancellationToken ct)
     {
-        var result = await _mediator.Send(new GetVpnConfigRequest(telegramId), ct);
-        if (result is null)
-            return NotFound("Активная подписка или пир не найдены");
+        var req = new GetVpnConfigRequest(
+            TelegramId: User.GetTelegramId(),
+            DeviceId:   User.GetDeviceId(),
+            DeviceName: deviceName ?? User.GetDeviceName(),
+            Platform:   platform   ?? User.GetPlatform(),
+            Region:     region
+        );
 
-        return Ok(result);
+        var res = await _mediator.Send(req, ct);
+        return res is null ? NotFound("Активная подписка или пир не найдены") : Ok(res);
     }
     
     [HttpGet("s/{peerUuid:guid}")]

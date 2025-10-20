@@ -8,10 +8,5 @@ public sealed class RegisterPeerValidator : AbstractValidator<RegisterPeerReques
     {
         RuleFor(x => x.UserId).NotEmpty();
         RuleFor(x => x.ServerId).NotEmpty();
-
-        RuleFor(x => x.ExpiresAt)
-            .GreaterThan(DateTime.UtcNow)
-            .When(x => x.ExpiresAt.HasValue)
-            .WithMessage("Expiration date must be in the future");
     }
 }

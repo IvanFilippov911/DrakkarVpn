@@ -6,7 +6,7 @@ namespace DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Commands
 public sealed record PurchaseSubscriptionRequest(
     long TelegramId,
     Guid TariffId,
-    string? Region,
+    int DevicesCount, 
     Guid RequestId
 ) : IIdempotentRequest<Guid>
 {

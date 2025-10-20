@@ -1,3 +1,3 @@
 namespace DrakkarVpn.Shared.Subscriptions;
 
-public sealed record GetActiveSubscriptionDto(Guid Id, DateTime StartAt, DateTime EndAt);
+public sealed record GetActiveSubscriptionDto(Guid Id, int MaxDevices, DateTime StartAt, DateTime EndAt);

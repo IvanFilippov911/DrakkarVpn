@@ -11,7 +11,8 @@ public sealed class Subscription
         SubscriptionId id,
         Guid userId,
         DateTime startAt,
-        DateTime endAt)
+        DateTime endAt,
+        int maxDevices)
     {
         Id = id;
         UserId = userId;
@@ -19,6 +20,7 @@ public sealed class Subscription
         EndAt = endAt;
         Status = SubscriptionStatus.Active;
         CreatedAt = DateTime.UtcNow;
+        MaxDevices = maxDevices;
     }
 
     public SubscriptionId Id { get; private set; }
@@ -27,14 +29,16 @@ public sealed class Subscription
     public DateTime EndAt { get; private set; }
     public SubscriptionStatus Status { get; private set; }
     public DateTime CreatedAt { get; private set; }
+    
+    public int MaxDevices { get; private set; } 
 
-    public static Subscription CreateNew(Guid userId, DateTime startAt, DateTime endAt)
+    public static Subscription CreateNew(Guid userId, DateTime startAt, DateTime endAt, int maxDevices = 1)
     {
-        var sub = new Subscription(SubscriptionId.New(), userId, startAt, endAt);
+        if (maxDevices < 1) throw new ArgumentOutOfRangeException(nameof(maxDevices));
+        var sub = new Subscription(SubscriptionId.New(), userId, startAt, endAt, maxDevices);
         sub.Status = SubscriptionStatus.Active;
         return sub;
     }
-
 
     public void Renew(DateTime newEndAt)
     {
@@ -49,4 +53,10 @@ public sealed class Subscription
         Status == SubscriptionStatus.Active && EndAt > DateTime.UtcNow;
 
     public void Expire() => Status = SubscriptionStatus.Expired;
+    
+    public void ChangeMaxDevices(int newMaxDevices)
+    {
+        if (newMaxDevices < 1) throw new ArgumentOutOfRangeException(nameof(newMaxDevices));
+        MaxDevices = newMaxDevices;
+    }
 }

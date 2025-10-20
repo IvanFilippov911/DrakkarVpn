@@ -1,8 +1,9 @@
 using DrakkarVpn.Agent.Application.DTOs;
+using DrakkarVpn.Shared;
 
 namespace DrakkarVpn.Agent.Application.Abstractions;
 
 public interface IHealthService
 {
-    Task<AgentHealthDto> GetHealthAsync(CancellationToken ct);
+    Task<AgentMetricsDto> GetHealthAsync(CancellationToken ct);
 }

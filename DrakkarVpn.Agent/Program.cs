@@ -6,6 +6,7 @@ var services = builder.Services;
 services.AddControllers();
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
+services.AddMemoryCache();
 
 services.AddV2RayGrpc(builder.Configuration);
 

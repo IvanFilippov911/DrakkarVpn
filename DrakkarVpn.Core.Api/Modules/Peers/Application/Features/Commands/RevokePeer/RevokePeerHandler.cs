@@ -2,7 +2,9 @@ using DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Peers.Domain;
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Servers.Domain;
+using DrakkarVpn.Core.Api.Modules.Servers.Domain.VO;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace DrakkarVpn.Core.Api.Modules.Peers.Application.Features.Commands.RevokePeer;
 
@@ -10,33 +12,39 @@ public sealed class RevokePeerHandler : IRequestHandler<RevokePeerRequest, bool>
 {
     private readonly IPeerRepository _peers;
     private readonly IServerRepository _servers;
-    private readonly IAgentClient _agentClient;
+    private readonly IPeersAgentClient _agent;
 
     public RevokePeerHandler(
         IPeerRepository peers,
         IServerRepository servers,
-        IAgentClient agentClient)
+        IPeersAgentClient agent)
     {
         _peers = peers;
         _servers = servers;
-        _agentClient = agentClient;
+        _agent = agent;
     }
 
     public async Task<bool> Handle(RevokePeerRequest req, CancellationToken ct)
     {
         var peer = await _peers.GetByIdAsync(new PeerId(req.PeerId), ct);
-        if (peer is null || !peer.IsActive())
-            return false;
+        if (peer is null) return false;
         
-        var server = await _servers.GetAsync(new ServerId(req.ServerId), ct);
-        if (server is null)
-            throw new InvalidOperationException($"Server {req.ServerId} not found");
+        if (!peer.IsActive()) return true;
         
-        var agentOk = await _agentClient.RevokePeerAsync(server, peer.AgentPeerUuid, ct);
+        if (peer.ServerId != req.ServerId)
+            throw new InvalidOperationException(
+                $"Peer {peer.Id.Value} belongs to server {peer.ServerId}, not {req.ServerId}");
+
+        var server = await _servers.GetAsync(new ServerId(peer.ServerId), ct)
+                    ?? throw new InvalidOperationException($"Server {peer.ServerId} not found");
+        
+        var agentOk = await _agent.RevokePeerAsync(server, peer.AgentPeerUuid, ct);
         if (!agentOk)
-            throw new InvalidOperationException($"Agent {server.Id} refused to revoke peer {peer.Id}");
+            throw new InvalidOperationException(
+                $"Agent {server.Id.Value} refused to revoke peer {peer.Id.Value}");
         
         peer.Revoke();
+        await _peers.SaveChangesAsync(ct);
 
         return true;
     }

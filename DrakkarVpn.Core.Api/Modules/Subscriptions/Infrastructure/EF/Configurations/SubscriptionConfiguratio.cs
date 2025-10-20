@@ -30,5 +30,11 @@ internal sealed class SubscriptionConfiguration : IEntityTypeConfiguration<Subsc
         builder.HasIndex(x => x.UserId)
             .IsUnique()
             .HasFilter("\"Status\" = 1");
+        
+        builder.Property(x => x.MaxDevices)
+            .IsRequired()
+            .HasDefaultValue(1);
+
+        
     }
 }

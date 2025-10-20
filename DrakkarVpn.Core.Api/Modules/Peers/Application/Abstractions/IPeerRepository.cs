@@ -18,7 +18,9 @@ public interface IPeerRepository
     Task<int> GetActiveCountByServerIdAsync(Guid serverId, CancellationToken ct);
 
     void Remove(Peer peer);
-    Task<IReadOnlyList<Peer>> GetExpiredAsync(DateTime until, CancellationToken ct);
     Task<IReadOnlyList<Peer>> GetBySubscriptionAsync(SubscriptionId subscriptionId, CancellationToken ct);
     Task<Peer?> GetByAgentUuidAsync(AgentPeerUuid uuid, CancellationToken ct);
+    
+    Task<int> SaveChangesAsync(CancellationToken ct);
+    Task<Peer?> GetActiveBySubscriptionAndDeviceAsync(SubscriptionId subId, string deviceId, CancellationToken ct);
 }

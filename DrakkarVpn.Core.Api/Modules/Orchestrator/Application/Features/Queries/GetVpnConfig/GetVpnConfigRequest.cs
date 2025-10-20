@@ -3,4 +3,10 @@ using MediatR;
 
 namespace DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Queries.GetVpnConfig;
 
-public sealed record GetVpnConfigRequest(long TelegramId) : IRequest<GetVpnConfigResponse>;
+public sealed record GetVpnConfigRequest(
+    long TelegramId,
+    string DeviceId,          
+    string? DeviceName,
+    string? Platform,
+    string? Region            
+) : IRequest<GetVpnConfigResponse?>;

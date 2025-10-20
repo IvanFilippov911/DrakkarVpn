@@ -1,5 +1,6 @@
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Servers.Domain;
+using DrakkarVpn.Core.Api.Modules.Servers.Domain.VO;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,12 +29,13 @@ public sealed class GetServersHandler : IRequestHandler<GetServersRequest, IRead
                 s.Id.Value,
                 s.Name,
                 s.Region.Code,
-                s.PublicHost.Value,
-                s.AgentBaseUrl.ToString(),
                 s.Status.ToString(),
                 s.Health.Reachable,
                 s.Health.PeersActive,
-                s.MaxPeers))
+                s.MaxPeers,
+                s.Metrics.VpnSpeedMbps,
+                s.Metrics.InfraLatencyMs
+            ))
             .ToListAsync(ct);
     }
 }

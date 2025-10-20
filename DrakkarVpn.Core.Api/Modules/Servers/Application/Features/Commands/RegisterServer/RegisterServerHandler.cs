@@ -1,5 +1,6 @@
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Servers.Domain;
+using DrakkarVpn.Core.Api.Modules.Servers.Domain.VO;
 using MediatR;
 
 namespace DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Commands.RegisterServer;

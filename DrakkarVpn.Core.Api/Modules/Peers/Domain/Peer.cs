@@ -8,12 +8,15 @@ public sealed class Peer : IAggregateRoot
     public PeerId Id { get; private set; }
     public Guid UserId { get; private set; }
     public Guid ServerId { get; private set; }
-    public SubscriptionId SubscriptionId { get; private set; }   // ✅ ValueObject вместо Guid
+    public SubscriptionId SubscriptionId { get; private set; }
     public AgentPeerUuid AgentPeerUuid { get; private set; }
     public string ConfigRaw { get; private set; }
     public PeerStatus Status { get; private set; }
     public DateTime CreatedAt { get; private set; }
-    public DateTime? ExpiresAt { get; private set; }
+    public string DeviceId { get; private set; }         
+    public DateTime? LastHandshakeAt { get; private set; }
+    
+    private Peer() { }
 
     private Peer(
         PeerId id,
@@ -23,7 +26,9 @@ public sealed class Peer : IAggregateRoot
         AgentPeerUuid agentPeerUuid,
         string configRaw,
         DateTime createdAt,
-        DateTime? expiresAt)
+        string deviceId,
+        string? deviceName,
+        string? platform)
     {
         Id = id;
         UserId = userId;
@@ -33,7 +38,8 @@ public sealed class Peer : IAggregateRoot
         ConfigRaw = configRaw ?? throw new ArgumentNullException(nameof(configRaw));
         Status = PeerStatus.Active;
         CreatedAt = createdAt;
-        ExpiresAt = expiresAt;
+
+        DeviceId = deviceId ?? throw new ArgumentNullException(nameof(deviceId));
     }
 
     public static Peer CreateNew(
@@ -42,24 +48,17 @@ public sealed class Peer : IAggregateRoot
         SubscriptionId subscriptionId,
         AgentPeerUuid agentPeerUuid,
         string configRaw,
-        DateTime nowUtc,
-        DateTime? expiresAt = null)
-        => new(PeerId.New(), userId, serverId, subscriptionId, agentPeerUuid, configRaw, nowUtc, expiresAt);
+        string deviceId,
+        string? deviceName,
+        string? platform,
+        DateTime nowUtc)
+        => new(PeerId.New(), userId, serverId, subscriptionId, agentPeerUuid, configRaw, nowUtc,
+               deviceId, deviceName, platform);
 
     public void Revoke() => Status = PeerStatus.Revoked;
 
-    public bool IsActive() => Status == PeerStatus.Active && (ExpiresAt is null || ExpiresAt > DateTime.UtcNow);
+    public bool IsActive() => Status == PeerStatus.Active;
+
+    public void TouchHandshake(DateTime nowUtc) => LastHandshakeAt = nowUtc;
     
-    
-    public void Renew(DateTime newExpiresAt)
-    {
-        if (Status != PeerStatus.Active)
-            throw new InvalidOperationException("Cannot renew revoked peer");
-
-        if (newExpiresAt <= DateTime.UtcNow)
-            throw new ArgumentException("Expiration must be in the future", nameof(newExpiresAt));
-
-        ExpiresAt = newExpiresAt;
-    }
-
 }

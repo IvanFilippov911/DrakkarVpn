@@ -2,6 +2,7 @@ using DrakkarVpn.Core.Api.Modules.Idempotency.Domain;
 using DrakkarVpn.Core.Api.Modules.Peers.Domain;
 using DrakkarVpn.Core.Api.Modules.Servers.Domain;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.EF.Configurations;
+using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.Entities;
 using DrakkarVpn.Core.Api.Modules.Subscriptions.Domain;
 using DrakkarVpn.Core.Api.Modules.Tariffs.Domain;
 using DrakkarVpn.Core.Api.Modules.Users.Domain;
@@ -13,6 +14,7 @@ namespace DrakkarVpn.Core.Api.Infrastructure.EF;
 public sealed class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+    public DbSet<Device> Devices => Set<Device>();
 
     public DbSet<AppUser> Users => Set<AppUser>();
     public DbSet<Server> Servers => Set<Server>();
@@ -20,7 +22,7 @@ public sealed class AppDbContext : DbContext
     public DbSet<Tariff> Tariffs => Set<Tariff>();
     public DbSet<Subscription> Subscriptions => Set<Subscription>();
     public DbSet<IdempotencyKey> IdempotencyKeys => Set<IdempotencyKey>();
-
+    public DbSet<ServerMetricsHistory> ServerMetricsHistory => Set<ServerMetricsHistory>();
 
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)

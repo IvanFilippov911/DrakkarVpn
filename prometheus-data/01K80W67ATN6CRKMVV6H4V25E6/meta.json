@@ -1,0 +1,17 @@
+{
+	"ulid": "01K80W67ATN6CRKMVV6H4V25E6",
+	"minTime": 1760955151371,
+	"maxTime": 1760961600000,
+	"stats": {
+		"numSamples": 720,
+		"numSeries": 10,
+		"numChunks": 10
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01K80W67ATN6CRKMVV6H4V25E6"
+		]
+	},
+	"version": 1
+}

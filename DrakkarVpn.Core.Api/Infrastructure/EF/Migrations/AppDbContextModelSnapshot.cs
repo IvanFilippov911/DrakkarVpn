@@ -86,9 +86,15 @@ namespace DrakkarVpn.Core.Api.Infrastructure.EF.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<DateTime?>("ExpiresAt")
+                    b.Property<string>("DeviceId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("device_id");
+
+                    b.Property<DateTime?>("LastHandshakeAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("expires_at");
+                        .HasColumnName("last_handshake_at");
 
                     b.Property<Guid>("ServerId")
                         .HasColumnType("uuid")
@@ -99,7 +105,8 @@ namespace DrakkarVpn.Core.Api.Infrastructure.EF.Migrations
                         .HasColumnName("status");
 
                     b.Property<Guid>("SubscriptionId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("subscription_id");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
@@ -116,6 +123,14 @@ namespace DrakkarVpn.Core.Api.Infrastructure.EF.Migrations
 
                     b.HasIndex("UserId")
                         .HasDatabaseName("ix_peers_user_id");
+
+                    b.HasIndex("SubscriptionId", "DeviceId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_peers_sub_device_active")
+                        .HasFilter("\"status\" = 0");
+
+                    b.HasIndex("SubscriptionId", "Status")
+                        .HasDatabaseName("ix_peers_sub_status");
 
                     b.ToTable("peers", (string)null);
                 });
@@ -174,6 +189,51 @@ namespace DrakkarVpn.Core.Api.Infrastructure.EF.Migrations
                     b.ToTable("servers", (string)null);
                 });
 
+            modelBuilder.Entity("DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.Entities.ServerMetricsHistory", b =>
+                {
+                    b.Property<DateTime>("PeriodStartUtc")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("period_start");
+
+                    b.Property<Guid>("ServerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("server_id");
+
+                    b.Property<decimal>("InfraLatencyMs")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("infra_latency_ms");
+
+                    b.Property<int?>("MaxPeers")
+                        .HasColumnType("integer")
+                        .HasColumnName("max_peers");
+
+                    b.Property<int>("PeersActive")
+                        .HasColumnType("integer")
+                        .HasColumnName("peers_active");
+
+                    b.Property<bool>("Reachable")
+                        .HasColumnType("boolean")
+                        .HasColumnName("reachable");
+
+                    b.Property<long>("TrafficRxBytes")
+                        .HasColumnType("bigint")
+                        .HasColumnName("traffic_rx_bytes");
+
+                    b.Property<long>("TrafficTxBytes")
+                        .HasColumnType("bigint")
+                        .HasColumnName("traffic_tx_bytes");
+
+                    b.Property<decimal>("VpnSpeedMbps")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("vpn_speed_mbps");
+
+                    b.HasKey("PeriodStartUtc", "ServerId");
+
+                    b.ToTable("server_metrics_history", (string)null);
+                });
+
             modelBuilder.Entity("DrakkarVpn.Core.Api.Modules.Subscriptions.Domain.Subscription", b =>
                 {
                     b.Property<Guid>("Id")
@@ -184,6 +244,11 @@ namespace DrakkarVpn.Core.Api.Infrastructure.EF.Migrations
 
                     b.Property<DateTime>("EndAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("MaxDevices")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
 
                     b.Property<DateTime>("StartAt")
                         .HasColumnType("timestamp with time zone");
@@ -258,9 +323,71 @@ namespace DrakkarVpn.Core.Api.Infrastructure.EF.Migrations
                     b.ToTable("app_users", (string)null);
                 });
 
+            modelBuilder.Entity("DrakkarVpn.Core.Api.Modules.Users.Domain.Device", b =>
+                {
+                    b.Property<string>("DeviceId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("device_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTime?>("LastSeen")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_seen");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Platform")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("platform");
+
+                    b.Property<short>("Status")
+                        .HasColumnType("smallint")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("DeviceId");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_devices_user");
+
+                    b.ToTable("devices", (string)null);
+                });
+
             modelBuilder.Entity("DrakkarVpn.Core.Api.Modules.Servers.Domain.Server", b =>
                 {
-                    b.OwnsOne("DrakkarVpn.Core.Api.Modules.Servers.Domain.HealthSnapshot", "Health", b1 =>
+                    b.OwnsOne("DrakkarVpn.Core.Api.Modules.Servers.Domain.VO.BenchmarkSnapshot", "Benchmark", b1 =>
+                        {
+                            b1.Property<Guid>("ServerId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<double>("MaxSpeedMbps")
+                                .HasColumnType("double precision")
+                                .HasColumnName("benchmark_max_speed_mbps");
+
+                            b1.Property<DateTime>("MeasuredAt")
+                                .HasColumnType("timestamp with time zone")
+                                .HasColumnName("benchmark_measured_at");
+
+                            b1.HasKey("ServerId");
+
+                            b1.ToTable("servers");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ServerId");
+                        });
+
+                    b.OwnsOne("DrakkarVpn.Core.Api.Modules.Servers.Domain.VO.HealthSnapshot", "Health", b1 =>
                         {
                             b1.Property<Guid>("ServerId")
                                 .HasColumnType("uuid");
@@ -288,7 +415,46 @@ namespace DrakkarVpn.Core.Api.Infrastructure.EF.Migrations
                                 .HasForeignKey("ServerId");
                         });
 
+                    b.OwnsOne("DrakkarVpn.Core.Api.Modules.Servers.Domain.VO.MetricsSnapshot", "Metrics", b1 =>
+                        {
+                            b1.Property<Guid>("ServerId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<double>("InfraLatencyMs")
+                                .HasColumnType("double precision")
+                                .HasColumnName("metrics_infra_latency_ms");
+
+                            b1.Property<long>("TrafficRxBytes")
+                                .HasColumnType("bigint")
+                                .HasColumnName("metrics_rx_bytes");
+
+                            b1.Property<long>("TrafficTxBytes")
+                                .HasColumnType("bigint")
+                                .HasColumnName("metrics_tx_bytes");
+
+                            b1.Property<DateTime>("UpdatedAt")
+                                .HasColumnType("timestamp with time zone")
+                                .HasColumnName("metrics_updated_at");
+
+                            b1.Property<double>("VpnSpeedMbps")
+                                .HasColumnType("double precision")
+                                .HasColumnName("metrics_vpn_speed_mbps");
+
+                            b1.HasKey("ServerId");
+
+                            b1.ToTable("servers");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ServerId");
+                        });
+
+                    b.Navigation("Benchmark")
+                        .IsRequired();
+
                     b.Navigation("Health")
+                        .IsRequired();
+
+                    b.Navigation("Metrics")
                         .IsRequired();
                 });
 #pragma warning restore 612, 618

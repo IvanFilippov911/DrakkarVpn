@@ -33,8 +33,7 @@ public sealed class GetUserPeersHandler
             .Select(p => new GetTgPeersDto(
                 p.Id,
                 p.ConfigRaw,
-                p.CreatedAt,
-                p.ExpiresAt
+                p.CreatedAt
             ))
             .ToList();
     }

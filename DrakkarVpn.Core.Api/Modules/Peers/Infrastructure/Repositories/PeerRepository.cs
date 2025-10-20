@@ -47,8 +47,7 @@ public sealed class PeerRepository : IPeerRepository
             .AsNoTracking()
             .CountAsync(p => 
                     p.ServerId == serverId && 
-                    p.Status == PeerStatus.Active && 
-                    (p.ExpiresAt == null || p.ExpiresAt > DateTime.UtcNow),
+                    p.Status == PeerStatus.Active,
                 ct);
     
     public void Remove(Peer peer)
@@ -56,13 +55,6 @@ public sealed class PeerRepository : IPeerRepository
         _db.Peers.Remove(peer);
     }
     
-    public async Task<IReadOnlyList<Peer>> GetExpiredAsync(DateTime until, CancellationToken ct)
-    {
-        return await _db.Peers
-            .AsNoTracking()
-            .Where(p => p.ExpiresAt <= until && p.Status == PeerStatus.Active)
-            .ToListAsync(ct);
-    }
     
     public async Task<IReadOnlyList<Peer>> GetBySubscriptionAsync(SubscriptionId subscriptionId, CancellationToken ct) =>
         await _db.Peers.Where(p => p.SubscriptionId == subscriptionId).ToListAsync(ct);
@@ -70,5 +62,13 @@ public sealed class PeerRepository : IPeerRepository
     public async Task<Peer?> GetByAgentUuidAsync(AgentPeerUuid uuid, CancellationToken ct) =>
         await _db.Peers
             .FirstOrDefaultAsync(p => p.AgentPeerUuid == uuid, ct);
+    
+    public Task<int> SaveChangesAsync(CancellationToken ct) =>
+        _db.SaveChangesAsync(ct);
+
+    public Task<Peer?> GetActiveBySubscriptionAndDeviceAsync(SubscriptionId subId, string deviceId, CancellationToken ct) =>
+        _db.Peers
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.SubscriptionId == subId && p.DeviceId == deviceId && p.Status == PeerStatus.Active, ct);
 
 }

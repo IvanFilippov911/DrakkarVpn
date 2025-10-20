@@ -6,18 +6,18 @@ using MediatR;
 namespace DrakkarVpn.Core.Pipeline;
 
 public sealed class IdempotencyBehavior<TReq, TRes> : IPipelineBehavior<TReq, TRes>
-    where TReq : IIdempotentRequest<TRes>
+    where TReq : notnull
 {
     private readonly IIdempotencyRepository _idem;
 
     public IdempotencyBehavior(IIdempotencyRepository idem) => _idem = idem;
 
-    public async Task<TRes> Handle(
-        TReq request,
-        RequestHandlerDelegate<TRes> next,
-        CancellationToken ct)
+    public async Task<TRes> Handle(TReq request, RequestHandlerDelegate<TRes> next, CancellationToken ct)
     {
-        var key = await _idem.FindAsync(request.ActorKey, request.Action, request.RequestId, ct);
+        if (request is not IIdempotentRequest<TRes> idemReq)
+            return await next(); 
+
+        var key = await _idem.FindAsync(idemReq.ActorKey, idemReq.Action, idemReq.RequestId, ct);
         if (key is not null)
         {
             if (key.Status == IdempotencyStatus.Succeeded)
@@ -26,7 +26,7 @@ public sealed class IdempotencyBehavior<TReq, TRes> : IPipelineBehavior<TReq, TR
                 throw new InvalidOperationException("Duplicate request in progress");
         }
 
-        key ??= await _idem.StartAsync(request.ActorKey, request.Action, request.RequestId, TimeSpan.FromDays(30), ct);
+        key ??= await _idem.StartAsync(idemReq.ActorKey, idemReq.Action, idemReq.RequestId, TimeSpan.FromDays(30), ct);
 
         try
         {
@@ -41,3 +41,4 @@ public sealed class IdempotencyBehavior<TReq, TRes> : IPipelineBehavior<TReq, TR
         }
     }
 }
+

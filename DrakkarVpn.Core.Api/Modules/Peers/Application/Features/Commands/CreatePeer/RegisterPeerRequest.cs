@@ -3,9 +3,12 @@ using MediatR;
 
 namespace DrakkarVpn.Core.Api.Modules.Peers.Application.Features.Commands.CreatePeer;
 
+
 public sealed record RegisterPeerRequest(
     Guid UserId,
     Guid ServerId,
-    Guid SubscriptionId,   
-    DateTime? ExpiresAt
+    Guid SubscriptionId,
+    string DeviceId,          
+    string? DeviceName,       
+    string? Platform
 ) : IRequest<PeerRegisterResponseDto>;

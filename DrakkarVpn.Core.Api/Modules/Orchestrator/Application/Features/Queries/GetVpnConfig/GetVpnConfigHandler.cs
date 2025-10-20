@@ -1,4 +1,5 @@
 using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.DTOs;
+using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Commands.AllocatePeer;
 using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Queries.GetVpnConfig;
 using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Options;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Features.Queries.GetPeersBySubscription;
@@ -24,18 +25,18 @@ public sealed class GetVpnConfigHandler
         var user = await _mediator.Send(new GetUserByTelegramIdRequest(req.TelegramId), ct);
         if (user is null) return null;
 
-        var activeSub = await _mediator.Send(new GetActiveSubscriptionByUserRequest(user.Id), ct);
-        if (activeSub is null) return null;
-
-        var peers = await _mediator.Send(new GetPeersBySubscriptionRequest(activeSub.Id), ct);
-        var peer = peers.FirstOrDefault();
-        if (peer is null) return null;
+        var peer = await _mediator.Send(new AllocatePeerRequest(
+            TelegramId:     req.TelegramId,
+            Region:         req.Region,
+            DeviceId:       req.DeviceId,
+            DeviceName:     req.DeviceName,
+            Platform:       req.Platform
+        ), ct);
 
         var happLink = _linkOptions.BuildHappLink(peer.AgentPeerId.ToString());
         
         return new GetVpnConfigResponse(
             peer.ConfigRaw,
-            peer.ExpiresAt,
             happLink
         );
     }

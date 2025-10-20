@@ -9,21 +9,28 @@ public sealed class EfTransactionBehavior<TReq, TRes> : IPipelineBehavior<TReq, 
     private readonly AppDbContext _db;
     public EfTransactionBehavior(AppDbContext db) => _db = db;
 
-    public async Task<TRes> Handle(
-        TReq request, 
-        RequestHandlerDelegate<TRes> next, 
-        CancellationToken ct)
+    public async Task<TRes> Handle(TReq request, RequestHandlerDelegate<TRes> next, CancellationToken ct)
     {
         var isCommand = typeof(TReq).Namespace?.Contains(".Commands", StringComparison.OrdinalIgnoreCase) == true;
-        if (!isCommand) return await next();
-        
+        if (!isCommand)
+            return await next();
+
         if (_db.Database.CurrentTransaction is not null)
             return await next();
 
         await using var tx = await _db.Database.BeginTransactionAsync(ct);
-        var result = await next();    
-        await _db.SaveChangesAsync(ct);
-        await tx.CommitAsync(ct);
-        return result;
+        try
+        {
+            var result = await next();                  
+            await _db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+            return result;
+        }
+        catch (Exception)
+        {
+            await tx.RollbackAsync(ct);              
+            throw;                                      
+        }
     }
 }
+

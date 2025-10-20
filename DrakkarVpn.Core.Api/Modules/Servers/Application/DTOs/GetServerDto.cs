@@ -4,10 +4,10 @@ public sealed record GetServerDto(
     Guid Id,
     string Name,
     string Region,
-    string PublicHost,
-    string AgentBaseUrl,
     string Status,
     bool Reachable,
     int PeersActive,
-    int? MaxPeers
+    int? MaxPeers,
+    double VpnSpeedMbps,
+    double InfraLatencyMs
 );

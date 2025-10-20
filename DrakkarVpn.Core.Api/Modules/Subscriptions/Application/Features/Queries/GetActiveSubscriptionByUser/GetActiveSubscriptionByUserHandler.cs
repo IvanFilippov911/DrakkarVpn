@@ -20,6 +20,7 @@ public sealed class GetActiveSubscriptionByUserHandler
 
         return new GetActiveSubscriptionDto(
             subscription.Id.Value,
+            subscription.MaxDevices,
             subscription.StartAt,
             subscription.EndAt
         );

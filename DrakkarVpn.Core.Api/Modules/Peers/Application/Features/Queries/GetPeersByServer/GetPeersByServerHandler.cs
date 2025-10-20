@@ -17,13 +17,12 @@ public sealed class GetPeersByServerHandler : IRequestHandler<GetPeersByServerRe
         return peers
             .Select(p => new PeerResponseDto(
                 p.Id.Value,
-                p.UserId,
+                p.DeviceId,
                 p.ServerId,
                 p.AgentPeerUuid.Value,
                 p.Status,
                 p.ConfigRaw,
-                p.CreatedAt,
-                p.ExpiresAt
+                p.CreatedAt
             ))
             .ToList();
     }

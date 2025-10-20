@@ -1,18 +1,22 @@
-using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.DTOs;
-using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Commands.EvaluateServerHealth;
+using System.Collections.Concurrent;
+using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Commands.CleanupServerMetricsHistory;
+using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Commands.EvaluateServerHealth;
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Queries.GetServers;
+using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Queries.GetServersForHealthPoll;
+using DrakkarVpn.Shared;
 using MediatR;
-using Microsoft.Extensions.DependencyInjection;
-
-namespace DrakkarVpn.Core.Api.Modules.Orchestrator.Infrastructure.BackgroundWorkers;
 
 public sealed class ServerHealthBackgroundWorker : BackgroundService
 {
     private readonly ILogger<ServerHealthBackgroundWorker> _logger;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IHttpClientFactory _httpClientFactory;
-    
-    private readonly Dictionary<Guid, int> _lastPeersCount = new();
+
+    private readonly ConcurrentDictionary<Guid, int> _lastPeersCount = new();
+    private int _loop = 0;
+
+    private const int DelaySeconds = 10;
+    private const int CleanupEveryLoops = 360;
 
     public ServerHealthBackgroundWorker(
         ILogger<ServerHealthBackgroundWorker> logger,
@@ -24,60 +28,70 @@ public sealed class ServerHealthBackgroundWorker : BackgroundService
         _httpClientFactory = httpClientFactory;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken ct)
     {
-        while (!stoppingToken.IsCancellationRequested)
+        var client = _httpClientFactory.CreateClient();
+        client.Timeout = TimeSpan.FromSeconds(5);
+
+        while (!ct.IsCancellationRequested)
         {
             try
             {
                 using var scope = _scopeFactory.CreateScope();
                 var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
-                var servers = await mediator.Send(new GetServersRequest(null, null), stoppingToken);
+                var servers = await mediator.Send(new GetServersForHealthPollRequest(), ct);
+                
+                var live = servers.Select(x => x.Id).ToHashSet();
+                foreach (var k in _lastPeersCount.Keys)
+                    if (!live.Contains(k)) _lastPeersCount.TryRemove(k, out _);
 
-                foreach (var server in servers)
+                foreach (var s in servers)
                 {
-                    var client = _httpClientFactory.CreateClient();
-                    AgentHealthDto health;
-
+                    AgentMetricsDto metrics;
                     try
                     {
-                        health = await client.GetFromJsonAsync<AgentHealthDto>(
-                            $"{server.AgentBaseUrl}health",
-                            stoppingToken
-                        ) ?? new AgentHealthDto(false, GetLastPeers(server.Id));
+                        metrics = await client.GetFromJsonAsync<AgentMetricsDto>(
+                            $"{s.AgentBaseUrl}metrics", ct) ?? AgentMetricsDto.Empty;
                     }
-                    catch(Exception ex)
+                    catch
                     {
-                        health = new AgentHealthDto(false, GetLastPeers(server.Id));
+                        metrics = AgentMetricsDto.Empty;
                     }
 
-                    if (health.Reachable)
-                        _lastPeersCount[server.Id] = health.PeersActive;
+                    if (metrics.Reachable)
+                        _lastPeersCount.AddOrUpdate(s.Id, metrics.PeersActive, (_, __) => metrics.PeersActive);
                     else
-                        health = health with { PeersActive = GetLastPeers(server.Id) };
+                        metrics = metrics with { PeersActive = GetLastPeersSafe(s.Id) };
 
-                    await mediator.Send(
-                        new EvaluateServerHealthRequest(
-                            server.Id,
-                            health.Reachable,
-                            health.PeersActive
-                        ),
-                        stoppingToken
-                    );
-                    
+                    await mediator.Send(new EvaluateServerHealthRequest(
+                        s.Id,
+                        metrics.Reachable,
+                        metrics.PeersActive,
+                        metrics.TrafficRxBytes,
+                        metrics.TrafficTxBytes,
+                        metrics.InfraLatencyMs,
+                        metrics.VpnSpeedMbps
+                    ), ct);
+                }
+
+                _loop++;
+                if (_loop % CleanupEveryLoops == 0)
+                {
+                    await mediator.Send(new CleanupServerMetricsHistoryRequest(TimeSpan.FromHours(48)), ct);
+                    _logger.LogInformation("ServerMetricsHistory: cleaned entries older than 48h");
                 }
             }
+            catch (OperationCanceledException) { /* ignore */ }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while checking servers health");
-                Console.WriteLine($"[ServerHealth] ERROR: {ex.Message}");
+                _logger.LogError(ex, "Health check error");
             }
 
-            await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
+            await Task.Delay(TimeSpan.FromSeconds(DelaySeconds), ct);
         }
     }
 
-    private int GetLastPeers(Guid serverId) =>
+    private int GetLastPeersSafe(Guid serverId) =>
         _lastPeersCount.TryGetValue(serverId, out var peers) ? peers : 0;
 }

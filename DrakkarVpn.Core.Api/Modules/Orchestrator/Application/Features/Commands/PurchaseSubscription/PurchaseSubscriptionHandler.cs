@@ -30,17 +30,7 @@ public sealed class PurchaseSubscriptionHandler
         else
         {
             subscription = await _mediator.Send(new CreateSubscriptionRequest(user.Id, req.TariffId), ct);
-            await _mediator.Send(
-                new AllocatePeerRequest(
-                    req.TelegramId,
-                    req.Region,
-                    subscription.Id,
-                    subscription.EndAt
-                ),
-                ct);
         }
-        
-
         return subscription.Id;
     }
 }

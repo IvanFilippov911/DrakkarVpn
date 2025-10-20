@@ -1,0 +1,177 @@
+{"Timestamp":"2025-10-08T05:13:14.3955520+05:00","Level":"Error","MessageTemplate":"Health check error","Exception":"System.OperationCanceledException: The operation was canceled.\n   at System.Threading.CancellationToken.ThrowOperationCanceledException()\n   at Npgsql.Internal.NpgsqlConnector.<StartUserAction>g__DoStartUserAction|282_0(ConnectorState newState, NpgsqlCommand command, CancellationToken cancellationToken, Boolean attemptPgCancellation)\n   at Npgsql.NpgsqlConnection.BeginTransaction(Boolean async, IsolationLevel level, CancellationToken cancellationToken)\n   at Npgsql.NpgsqlConnection.BeginDbTransactionAsync(IsolationLevel isolationLevel, CancellationToken cancellationToken)\n   at Microsoft.EntityFrameworkCore.Storage.RelationalConnection.BeginTransactionAsync(IsolationLevel isolationLevel, CancellationToken cancellationToken)\n   at Microsoft.EntityFrameworkCore.Storage.RelationalConnection.BeginTransactionAsync(CancellationToken cancellationToken)\n   at DrakkarVpn.Core.Pipeline.EfTransactionBehavior`2.Handle(TReq request, RequestHandlerDelegate`1 next, CancellationToken ct) in /Users/ph1lippov/Desktop/DrakkarVpn/DrakkarVpn/DrakkarVpn.Core.Api/Pipeline/EfTransactionBehavior.cs:line 23\n   at DrakkarVpn.Core.Pipeline.ValidationBehavior`2.Handle(TReq request, RequestHandlerDelegate`1 next, CancellationToken ct) in /Users/ph1lippov/Desktop/DrakkarVpn/DrakkarVpn/DrakkarVpn.Core.Api/Pipeline/ValidationBehavior.cs:line 32\n   at DrakkarVpn.Core.Pipeline.LoggingBehavior`2.Handle(TReq request, RequestHandlerDelegate`1 next, CancellationToken ct) in /Users/ph1lippov/Desktop/DrakkarVpn/DrakkarVpn/DrakkarVpn.Core.Api/Pipeline/LoggingBehavior.cs:line 33\n   at DrakkarVpn.Core.Api.Modules.Orchestrator.Infrastructure.BackgroundWorkers.ServerHealthBackgroundWorker.ExecuteAsync(CancellationToken stoppingToken) in /Users/ph1lippov/Desktop/DrakkarVpn/DrakkarVpn/DrakkarVpn.Core.Api/Modules/Orchestrator/Infrastructure/BackgroundWorkers/ServerHealthBackgroundWorker.cs:line 57","Properties":{"SourceContext":"DrakkarVpn.Core.Api.Modules.Orchestrator.Infrastructure.BackgroundWorkers.ServerHealthBackgroundWorker","MachineName":"MacBook-Air-Ivan","ThreadId":190,"ProcessId":40143,"Service":"Drakkar.Core"}}
+{"Timestamp":"2025-10-08T17:57:16.9573040+03:00","Level":"Warning","MessageTemplate":"You do not have a valid license key for the Lucky Penny software MediatR. This is allowed for development and testing scenarios. If you are running in production you are required to have a licensed version. Please visit https://luckypennysoftware.com to obtain a valid license.","Properties":{"SourceContext":"LuckyPennySoftware.MediatR.License","MachineName":"MacBook-Air-Ivan","ThreadId":1,"ProcessId":44451,"Service":"Drakkar.Core"}}
+{"Timestamp":"2025-10-08T17:57:23.4134700+03:00","Level":"Information","MessageTemplate":"▶️ {Command} started","TraceId":"dbef394090c68b3ec6e4e2eec885fa90","SpanId":"0d40787e72f551db","Properties":{"Command":"PurchaseSubscriptionRequest","MachineName":"MacBook-Air-Ivan","ThreadId":9,"ProcessId":44451,"Service":"Drakkar.Core","OperationId":"37ba1a71-2e58-4111-b595-1e1c73bcf9a7","ActionId":"554ce07e-1a44-4184-8dd8-1359653f0a57","ActionName":"DrakkarVpn.Core.Api.Modules.Orchestrator.API.OrchestratorController.Purchase (DrakkarVpn.Core.Api)","RequestId":"0HNG6FBUFSGB1:00000001","RequestPath":"/api/orchestrator/purchase","ConnectionId":"0HNG6FBUFSGB1"}}
+{"Timestamp":"2025-10-08T17:57:23.4312160+03:00","Level":"Information","MessageTemplate":"✅ {Command} completed in {ElapsedMs}ms","TraceId":"dbef394090c68b3ec6e4e2eec885fa90","SpanId":"0d40787e72f551db","Properties":{"Command":"PurchaseSubscriptionRequest","ElapsedMs":18,"MachineName":"MacBook-Air-Ivan","ThreadId":6,"ProcessId":44451,"Service":"Drakkar.Core","OperationId":"37ba1a71-2e58-4111-b595-1e1c73bcf9a7","ActionId":"554ce07e-1a44-4184-8dd8-1359653f0a57","ActionName":"DrakkarVpn.Core.Api.Modules.Orchestrator.API.OrchestratorController.Purchase (DrakkarVpn.Core.Api)","RequestId":"0HNG6FBUFSGB1:00000001","RequestPath":"/api/orchestrator/purchase","ConnectionId":"0HNG6FBUFSGB1"}}
+{"Timestamp":"2025-10-08T17:59:03.0860280+03:00","Level":"Warning","MessageTemplate":"You do not have a valid license key for the Lucky Penny software MediatR. This is allowed for development and testing scenarios. If you are running in production you are required to have a licensed version. Please visit https://luckypennysoftware.com to obtain a valid license.","Properties":{"SourceContext":"LuckyPennySoftware.MediatR.License","MachineName":"MacBook-Air-Ivan","ThreadId":1,"ProcessId":44491,"Service":"Drakkar.Core"}}
+{"Timestamp":"2025-10-08T17:59:07.3606800+03:00","Level":"Information","MessageTemplate":"▶️ {Command} started","TraceId":"2cee88eb75c5592db49daa6eb90ddd64","SpanId":"69b3b1999b104a2b","Properties":{"Command":"PurchaseSubscriptionRequest","MachineName":"MacBook-Air-Ivan","ThreadId":17,"ProcessId":44491,"Service":"Drakkar.Core","OperationId":"48923f53-0a14-41e0-a6d2-7508ac42d119","ActionId":"84a8f2bc-8bcd-4cf3-bbf2-91fb1b26ad2e","ActionName":"DrakkarVpn.Core.Api.Modules.Orchestrator.API.OrchestratorController.Purchase (DrakkarVpn.Core.Api)","RequestId":"0HNG6FCTF88E5:00000001","RequestPath":"/api/orchestrator/purchase","ConnectionId":"0HNG6FCTF88E5"}}
+{"Timestamp":"2025-10-08T17:59:07.3907780+03:00","Level":"Information","MessageTemplate":"✅ {Command} completed in {ElapsedMs}ms","TraceId":"2cee88eb75c5592db49daa6eb90ddd64","SpanId":"69b3b1999b104a2b","Properties":{"Command":"PurchaseSubscriptionRequest","ElapsedMs":30,"MachineName":"MacBook-Air-Ivan","ThreadId":17,"ProcessId":44491,"Service":"Drakkar.Core","OperationId":"48923f53-0a14-41e0-a6d2-7508ac42d119","ActionId":"84a8f2bc-8bcd-4cf3-bbf2-91fb1b26ad2e","ActionName":"DrakkarVpn.Core.Api.Modules.Orchestrator.API.OrchestratorController.Purchase (DrakkarVpn.Core.Api)","RequestId":"0HNG6FCTF88E5:00000001","RequestPath":"/api/orchestrator/purchase","ConnectionId":"0HNG6FCTF88E5"}}
+{"Timestamp":"2025-10-08T17:59:07.4241300+03:00","Level":"Information","MessageTemplate":"HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms","TraceId":"2cee88eb75c5592db49daa6eb90ddd64","SpanId":"69b3b1999b104a2b","Properties":{"RequestMethod":"POST","RequestPath":"/api/orchestrator/purchase","StatusCode":200,"Elapsed":98.397458,"SourceContext":"Serilog.AspNetCore.RequestLoggingMiddleware","MachineName":"MacBook-Air-Ivan","ThreadId":17,"ProcessId":44491,"Service":"Drakkar.Core","RequestId":"0HNG6FCTF88E5:00000001","ConnectionId":"0HNG6FCTF88E5"},"Renderings":{"Elapsed":[{"Format":"0.0000","Rendering":"98.3975"}]}}
+{"Timestamp":"2025-10-08T17:59:33.1926250+03:00","Level":"Warning","MessageTemplate":"You do not have a valid license key for the Lucky Penny software MediatR. This is allowed for development and testing scenarios. If you are running in production you are required to have a licensed version. Please visit https://luckypennysoftware.com to obtain a valid license.","Properties":{"SourceContext":"LuckyPennySoftware.MediatR.License","MachineName":"MacBook-Air-Ivan","ThreadId":1,"ProcessId":44519,"Service":"Drakkar.Core"}}
+{"Timestamp":"2025-10-08T18:03:35.5400830+03:00","Level":"Information","MessageTemplate":"▶️ {Command} started","TraceId":"3d7242dc8c0bc7f4390e221b6e01d59e","SpanId":"517adf735e87fd2e","Properties":{"Command":"PurchaseSubscriptionRequest","MachineName":"MacBook-Air-Ivan","ThreadId":27,"ProcessId":44519,"Service":"Drakkar.Core","OperationId":"3e0a28a8-b72d-4bcf-90ff-a23e64ec168f","ActionId":"890422da-87c0-4869-936a-c683f2813ffe","ActionName":"DrakkarVpn.Core.Api.Modules.Orchestrator.API.OrchestratorController.Purchase (DrakkarVpn.Core.Api)","RequestId":"0HNG6FFDCLEQV:00000001","RequestPath":"/api/orchestrator/purchase","ConnectionId":"0HNG6FFDCLEQV"}}
+{"Timestamp":"2025-10-08T18:03:35.5644110+03:00","Level":"Information","MessageTemplate":"✅ {Command} completed in {ElapsedMs}ms","TraceId":"3d7242dc8c0bc7f4390e221b6e01d59e","SpanId":"517adf735e87fd2e","Properties":{"Command":"PurchaseSubscriptionRequest","ElapsedMs":24,"MachineName":"MacBook-Air-Ivan","ThreadId":27,"ProcessId":44519,"Service":"Drakkar.Core","OperationId":"3e0a28a8-b72d-4bcf-90ff-a23e64ec168f","ActionId":"890422da-87c0-4869-936a-c683f2813ffe","ActionName":"DrakkarVpn.Core.Api.Modules.Orchestrator.API.OrchestratorController.Purchase (DrakkarVpn.Core.Api)","RequestId":"0HNG6FFDCLEQV:00000001","RequestPath":"/api/orchestrator/purchase","ConnectionId":"0HNG6FFDCLEQV"}}
+2025-10-08 18:23:57.755 +03:00 [WRN] You do not have a valid license key for the Lucky Penny software MediatR. This is allowed for development and testing scenarios. If you are running in production you are required to have a licensed version. Please visit https://luckypennysoftware.com to obtain a valid license.
+2025-10-08 18:24:10.768 +03:00 [INF] ▶️ PurchaseSubscriptionRequest started
+2025-10-08 18:24:10.803 +03:00 [INF] ✅ PurchaseSubscriptionRequest completed in 35ms
+2025-10-08 18:29:28.212 +03:00 [WRN] You do not have a valid license key for the Lucky Penny software MediatR. This is allowed for development and testing scenarios. If you are running in production you are required to have a licensed version. Please visit https://luckypennysoftware.com to obtain a valid license.
+2025-10-08 18:29:34.291 +03:00 [INF] ▶️ PurchaseSubscriptionRequest started
+2025-10-08 18:29:34.315 +03:00 [INF] ✅ PurchaseSubscriptionRequest completed in 24ms
+2025-10-08 18:30:16.102 +03:00 [INF] ▶️ GetActiveTariffsRequest started
+2025-10-08 18:30:16.104 +03:00 [INF] ▶️ GetActiveTariffsRequest started
+2025-10-08 18:30:16.135 +03:00 [INF] ✅ GetActiveTariffsRequest completed in 31ms
+2025-10-08 18:30:16.135 +03:00 [INF] ✅ GetActiveTariffsRequest completed in 33ms
+2025-10-08 18:30:28.151 +03:00 [INF] ▶️ GetActiveTariffsRequest started
+2025-10-08 18:30:28.154 +03:00 [INF] ▶️ GetActiveTariffsRequest started
+2025-10-08 18:30:28.170 +03:00 [INF] ✅ GetActiveTariffsRequest completed in 15ms
+2025-10-08 18:30:28.170 +03:00 [INF] ✅ GetActiveTariffsRequest completed in 18ms
+2025-10-08 18:30:59.713 +03:00 [INF] ▶️ GetUserByTelegramIdRequest started
+2025-10-08 18:30:59.713 +03:00 [INF] ▶️ GetUserByTelegramIdRequest started
+2025-10-08 18:30:59.729 +03:00 [INF] ✅ GetUserByTelegramIdRequest completed in 15ms
+2025-10-08 18:30:59.729 +03:00 [INF] ✅ GetUserByTelegramIdRequest completed in 15ms
+2025-10-08 18:38:48.503 +03:00 [INF] ▶️ GetActiveSubscriptionByUserRequest started
+2025-10-08 18:38:48.504 +03:00 [INF] ▶️ GetActiveSubscriptionByUserRequest started
+2025-10-08 18:38:48.535 +03:00 [INF] ✅ GetActiveSubscriptionByUserRequest completed in 30ms
+2025-10-08 18:38:48.535 +03:00 [INF] ✅ GetActiveSubscriptionByUserRequest completed in 32ms
+2025-10-08 18:43:19.658 +03:00 [WRN] You do not have a valid license key for the Lucky Penny software MediatR. This is allowed for development and testing scenarios. If you are running in production you are required to have a licensed version. Please visit https://luckypennysoftware.com to obtain a valid license.
+2025-10-08 18:43:23.929 +03:00 [INF] ▶️ GetActiveSubscriptionByUserRequest started
+2025-10-08 18:43:23.963 +03:00 [INF] ✅ GetActiveSubscriptionByUserRequest completed in 34ms
+2025-10-08 18:43:34.675 +03:00 [INF] ▶️ PurchaseSubscriptionRequest started
+2025-10-08 18:43:34.701 +03:00 [INF] ✅ PurchaseSubscriptionRequest completed in 25ms
+2025-10-08 18:45:27.468 +03:00 [INF] ▶️ GetActiveSubscriptionByUserRequest started
+2025-10-08 18:45:27.472 +03:00 [INF] ✅ GetActiveSubscriptionByUserRequest completed in 3ms
+2025-10-08 19:00:15.560 +03:00 [WRN] You do not have a valid license key for the Lucky Penny software MediatR. This is allowed for development and testing scenarios. If you are running in production you are required to have a licensed version. Please visit https://luckypennysoftware.com to obtain a valid license.
+2025-10-08 19:00:15.638 +03:00 [INF] ▶️ GetServersRequest started
+2025-10-08 19:00:16.219 +03:00 [INF] ▶️ GetExpiredSubscriptionsRequest started
+2025-10-08 19:00:16.338 +03:00 [INF] ✅ GetServersRequest completed in 699ms
+2025-10-08 19:00:16.338 +03:00 [INF] ✅ GetExpiredSubscriptionsRequest completed in 119ms
+2025-10-08 19:00:16.684 +03:00 [INF] ▶️ EvaluateServerHealthRequest started
+2025-10-08 19:00:16.694 +03:00 [INF] ▶️ GetServerByIdRequest started
+2025-10-08 19:00:16.761 +03:00 [INF] ✅ GetServerByIdRequest completed in 67ms
+2025-10-08 19:00:16.789 +03:00 [INF] ✅ EvaluateServerHealthRequest completed in 105ms
+2025-10-08 19:00:16.794 +03:00 [INF] ▶️ EvaluateServerHealthRequest started
+2025-10-08 19:00:16.795 +03:00 [INF] ▶️ GetServerByIdRequest started
+2025-10-08 19:00:16.799 +03:00 [INF] ✅ GetServerByIdRequest completed in 4ms
+2025-10-08 19:00:16.800 +03:00 [INF] ✅ EvaluateServerHealthRequest completed in 6ms
+2025-10-08 19:00:16.802 +03:00 [INF] ▶️ EvaluateServerHealthRequest started
+2025-10-08 19:00:16.802 +03:00 [INF] ▶️ GetServerByIdRequest started
+2025-10-08 19:00:16.804 +03:00 [INF] ✅ GetServerByIdRequest completed in 1ms
+2025-10-08 19:00:16.804 +03:00 [INF] ✅ EvaluateServerHealthRequest completed in 2ms
+2025-10-08 19:00:16.805 +03:00 [INF] ▶️ EvaluateServerHealthRequest started
+2025-10-08 19:00:16.805 +03:00 [INF] ▶️ GetServerByIdRequest started
+2025-10-08 19:00:16.806 +03:00 [INF] ✅ GetServerByIdRequest completed in 0ms
+2025-10-08 19:00:16.806 +03:00 [INF] ✅ EvaluateServerHealthRequest completed in 1ms
+2025-10-08 19:00:28.573 +03:00 [INF] ▶️ PurchaseSubscriptionRequest started
+2025-10-08 19:00:28.601 +03:00 [INF] ✅ PurchaseSubscriptionRequest completed in 27ms
+2025-10-08 19:00:46.817 +03:00 [INF] ▶️ GetServersRequest started
+2025-10-08 19:00:46.827 +03:00 [INF] ✅ GetServersRequest completed in 10ms
+2025-10-08 19:00:46.958 +03:00 [INF] ▶️ EvaluateServerHealthRequest started
+2025-10-08 19:00:46.961 +03:00 [INF] ▶️ GetServerByIdRequest started
+2025-10-08 19:00:46.965 +03:00 [INF] ✅ GetServerByIdRequest completed in 4ms
+2025-10-08 19:00:46.966 +03:00 [INF] ✅ EvaluateServerHealthRequest completed in 7ms
+2025-10-08 19:00:46.967 +03:00 [INF] ▶️ EvaluateServerHealthRequest started
+2025-10-08 19:00:46.967 +03:00 [INF] ▶️ GetServerByIdRequest started
+2025-10-08 19:00:46.968 +03:00 [INF] ✅ GetServerByIdRequest completed in 1ms
+2025-10-08 19:00:46.969 +03:00 [INF] ✅ EvaluateServerHealthRequest completed in 1ms
+2025-10-08 19:00:46.970 +03:00 [INF] ▶️ EvaluateServerHealthRequest started
+2025-10-08 19:00:46.970 +03:00 [INF] ▶️ GetServerByIdRequest started
+2025-10-08 19:00:46.970 +03:00 [INF] ✅ GetServerByIdRequest completed in 0ms
+2025-10-08 19:00:46.971 +03:00 [INF] ✅ EvaluateServerHealthRequest completed in 1ms
+2025-10-08 19:00:46.972 +03:00 [INF] ▶️ EvaluateServerHealthRequest started
+2025-10-08 19:00:46.972 +03:00 [INF] ▶️ GetServerByIdRequest started
+2025-10-08 19:00:46.973 +03:00 [INF] ✅ GetServerByIdRequest completed in 0ms
+2025-10-08 19:00:46.973 +03:00 [INF] ✅ EvaluateServerHealthRequest completed in 1ms
+2025-10-08 19:05:12.768 +03:00 [WRN] You do not have a valid license key for the Lucky Penny software MediatR. This is allowed for development and testing scenarios. If you are running in production you are required to have a licensed version. Please visit https://luckypennysoftware.com to obtain a valid license.
+2025-10-08 19:15:50.986 +03:00 [WRN] You do not have a valid license key for the Lucky Penny software MediatR. This is allowed for development and testing scenarios. If you are running in production you are required to have a licensed version. Please visit https://luckypennysoftware.com to obtain a valid license.
+2025-10-08 19:15:55.501 +03:00 [INF] ▶️ PurchaseSubscriptionRequest started
+2025-10-08 19:15:55.504 +03:00 [INF] ▶️ GetUserByTelegramIdRequest started
+2025-10-08 19:15:55.528 +03:00 [INF] ✅ GetUserByTelegramIdRequest completed in 23ms
+2025-10-08 19:15:55.547 +03:00 [INF] ▶️ GetActiveSubscriptionByUserRequest started
+2025-10-08 19:15:55.614 +03:00 [INF] ✅ GetActiveSubscriptionByUserRequest completed in 67ms
+2025-10-08 19:15:55.615 +03:00 [INF] ▶️ RenewSubscriptionRequest started
+2025-10-08 19:15:55.647 +03:00 [INF] ✅ RenewSubscriptionRequest completed in 32ms
+2025-10-08 19:15:55.648 +03:00 [INF] ✅ PurchaseSubscriptionRequest completed in 147ms
+2025-10-08 19:19:58.101 +03:00 [WRN] You do not have a valid license key for the Lucky Penny software MediatR. This is allowed for development and testing scenarios. If you are running in production you are required to have a licensed version. Please visit https://luckypennysoftware.com to obtain a valid license.
+2025-10-08 19:20:01.920 +03:00 [INF] ▶️ PurchaseSubscriptionRequest started
+2025-10-08 19:20:01.924 +03:00 [INF] ▶️ GetUserByTelegramIdRequest started
+2025-10-08 19:20:01.958 +03:00 [INF] ✅ GetUserByTelegramIdRequest completed in 33ms
+2025-10-08 19:20:01.961 +03:00 [INF] ▶️ GetActiveSubscriptionByUserRequest started
+2025-10-08 19:20:01.980 +03:00 [INF] ✅ GetActiveSubscriptionByUserRequest completed in 19ms
+2025-10-08 19:20:01.981 +03:00 [INF] ▶️ RenewSubscriptionRequest started
+2025-10-08 19:20:02.023 +03:00 [INF] ✅ RenewSubscriptionRequest completed in 41ms
+2025-10-08 19:20:02.023 +03:00 [INF] ✅ PurchaseSubscriptionRequest completed in 103ms
+2025-10-08 19:21:30.450 +03:00 [WRN] You do not have a valid license key for the Lucky Penny software MediatR. This is allowed for development and testing scenarios. If you are running in production you are required to have a licensed version. Please visit https://luckypennysoftware.com to obtain a valid license.
+2025-10-08 19:21:33.769 +03:00 [INF] ▶️ PurchaseSubscriptionRequest started
+2025-10-08 19:21:33.792 +03:00 [INF] ✅ PurchaseSubscriptionRequest completed in 23ms
+2025-10-08 19:35:21.318 +03:00 [INF] ▶️ UpdateServerHealthRequest started
+2025-10-08 19:35:21.322 +03:00 [INF] ✅ UpdateServerHealthRequest completed in 4ms
+2025-10-08 19:35:59.360 +03:00 [INF] ▶️ UpdateServerHealthRequest started
+2025-10-08 19:35:59.361 +03:00 [INF] ✅ UpdateServerHealthRequest completed in 1ms
+2025-10-08 19:36:37.400 +03:00 [INF] ▶️ UpdateServerHealthRequest started
+2025-10-08 19:36:37.401 +03:00 [INF] ✅ UpdateServerHealthRequest completed in 0ms
+2025-10-08 19:37:15.451 +03:00 [INF] ▶️ UpdateServerHealthRequest started
+2025-10-08 19:37:15.453 +03:00 [INF] ✅ UpdateServerHealthRequest completed in 1ms
+2025-10-08 19:39:49.049 +03:00 [WRN] You do not have a valid license key for the Lucky Penny software MediatR. This is allowed for development and testing scenarios. If you are running in production you are required to have a licensed version. Please visit https://luckypennysoftware.com to obtain a valid license.
+2025-10-08 19:40:01.094 +03:00 [INF] ▶️ PurchaseSubscriptionRequest started
+2025-10-08 19:40:01.160 +03:00 [INF] ✅ PurchaseSubscriptionRequest completed in 66ms
+2025-10-08 19:40:21.356 +03:00 [WRN] You do not have a valid license key for the Lucky Penny software MediatR. This is allowed for development and testing scenarios. If you are running in production you are required to have a licensed version. Please visit https://luckypennysoftware.com to obtain a valid license.
+2025-10-08 19:40:24.366 +03:00 [INF] ▶️ PurchaseSubscriptionRequest started
+2025-10-08 19:40:24.382 +03:00 [INF] ▶️ GetUserByTelegramIdRequest started
+2025-10-08 19:40:24.416 +03:00 [INF] ✅ GetUserByTelegramIdRequest completed in 33ms
+2025-10-08 19:40:24.423 +03:00 [INF] ▶️ GetActiveSubscriptionByUserRequest started
+2025-10-08 19:40:24.483 +03:00 [INF] ✅ GetActiveSubscriptionByUserRequest completed in 59ms
+2025-10-08 19:40:24.484 +03:00 [INF] ▶️ RenewSubscriptionRequest started
+2025-10-08 19:40:24.529 +03:00 [INF] ✅ RenewSubscriptionRequest completed in 45ms
+2025-10-08 19:40:24.609 +03:00 [INF] ✅ PurchaseSubscriptionRequest completed in 243ms
+2025-10-08 19:43:20.430 +03:00 [WRN] You do not have a valid license key for the Lucky Penny software MediatR. This is allowed for development and testing scenarios. If you are running in production you are required to have a licensed version. Please visit https://luckypennysoftware.com to obtain a valid license.
+2025-10-08 19:43:26.285 +03:00 [INF] ▶️ PurchaseSubscriptionRequest started
+2025-10-08 19:43:26.306 +03:00 [INF] ✅ PurchaseSubscriptionRequest completed in 21ms
+2025-10-08 19:49:46.529 +03:00 [WRN] You do not have a valid license key for the Lucky Penny software MediatR. This is allowed for development and testing scenarios. If you are running in production you are required to have a licensed version. Please visit https://luckypennysoftware.com to obtain a valid license.
+2025-10-08 19:49:52.611 +03:00 [INF] ▶️ PurchaseSubscriptionRequest started
+2025-10-08 19:49:52.622 +03:00 [INF] ▶️ GetUserByTelegramIdRequest started
+2025-10-08 19:49:52.638 +03:00 [INF] ✅ GetUserByTelegramIdRequest completed in 16ms
+2025-10-08 19:49:52.644 +03:00 [INF] ▶️ GetActiveSubscriptionByUserRequest started
+2025-10-08 19:49:52.668 +03:00 [INF] ✅ GetActiveSubscriptionByUserRequest completed in 24ms
+2025-10-08 19:49:52.669 +03:00 [INF] ▶️ RenewSubscriptionRequest started
+2025-10-08 19:49:52.700 +03:00 [INF] ✅ RenewSubscriptionRequest completed in 31ms
+2025-10-08 19:49:52.762 +03:00 [INF] ✅ PurchaseSubscriptionRequest completed in 150ms
+2025-10-08 20:17:36.276 +03:00 [INF] ▶️ UpdateServerHealthRequest started
+2025-10-08 20:17:36.281 +03:00 [INF] ✅ UpdateServerHealthRequest completed in 5ms
+2025-10-08 20:18:06.648 +03:00 [INF] ▶️ UpdateServerHealthRequest started
+2025-10-08 20:18:06.650 +03:00 [INF] ✅ UpdateServerHealthRequest completed in 2ms
+2025-10-08 21:00:50.119 +03:00 [INF] ▶️ UpdateServerHealthRequest started
+2025-10-08 21:00:50.121 +03:00 [INF] ✅ UpdateServerHealthRequest completed in 1ms
+2025-10-08 21:01:20.468 +03:00 [INF] ▶️ UpdateServerHealthRequest started
+2025-10-08 21:01:20.470 +03:00 [INF] ✅ UpdateServerHealthRequest completed in 1ms
+2025-10-08 23:36:39.076 +03:00 [INF] ▶️ PurchaseSubscriptionRequest started
+2025-10-08 23:36:39.079 +03:00 [INF] ▶️ GetUserByTelegramIdRequest started
+2025-10-08 23:36:39.087 +03:00 [INF] ✅ GetUserByTelegramIdRequest completed in 7ms
+2025-10-08 23:36:39.087 +03:00 [INF] ▶️ GetActiveSubscriptionByUserRequest started
+2025-10-08 23:36:39.090 +03:00 [INF] ✅ GetActiveSubscriptionByUserRequest completed in 2ms
+2025-10-08 23:36:39.090 +03:00 [INF] ▶️ RenewSubscriptionRequest started
+2025-10-08 23:36:39.094 +03:00 [INF] ✅ RenewSubscriptionRequest completed in 3ms
+2025-10-08 23:36:39.098 +03:00 [INF] ✅ PurchaseSubscriptionRequest completed in 21ms
+2025-10-08 23:36:49.234 +03:00 [INF] ▶️ PurchaseSubscriptionRequest started
+2025-10-08 23:36:49.240 +03:00 [INF] ▶️ GetUserByTelegramIdRequest started
+2025-10-08 23:36:49.247 +03:00 [INF] ✅ GetUserByTelegramIdRequest completed in 6ms
+2025-10-08 23:36:49.247 +03:00 [INF] ▶️ GetActiveSubscriptionByUserRequest started
+2025-10-08 23:36:49.249 +03:00 [INF] ✅ GetActiveSubscriptionByUserRequest completed in 1ms
+2025-10-08 23:36:49.249 +03:00 [INF] ▶️ RenewSubscriptionRequest started
+2025-10-08 23:36:49.251 +03:00 [INF] ✅ RenewSubscriptionRequest completed in 1ms
+2025-10-08 23:36:49.255 +03:00 [INF] ✅ PurchaseSubscriptionRequest completed in 20ms
+2025-10-08 23:43:18.190 +03:00 [WRN] You do not have a valid license key for the Lucky Penny software MediatR. This is allowed for development and testing scenarios. If you are running in production you are required to have a licensed version. Please visit https://luckypennysoftware.com to obtain a valid license.
+2025-10-08 23:44:07.919 +03:00 [INF] ▶️ PurchaseSubscriptionRequest started {"TelegramId":2026,"TariffId":"6625ca62-f26d-4dc3-a143-c060812e67bc","Region":"eu","RequestId":"3a4f7e34-5b02-4b94-bf54-4821f83cde89","ActorKey":"tg:2026","Action":"purchase-subscription","$type":"PurchaseSubscriptionRequest"}
+2025-10-08 23:44:07.936 +03:00 [INF] ▶️ GetUserByTelegramIdRequest started {"TelegramId":2026,"$type":"GetUserByTelegramIdRequest"}
+2025-10-08 23:44:07.971 +03:00 [INF] ✅ GetUserByTelegramIdRequest completed in 34ms
+2025-10-08 23:44:07.972 +03:00 [INF] ▶️ GetActiveSubscriptionByUserRequest started {"UserId":"6b9c84b2-ab24-4353-9240-70b85b2c822a","$type":"GetActiveSubscriptionByUserRequest"}
+2025-10-08 23:44:07.991 +03:00 [INF] ✅ GetActiveSubscriptionByUserRequest completed in 18ms
+2025-10-08 23:44:07.991 +03:00 [INF] ▶️ RenewSubscriptionRequest started {"SubscriptionId":"99ebeea0-ac21-4115-971c-bebf37670d37","TariffId":"6625ca62-f26d-4dc3-a143-c060812e67bc","$type":"RenewSubscriptionRequest"}
+2025-10-08 23:44:08.017 +03:00 [INF] ✅ RenewSubscriptionRequest completed in 26ms
+2025-10-08 23:44:08.077 +03:00 [INF] ✅ PurchaseSubscriptionRequest completed in 158ms
+{"@t":"2025-10-08T20:58:06.2334590Z","@m":"You do not have a valid license key for the Lucky Penny software MediatR. This is allowed for development and testing scenarios. If you are running in production you are required to have a licensed version. Please visit https://luckypennysoftware.com to obtain a valid license.","@i":"8d51718a","@l":"Warning","SourceContext":"LuckyPennySoftware.MediatR.License","MachineName":"MacBook-Air-Ivan","ThreadId":1,"ProcessId":49667,"Service":"Drakkar.Core"}
+{"@t":"2025-10-08T20:58:09.5969450Z","@m":"▶️ \"PurchaseSubscriptionRequest\"","@i":"da8371b7","@tr":"83f81b4fd71a8cd2685e28d4ca7ec29d","@sp":"f35cae2c323b0eca","Command":"PurchaseSubscriptionRequest","MachineName":"MacBook-Air-Ivan","ThreadId":9,"ProcessId":49667,"Service":"Drakkar.Core","TelegramId":"2026","UserId":"unknown","OperationId":"85fb69ad-679d-48b9-9ae4-170f2acf8e1a","ActionId":"943aa08d-b489-4afa-9d6d-c7505a497595","ActionName":"DrakkarVpn.Core.Api.Modules.Orchestrator.API.OrchestratorController.Purchase (DrakkarVpn.Core.Api)","RequestId":"0HNG6LLHI0EP5:00000001","RequestPath":"/api/orchestrator/purchase","ConnectionId":"0HNG6LLHI0EP5"}
+{"@t":"2025-10-08T20:58:09.6075030Z","@m":"▶️ \"GetUserByTelegramIdRequest\"","@i":"da8371b7","@tr":"83f81b4fd71a8cd2685e28d4ca7ec29d","@sp":"f35cae2c323b0eca","Command":"GetUserByTelegramIdRequest","MachineName":"MacBook-Air-Ivan","ThreadId":9,"ProcessId":49667,"Service":"Drakkar.Core","TelegramId":"2026","UserId":"unknown","OperationId":"1fbae0f2-a9ff-46d1-8e23-f5e3de449b3f","ActionId":"943aa08d-b489-4afa-9d6d-c7505a497595","ActionName":"DrakkarVpn.Core.Api.Modules.Orchestrator.API.OrchestratorController.Purchase (DrakkarVpn.Core.Api)","RequestId":"0HNG6LLHI0EP5:00000001","RequestPath":"/api/orchestrator/purchase","ConnectionId":"0HNG6LLHI0EP5"}
+{"@t":"2025-10-08T20:58:09.6186520Z","@m":"✅ \"GetUserByTelegramIdRequest\" completed in 11ms","@i":"b83e3dc1","@tr":"83f81b4fd71a8cd2685e28d4ca7ec29d","@sp":"f35cae2c323b0eca","Command":"GetUserByTelegramIdRequest","ElapsedMs":11,"MachineName":"MacBook-Air-Ivan","ThreadId":17,"ProcessId":49667,"Service":"Drakkar.Core","TelegramId":"2026","UserId":"unknown","OperationId":"1fbae0f2-a9ff-46d1-8e23-f5e3de449b3f","ActionId":"943aa08d-b489-4afa-9d6d-c7505a497595","ActionName":"DrakkarVpn.Core.Api.Modules.Orchestrator.API.OrchestratorController.Purchase (DrakkarVpn.Core.Api)","RequestId":"0HNG6LLHI0EP5:00000001","RequestPath":"/api/orchestrator/purchase","ConnectionId":"0HNG6LLHI0EP5"}
+{"@t":"2025-10-08T20:58:09.6204350Z","@m":"▶️ \"GetActiveSubscriptionByUserRequest\"","@i":"da8371b7","@tr":"83f81b4fd71a8cd2685e28d4ca7ec29d","@sp":"f35cae2c323b0eca","Command":"GetActiveSubscriptionByUserRequest","MachineName":"MacBook-Air-Ivan","ThreadId":17,"ProcessId":49667,"Service":"Drakkar.Core","TelegramId":"none","UserId":"6b9c84b2-ab24-4353-9240-70b85b2c822a","OperationId":"b249d640-35cf-4c97-9c42-837bb1524464","ActionId":"943aa08d-b489-4afa-9d6d-c7505a497595","ActionName":"DrakkarVpn.Core.Api.Modules.Orchestrator.API.OrchestratorController.Purchase (DrakkarVpn.Core.Api)","RequestId":"0HNG6LLHI0EP5:00000001","RequestPath":"/api/orchestrator/purchase","ConnectionId":"0HNG6LLHI0EP5"}
+{"@t":"2025-10-08T20:58:09.6390050Z","@m":"✅ \"GetActiveSubscriptionByUserRequest\" completed in 18ms","@i":"b83e3dc1","@tr":"83f81b4fd71a8cd2685e28d4ca7ec29d","@sp":"f35cae2c323b0eca","Command":"GetActiveSubscriptionByUserRequest","ElapsedMs":18,"MachineName":"MacBook-Air-Ivan","ThreadId":9,"ProcessId":49667,"Service":"Drakkar.Core","TelegramId":"none","UserId":"6b9c84b2-ab24-4353-9240-70b85b2c822a","OperationId":"b249d640-35cf-4c97-9c42-837bb1524464","ActionId":"943aa08d-b489-4afa-9d6d-c7505a497595","ActionName":"DrakkarVpn.Core.Api.Modules.Orchestrator.API.OrchestratorController.Purchase (DrakkarVpn.Core.Api)","RequestId":"0HNG6LLHI0EP5:00000001","RequestPath":"/api/orchestrator/purchase","ConnectionId":"0HNG6LLHI0EP5"}
+{"@t":"2025-10-08T20:58:09.6399990Z","@m":"▶️ \"RenewSubscriptionRequest\"","@i":"da8371b7","@tr":"83f81b4fd71a8cd2685e28d4ca7ec29d","@sp":"f35cae2c323b0eca","Command":"RenewSubscriptionRequest","MachineName":"MacBook-Air-Ivan","ThreadId":9,"ProcessId":49667,"Service":"Drakkar.Core","TelegramId":"none","UserId":"unknown","OperationId":"11e6d801-8e22-4283-9437-9f5ec87df832","ActionId":"943aa08d-b489-4afa-9d6d-c7505a497595","ActionName":"DrakkarVpn.Core.Api.Modules.Orchestrator.API.OrchestratorController.Purchase (DrakkarVpn.Core.Api)","RequestId":"0HNG6LLHI0EP5:00000001","RequestPath":"/api/orchestrator/purchase","ConnectionId":"0HNG6LLHI0EP5"}
+{"@t":"2025-10-08T20:58:09.6694740Z","@m":"✅ \"RenewSubscriptionRequest\" completed in 29ms","@i":"b83e3dc1","@tr":"83f81b4fd71a8cd2685e28d4ca7ec29d","@sp":"f35cae2c323b0eca","Command":"RenewSubscriptionRequest","ElapsedMs":29,"MachineName":"MacBook-Air-Ivan","ThreadId":14,"ProcessId":49667,"Service":"Drakkar.Core","TelegramId":"none","UserId":"unknown","OperationId":"11e6d801-8e22-4283-9437-9f5ec87df832","ActionId":"943aa08d-b489-4afa-9d6d-c7505a497595","ActionName":"DrakkarVpn.Core.Api.Modules.Orchestrator.API.OrchestratorController.Purchase (DrakkarVpn.Core.Api)","RequestId":"0HNG6LLHI0EP5:00000001","RequestPath":"/api/orchestrator/purchase","ConnectionId":"0HNG6LLHI0EP5"}
+{"@t":"2025-10-08T20:58:09.7337950Z","@m":"✅ \"PurchaseSubscriptionRequest\" completed in 137ms","@i":"b83e3dc1","@tr":"83f81b4fd71a8cd2685e28d4ca7ec29d","@sp":"f35cae2c323b0eca","Command":"PurchaseSubscriptionRequest","ElapsedMs":137,"MachineName":"MacBook-Air-Ivan","ThreadId":9,"ProcessId":49667,"Service":"Drakkar.Core","TelegramId":"2026","UserId":"unknown","OperationId":"85fb69ad-679d-48b9-9ae4-170f2acf8e1a","ActionId":"943aa08d-b489-4afa-9d6d-c7505a497595","ActionName":"DrakkarVpn.Core.Api.Modules.Orchestrator.API.OrchestratorController.Purchase (DrakkarVpn.Core.Api)","RequestId":"0HNG6LLHI0EP5:00000001","RequestPath":"/api/orchestrator/purchase","ConnectionId":"0HNG6LLHI0EP5"}
