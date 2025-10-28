@@ -3,7 +3,7 @@ using DrakkarVpn.Shared;
 
 namespace DrakkarVpn.Agent.Application.Services;
 
-public sealed class MetricService : IHealthService
+public sealed class MetricService : IMetricService
 {
     private readonly IV2RayService _v2RayService;
     private readonly INetworkMetricsService _network;
@@ -17,7 +17,7 @@ public sealed class MetricService : IHealthService
         _network = network;
     }
 
-    public async Task<AgentMetricsDto> GetHealthAsync(CancellationToken ct)
+    public async Task<AgentMetricsDto> GetMetricAsync(CancellationToken ct)
     {
         try
         {

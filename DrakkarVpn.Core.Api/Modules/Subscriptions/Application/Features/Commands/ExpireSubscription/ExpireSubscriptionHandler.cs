@@ -1,6 +1,5 @@
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Features.Commands.RevokePeer;
-using DrakkarVpn.Core.Api.Modules.Peers.Application.Features.Queries.GetPeersBySubscription;
-using DrakkarVpn.Core.Api.Modules.Peers.Application.Features.Queries.GetPeersByUser;
+using DrakkarVpn.Core.Api.Modules.Peers.Application.Features.Queries.GetPeersForRevoke;
 using DrakkarVpn.Core.Api.Modules.Peers.Domain;
 using DrakkarVpn.Core.Api.Modules.Subscriptions.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Subscriptions.Domain.ValueObjects;
@@ -23,15 +22,15 @@ public sealed class ExpireSubscriptionHandler : IRequestHandler<ExpireSubscripti
 
     public async Task<Unit> Handle(ExpireSubscriptionRequest request, CancellationToken ct)
     {
-        var subscription = await _subscriptions.GetByIdAsync(new SubscriptionId(request.SubscriptionId), ct);
+        var subscription = await _subscriptions.GetByIdAsync(request.SubscriptionId, ct);
         if (subscription is null)
             return Unit.Value;
         
         subscription.Expire();
 
-        var peers = await _mediator.Send(new GetPeersBySubscriptionRequest(subscription.Id.Value), ct);
+        var peers = await _mediator.Send(new GetPeersForRevokeQuery(subscription.Id), ct);
 
-        foreach (var peer in peers.Where(p => p.Status == PeerStatus.Active))
+        foreach (var peer in peers.Where(p => (PeerStatus)p.Status == PeerStatus.Active))
         {
             await _mediator.Send(new RevokePeerRequest(peer.Id, peer.ServerId), ct);
         }

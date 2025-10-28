@@ -1,10 +1,14 @@
+using DrakkarVpn.Core.Api.Modules.Subscriptions.Domain.ValueObjects;
 using DrakkarVpn.Core.Api.Modules.Users.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Users.Application.Features.Commands.ChangeStatus;
 using DrakkarVpn.Core.Api.Modules.Users.Application.Features.Commands.Register;
 using DrakkarVpn.Core.Api.Modules.Users.Application.Features.Queries.GetAllUsers;
+using DrakkarVpn.Core.Api.Modules.Users.Application.Features.Queries.GetListServerUsers;
 using DrakkarVpn.Core.Api.Modules.Users.Application.Features.Queries.GetUserById;
 using DrakkarVpn.Core.Api.Modules.Users.Application.Features.Queries.GetUserByTelegramId;
+using DrakkarVpn.Core.Api.Modules.Users.Application.Features.Queries.UserDevicesOnServer;
 using DrakkarVpn.Core.Api.Modules.Users.Domain;
+using DrakkarVpn.Shared;
 using DrakkarVpn.Shared.Users;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

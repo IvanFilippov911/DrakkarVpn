@@ -8,7 +8,7 @@ using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure;
 using DrakkarVpn.Core.Api.Modules.Subscriptions.Infrastructure;
 using DrakkarVpn.Core.Api.Modules.Tariffs.Infrastructure;
 using DrakkarVpn.Core.Api.Modules.Users.Infrastructure;
-using MediatR;
+using Microsoft.OpenApi.Models;
 using Prometheus;
 using Serilog;
 
@@ -47,6 +47,32 @@ services.AddCors(options =>
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
+    });
+});
+
+services.AddSwaggerGen(c =>
+{
+    var bearerScheme = new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter 'Bearer {token}'"
+    };
+
+    c.AddSecurityDefinition("Bearer", bearerScheme);
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+            },
+            Array.Empty<string>()
+        }
     });
 });
 

@@ -13,8 +13,8 @@ public sealed class DeviceRepository : IDeviceRepository
     public Task<Device?> GetByIdAsync(string deviceId, CancellationToken ct) =>
         _db.Set<Device>().FirstOrDefaultAsync(d => d.DeviceId == deviceId, ct);
 
-    public Task<bool> OwnsAsync(Guid userId, string deviceId, CancellationToken ct) =>
-        _db.Set<Device>().AnyAsync(d => d.DeviceId == deviceId && d.UserId == userId && d.Status == DeviceStatus.Active, ct);
+    public Task<bool> OwnsAsync(Guid subsId, string deviceId, CancellationToken ct) =>
+        _db.Set<Device>().AnyAsync(d => d.DeviceId == deviceId && d.SubscriptionId == subsId && d.Status == DeviceStatus.Active, ct);
 
     public async Task AddAsync(Device device, CancellationToken ct) =>
         await _db.Set<Device>().AddAsync(device, ct);
@@ -33,4 +33,26 @@ public sealed class DeviceRepository : IDeviceRepository
                     .SetProperty(d => d.Platform,d => platform!= null ? platform: d.Platform)
                 , ct);
     }
+    
+    public Task<int> CountActiveBySubscriptionAsync(Guid subscriptionId, CancellationToken ct) =>
+        _db.Devices.AsNoTracking()
+            .CountAsync(d => d.SubscriptionId == subscriptionId && d.Status == DeviceStatus.Active, ct);
+    
+    public async Task<IReadOnlyList<Device>> ListBySubscriptionAsync(
+        Guid subscriptionId,
+        CancellationToken ct)
+    {
+        var list = await _db.Devices
+            .AsNoTracking()
+            .Where(d => d.SubscriptionId == subscriptionId)
+            .OrderByDescending(d => d.CreatedAt)
+            .ThenBy(d => d.DeviceId)
+            .ToListAsync(ct);
+
+        return list; 
+    }
+    
+    
+    
+    
 }

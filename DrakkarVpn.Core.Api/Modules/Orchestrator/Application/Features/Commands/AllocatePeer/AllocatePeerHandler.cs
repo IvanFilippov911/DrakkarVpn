@@ -1,10 +1,10 @@
 using DrakkarVpn.Core.Api.Modules.Peers.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Features.Commands.CreatePeer;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Features.Queries.GetPeersBySubscription;
-using DrakkarVpn.Core.Api.Modules.Peers.Domain;
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Queries.GetServers;
 using DrakkarVpn.Core.Api.Modules.Servers.Domain;
 using DrakkarVpn.Core.Api.Modules.Subscriptions.Application.Features.Queries.GetActiveSubscriptionByUser;
+using DrakkarVpn.Core.Api.Modules.Users.Application.Features.Queries.CountActiveDevicesBySubscription;
 using DrakkarVpn.Core.Api.Modules.Users.Application.Features.Queries.GetUserByTelegramId;
 using MediatR;
 
@@ -26,16 +26,12 @@ public sealed class AllocatePeerHandler : IRequestHandler<AllocatePeerRequest, P
         if (sub is null)
             throw new InvalidOperationException("No active subscription");
         
-        var peers = await _mediator.Send(new GetPeersBySubscriptionRequest(sub.Id), ct);
-        var existing = peers.FirstOrDefault(p =>
-            p.Status == PeerStatus.Active &&
-            string.Equals(p.DeviceId, req.DeviceId, StringComparison.Ordinal));
-
-        if (existing is not null)
-            return new PeerRegisterResponseDto(existing.AgentPeerId, existing.ConfigRaw);
+        var peerExist = await _mediator.Send(new GetPeerByDeviceRequest(req.DeviceId), ct);
+        if (peerExist is not null)
+            return new PeerRegisterResponseDto(peerExist.AgentPeerId, peerExist.ConfigRaw);
         
-        var used = peers.Count(p => p.Status == PeerStatus.Active);
-        if (used >= sub.MaxDevices)
+        var used = await _mediator.Send(new CountActiveDevicesBySubscriptionRequest(sub.Id), ct);
+        if (used > sub.MaxDevices)
             throw new InvalidOperationException("Device limit reached");
         
         var servers = await _mediator.Send(new GetServersRequest(req.Region, nameof(ServerStatus.Enabled)), ct);
@@ -48,10 +44,7 @@ public sealed class AllocatePeerHandler : IRequestHandler<AllocatePeerRequest, P
         var createReq = new RegisterPeerRequest(
             user.Id,
             server.Id,
-            sub.Id,
-            req.DeviceId,
-            req.DeviceName,
-            req.Platform
+            req.DeviceId
         );
       
         var peer = await _mediator.Send(createReq, ct);

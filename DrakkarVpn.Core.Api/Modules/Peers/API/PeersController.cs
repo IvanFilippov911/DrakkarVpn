@@ -3,8 +3,6 @@ using DrakkarVpn.Core.Api.Modules.Peers.Application.Features.Commands.DeletePeer
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Features.Commands.RevokePeer;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Features.Queries.GetActivePeersCount;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Features.Queries.GetPeerById;
-using DrakkarVpn.Core.Api.Modules.Peers.Application.Features.Queries.GetPeersByServer;
-using DrakkarVpn.Core.Api.Modules.Peers.Application.Features.Queries.GetPeersByUser;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -39,8 +37,6 @@ public sealed class PeersController : ControllerBase
         var ok = await _mediator.Send(new DeletePeerRequest(id), ct);
         return ok ? NoContent() : NotFound();
     }
-
-
     
     
     [HttpGet("{peerId:guid}")]
@@ -50,23 +46,8 @@ public sealed class PeersController : ControllerBase
         var result = await _mediator.Send(req, ct);
         return result is null ? NotFound() : Ok(result);
     }
-
-    [HttpGet("by-user/{userId:guid}")]
-    public async Task<IActionResult> GetPeersByUser(Guid userId, CancellationToken ct)
-    {
-        var req = new GetPeersByUserRequest(userId);
-        var result = await _mediator.Send(req, ct);
-        return Ok(result);
-    }
-
-    [HttpGet("by-server/{serverId:guid}")]
-    public async Task<IActionResult> GetPeersByServer(Guid serverId, CancellationToken ct)
-    {
-        var req = new GetPeersByServerRequest(serverId);
-        var result = await _mediator.Send(req, ct);
-        return Ok(result);
-    }
-
+    
+    
     [HttpGet("by-server/{serverId:guid}/active-count")]
     public async Task<IActionResult> GetActivePeersCount(Guid serverId, CancellationToken ct)
     {

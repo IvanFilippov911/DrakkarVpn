@@ -1,5 +1,6 @@
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Features.Commands.DeletePeer;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Features.Queries.GetPeersBySubscription;
+using DrakkarVpn.Core.Api.Modules.Peers.Application.Features.Queries.GetPeersForRevoke;
 using DrakkarVpn.Core.Api.Modules.Subscriptions.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Subscriptions.Domain.ValueObjects;
 using MediatR;
@@ -22,11 +23,11 @@ public sealed class DeleteSubscriptionHandler
 
     public async Task<bool> Handle(DeleteSubscriptionRequest request, CancellationToken ct)
     {
-        var subscription = await _subscriptions.GetByIdAsync(new SubscriptionId(request.SubscriptionId), ct);
+        var subscription = await _subscriptions.GetByIdAsync(request.SubscriptionId, ct);
         if (subscription is null)
             return false;
         
-        var peers = await _mediator.Send(new GetPeersBySubscriptionRequest(request.SubscriptionId), ct);
+        var peers = await _mediator.Send(new GetPeersForRevokeQuery(request.SubscriptionId), ct);
 
         foreach (var peer in peers)
         {

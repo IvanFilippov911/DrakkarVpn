@@ -1,13 +1,15 @@
-using System.Security.Claims;
 using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Commands.PurchaseSubscription;
-using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Queries.GetUserPeers;
 using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Queries.GetVpnConfig;
-using DrakkarVpn.Core.Api.Modules.Peers.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Features.Queries.GetPeerByUuid;
+using DrakkarVpn.Core.Api.Modules.Subscriptions.Domain.ValueObjects;
 using DrakkarVpn.Core.Api.Modules.Tariffs.Application.Features.Queries.GetActiveTariffs;
 using DrakkarVpn.Core.Api.Modules.Users.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Users.Application.Features.Commands.Register;
+using DrakkarVpn.Core.Api.Modules.Users.Application.Features.Queries.GetListServerUsers;
+using DrakkarVpn.Core.Api.Modules.Users.Application.Features.Queries.UserDevicesOnServer;
+using DrakkarVpn.Core.Api.Modules.Users.Domain;
 using DrakkarVpn.Core.Api.Modules.Users.Infrastructure;
+using DrakkarVpn.Shared;
 using DrakkarVpn.Shared.Users;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -30,16 +32,6 @@ public sealed class OrchestratorController : ControllerBase
     }
     
     
-    [HttpGet("peers")]
-    public async Task<ActionResult<IReadOnlyList<GetTgPeersDto>>> GetUserPeersByTelegram(
-        [FromQuery] long telegramId,
-        CancellationToken ct)
-    {
-        var peers = await _mediator.Send(new GetUserPeersRequest(telegramId), ct);
-        return Ok(peers);
-    }
-
-    
     [HttpPost("register-or-get")]
     public async Task<ActionResult<RegisterUserResponse>> RegisterOrGet([FromBody] RegisterUserRequest req, CancellationToken ct)
     {
@@ -58,15 +50,11 @@ public sealed class OrchestratorController : ControllerBase
     [HttpGet("config")]
     public async Task<IActionResult> GetConfig(
         [FromQuery] string? region,
-        [FromQuery] string? deviceName,
-        [FromQuery] string? platform,
         CancellationToken ct)
     {
         var req = new GetVpnConfigRequest(
             TelegramId: User.GetTelegramId(),
             DeviceId:   User.GetDeviceId(),
-            DeviceName: deviceName ?? User.GetDeviceName(),
-            Platform:   platform   ?? User.GetPlatform(),
             Region:     region
         );
 
@@ -82,6 +70,45 @@ public sealed class OrchestratorController : ControllerBase
             return NotFound("Пир не найден");
         
         return Content(result.ConfigRaw, "text/plain");
+    }
+    
+    [HttpGet("{serverId:guid}/users")]
+    [ProducesResponseType(typeof(PagedResponseDto<UserCardDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PagedResponseDto<UserCardDto>>> GetUsersOnServer(
+        [FromRoute] Guid serverId,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 25,
+        [FromQuery] string? q = null,
+        [FromQuery] UserStatus? status = null,
+        [FromQuery] SubscriptionStatus? subStatus = null,
+        [FromQuery] UsersSortBy sort = UsersSortBy.EndAtDesc,
+        CancellationToken ct = default)
+    {
+        var request = new UsersOnServerRequest(
+            ServerId: serverId,
+            Page: page,
+            PageSize: pageSize,
+            Search: q,
+            Status: status,
+            SubscriptionStatus: subStatus,
+            SortBy: sort
+        );
+
+        var result = await _mediator.Send(request, ct);
+        return Ok(result);
+    }
+    
+    
+    [HttpGet("{serverId:guid}/{userId:guid}/devices")]
+    [ProducesResponseType(typeof(IReadOnlyList<DeviceListItemDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<DeviceListItemDto>>> GetUserDevicesOnServer(
+        [FromRoute] Guid serverId,
+        [FromRoute] Guid userId,
+        CancellationToken ct = default)
+    {
+        var query = new UserDevicesOnServerQuery(ServerId: serverId, UserId: userId);
+        var result = await _mediator.Send(query, ct);
+        return Ok(result);
     }
 
 }

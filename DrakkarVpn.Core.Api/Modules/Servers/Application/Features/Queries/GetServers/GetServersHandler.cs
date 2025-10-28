@@ -26,7 +26,7 @@ public sealed class GetServersHandler : IRequestHandler<GetServersRequest, IRead
             .OrderByDescending(s => s.Health.Reachable)
             .ThenBy(s => s.Health.PeersActive)
             .Select(s => new GetServerDto(
-                s.Id.Value,
+                s.Id,
                 s.Name,
                 s.Region.Code,
                 s.Status.ToString(),

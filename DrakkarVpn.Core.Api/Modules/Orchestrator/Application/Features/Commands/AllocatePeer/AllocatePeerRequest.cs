@@ -6,7 +6,5 @@ namespace DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Commands
 public sealed record AllocatePeerRequest(
     long TelegramId,
     string? Region,
-    string DeviceId,           
-    string? DeviceName,       
-    string? Platform         
+    string DeviceId
 ) : IRequest<PeerRegisterResponseDto>;

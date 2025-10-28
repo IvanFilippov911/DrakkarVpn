@@ -29,7 +29,7 @@ public sealed class PurchaseSubscriptionHandler
         }
         else
         {
-            subscription = await _mediator.Send(new CreateSubscriptionRequest(user.Id, req.TariffId), ct);
+            subscription = await _mediator.Send(new CreateSubscriptionRequest(user.Id, req.TariffId, req.DevicesCount), ct);
         }
         return subscription.Id;
     }

@@ -14,7 +14,7 @@ public sealed class ServerRepository : IServerRepository
 
     public ServerRepository(AppDbContext db) => _db = db;
 
-    public Task<Server?> GetAsync(ServerId id, CancellationToken ct) =>
+    public Task<Server?> GetAsync(Guid id, CancellationToken ct) =>
         _db.Servers.FirstOrDefaultAsync(s => s.Id == id, ct);
     
     public async Task AddAsync(Server server, CancellationToken ct)
@@ -41,20 +41,23 @@ public sealed class ServerRepository : IServerRepository
     
     public async Task<IReadOnlyList<ServerForHealthPoll>> GetForHealthPollAsync(CancellationToken ct)
     {
-        
         var rows = await _db.Servers
             .AsNoTracking()
-            .Where(s => s.Status == ServerStatus.Disabled || s.Status == ServerStatus.Draining)
-            .OrderBy(s => s.Id) 
+            .OrderBy(s => s.Id)
             .Select(s => new
             {
-                Id = s.Id.Value,
+                Id  = s.Id,
                 Url = s.AgentBaseUrl.ToString()
             })
             .ToListAsync(ct);
-        
+
         return rows
-            .Select(r => new ServerForHealthPoll(r.Id, new Uri(r.Url, UriKind.Absolute)))
+            .Where(r => !string.IsNullOrWhiteSpace(r.Url))
+            .Select(r =>
+            {
+                var normalized = r.Url.EndsWith("/") ? r.Url : r.Url + "/";
+                return new ServerForHealthPoll(r.Id, new Uri(normalized, UriKind.Absolute));
+            })
             .ToList();
     }
 

@@ -1,7 +1,8 @@
+using DrakkarVpn.Core.Api.Modules.Subscriptions.Application.Features.Queries.GetActiveSubscriptionByUser;
 using DrakkarVpn.Core.Api.Modules.Users.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Users.Application.DTOs;
+using DrakkarVpn.Core.Api.Modules.Users.Application.Features.Queries.CountActiveDevicesBySubscription;
 using DrakkarVpn.Core.Api.Modules.Users.Domain;
-using DrakkarVpn.Core.Api.Modules.Users.Domain.ValueObjects;
 using MediatR;
 
 namespace DrakkarVpn.Core.Api.Modules.Users.Application.Features.Commands.ConnectDevice;
@@ -15,6 +16,7 @@ public sealed class ConnectDeviceHandler : IRequestHandler<ConnectDeviceRequest,
     private readonly IAppUserRepository _users;
     private readonly IDeviceIdGenerator _deviceIds;
     private readonly ILogger<ConnectDeviceHandler> _log;
+    private readonly IMediator _mediator;
     
     public ConnectDeviceHandler(
         ITelegramInitDataValidator twa,
@@ -23,7 +25,8 @@ public sealed class ConnectDeviceHandler : IRequestHandler<ConnectDeviceRequest,
         IDeviceRepository devices,
         IAppUserRepository users,
         IDeviceIdGenerator deviceIds,
-        ILogger<ConnectDeviceHandler> log)
+        ILogger<ConnectDeviceHandler> log,
+        IMediator mediator)
     {
         _twa = twa;
         _replay = replay;
@@ -32,6 +35,7 @@ public sealed class ConnectDeviceHandler : IRequestHandler<ConnectDeviceRequest,
         _users = users;
         _deviceIds = deviceIds;
         _log = log;
+        _mediator = mediator;
     }
 
     public async Task<ConnectDeviceResponse> Handle(ConnectDeviceRequest req, CancellationToken ct)
@@ -56,6 +60,8 @@ public sealed class ConnectDeviceHandler : IRequestHandler<ConnectDeviceRequest,
                 ? $"qid:{queryId}"
                 : $"tg:{telegramId}:ts:{authDateUnix}";
 
+            Console.WriteLine($"REPLY KEY: {replayKey}");
+
             var ok = await _replay.TryReserveAsync(replayKey, TimeSpan.FromMinutes(5), ct);
             if (!ok) throw new UnauthorizedAccessException("Replay detected");
         }
@@ -66,14 +72,21 @@ public sealed class ConnectDeviceHandler : IRequestHandler<ConnectDeviceRequest,
         }
 
         
-        var user = await _users.GetByTelegramIdAsync(new TelegramId(telegramId), ct);
+        var user = await _users.GetByTelegramIdAsync(telegramId, ct);
+        var sub = await _mediator.Send(new GetActiveSubscriptionByUserRequest(user.Id), ct);
+        if (sub is null) throw new Exception("Subscription not found");
+        
+        var used = await _mediator.Send(new CountActiveDevicesBySubscriptionRequest(sub.Id), ct);
+        if (used >= sub.MaxDevices)
+            throw new InvalidOperationException("Device limit reached");
+        
         string deviceId;
 
         if (!string.IsNullOrWhiteSpace(req.ExistingDeviceId))
         {
-            var owns = await _devices.OwnsAsync(user.Id, req.ExistingDeviceId!, ct);
+            var owns = await _devices.OwnsAsync(sub.Id, req.ExistingDeviceId!, ct);
             if (!owns)
-                throw new UnauthorizedAccessException("device does not belong to this user or is revoked");
+                throw new UnauthorizedAccessException("device does not belong to this subscription or is revoked");
 
             deviceId = req.ExistingDeviceId!;
             await _devices.UpdateAsync(deviceId, req.DeviceName, req.Platform, ct);
@@ -84,7 +97,7 @@ public sealed class ConnectDeviceHandler : IRequestHandler<ConnectDeviceRequest,
 
             var device = Device.Create(
                 deviceId: deviceId,
-                userId:   user.Id,
+                subscriptionId: sub.Id,
                 name:     req.DeviceName,
                 platform: req.Platform,
                 nowUtc:   DateTime.UtcNow

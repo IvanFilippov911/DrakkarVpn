@@ -12,11 +12,11 @@ public sealed class GetServerByIdHandler : IRequestHandler<GetServerByIdRequest,
 
     public async Task<GetServersDetailDto?> Handle(GetServerByIdRequest request, CancellationToken ct)
     {
-        var server = await _repo.GetAsync(new ServerId(request.ServerId), ct);
+        var server = await _repo.GetAsync(request.ServerId, ct);
         if (server is null) return null;
 
         return new GetServersDetailDto(
-            server.Id.Value,
+            server.Id,
             server.Name,
             server.Region.Code,
             server.PublicHost.Value,

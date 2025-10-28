@@ -6,7 +6,5 @@ namespace DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Queries.
 public sealed record GetVpnConfigRequest(
     long TelegramId,
     string DeviceId,          
-    string? DeviceName,
-    string? Platform,
     string? Region            
 ) : IRequest<GetVpnConfigResponse?>;

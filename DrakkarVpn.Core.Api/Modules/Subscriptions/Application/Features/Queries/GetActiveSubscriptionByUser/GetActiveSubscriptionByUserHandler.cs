@@ -19,7 +19,7 @@ public sealed class GetActiveSubscriptionByUserHandler
         if (subscription is null) return null;
 
         return new GetActiveSubscriptionDto(
-            subscription.Id.Value,
+            subscription.Id,
             subscription.MaxDevices,
             subscription.StartAt,
             subscription.EndAt

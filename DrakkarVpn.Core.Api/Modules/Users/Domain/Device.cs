@@ -3,7 +3,7 @@ namespace DrakkarVpn.Core.Api.Modules.Users.Domain;
 public sealed class Device
 {
     public string DeviceId { get; private set; } = default!;
-    public Guid UserId { get; private set; }
+    public Guid SubscriptionId { get; private set; }
     public string? Name { get; private set; }
     public string? Platform { get; private set; }
     public DateTime CreatedAt { get; private set; }
@@ -12,11 +12,11 @@ public sealed class Device
 
     private Device() { }
 
-    public static Device Create(string deviceId, Guid userId, string? name, string? platform, DateTime nowUtc) =>
+    public static Device Create(string deviceId, Guid subscriptionId, string? name, string? platform, DateTime nowUtc) =>
         new()
         {
             DeviceId = deviceId,
-            UserId = userId,
+            SubscriptionId = subscriptionId,
             Name = name,
             Platform = platform,
             CreatedAt = nowUtc,

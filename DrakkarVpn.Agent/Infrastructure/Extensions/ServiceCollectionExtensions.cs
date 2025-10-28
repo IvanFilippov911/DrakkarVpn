@@ -20,7 +20,7 @@ public static class ServiceCollectionExtensions
         });
         
         services.AddScoped<IV2RayService, V2RayService>();
-        services.AddScoped<IHealthService, MetricService>();
+        services.AddScoped<IMetricService, MetricService>();
         services.AddSingleton<INetworkMetricsService, NetworkMetricsService>();
         services.AddScoped<IBenchmarkService, BenchmarkService>();
 

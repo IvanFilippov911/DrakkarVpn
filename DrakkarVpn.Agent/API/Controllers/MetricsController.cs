@@ -7,17 +7,17 @@ namespace DrakkarVpn.Agent.Controllers;
 [Route("metrics")]
 public class MetricsController : ControllerBase
 {
-    private readonly IHealthService _healthService;
+    private readonly IMetricService _metricService;
 
-    public MetricsController(IHealthService healthService)
+    public MetricsController(IMetricService metricService)
     {
-        _healthService = healthService;
+        _metricService = metricService;
     }
 
     [HttpGet]
     public async Task<IActionResult> Get(CancellationToken ct)
     {
-        var result = await _healthService.GetHealthAsync(ct);
+        var result = await _metricService.GetMetricAsync(ct);
         return Ok(result);
     }
 }

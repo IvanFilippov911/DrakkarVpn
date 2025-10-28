@@ -9,7 +9,7 @@ public sealed class Server : IAggregateRoot
     private Server() { }
 
     private Server(
-        ServerId id,
+        Guid id,
         string name,
         Region region,
         PublicHost host,
@@ -34,7 +34,7 @@ public sealed class Server : IAggregateRoot
         CreatedAt = DateTime.UtcNow;
     }
 
-    public ServerId Id { get; }
+    public Guid Id { get; }
     public string Name { get; private set; }
     public Region Region { get; private set; }
     public PublicHost PublicHost { get; private set; }
@@ -50,7 +50,7 @@ public sealed class Server : IAggregateRoot
     public DateTime CreatedAt { get; }
 
     public static Server Register(
-        ServerId id,
+        Guid id,
         string name,
         Region region,
         PublicHost host,

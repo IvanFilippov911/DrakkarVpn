@@ -8,7 +8,7 @@ public sealed class Subscription
     private Subscription() { }
 
     private Subscription(
-        SubscriptionId id,
+        Guid id,
         Guid userId,
         DateTime startAt,
         DateTime endAt,
@@ -19,23 +19,20 @@ public sealed class Subscription
         StartAt = startAt;
         EndAt = endAt;
         Status = SubscriptionStatus.Active;
-        CreatedAt = DateTime.UtcNow;
         MaxDevices = maxDevices;
     }
 
-    public SubscriptionId Id { get; private set; }
+    public Guid Id { get; private set; }
     public Guid UserId { get; private set; }
     public DateTime StartAt { get; private set; }
     public DateTime EndAt { get; private set; }
     public SubscriptionStatus Status { get; private set; }
-    public DateTime CreatedAt { get; private set; }
-    
     public int MaxDevices { get; private set; } 
 
     public static Subscription CreateNew(Guid userId, DateTime startAt, DateTime endAt, int maxDevices = 1)
     {
         if (maxDevices < 1) throw new ArgumentOutOfRangeException(nameof(maxDevices));
-        var sub = new Subscription(SubscriptionId.New(), userId, startAt, endAt, maxDevices);
+        var sub = new Subscription(Guid.NewGuid(), userId, startAt, endAt, maxDevices);
         sub.Status = SubscriptionStatus.Active;
         return sub;
     }

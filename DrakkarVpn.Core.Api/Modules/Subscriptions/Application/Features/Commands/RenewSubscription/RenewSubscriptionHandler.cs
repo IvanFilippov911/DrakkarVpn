@@ -22,7 +22,7 @@ public sealed class RenewSubscriptionHandler : IRequestHandler<RenewSubscription
 
     public async Task<SubscriptionDto> Handle(RenewSubscriptionRequest request, CancellationToken ct)
     {
-        var subscription = await _repository.GetByIdAsync(new(request.SubscriptionId), ct);
+        var subscription = await _repository.GetByIdAsync(request.SubscriptionId, ct);
         if (subscription is null)
             throw new InvalidOperationException($"Subscription {request.SubscriptionId} not found");
 
@@ -37,7 +37,7 @@ public sealed class RenewSubscriptionHandler : IRequestHandler<RenewSubscription
         subscription.Renew(newEndAt);
 
         return new SubscriptionDto(
-            subscription.Id.Value,
+            subscription.Id,
             subscription.UserId,
             subscription.StartAt,
             subscription.EndAt,

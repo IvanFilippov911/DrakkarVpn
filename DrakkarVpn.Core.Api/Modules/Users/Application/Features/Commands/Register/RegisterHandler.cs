@@ -2,7 +2,6 @@ using DrakkarVpn.Core.Api.Modules.Users.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Users.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Users.Application.Features.Commands.Register;
 using DrakkarVpn.Core.Api.Modules.Users.Domain;
-using DrakkarVpn.Core.Api.Modules.Users.Domain.ValueObjects;
 using MediatR;
 
 public sealed class RegisterOrGetByTelegramHandler 
@@ -14,7 +13,7 @@ public sealed class RegisterOrGetByTelegramHandler
 
     public async Task<RegisterUserResponse> Handle(RegisterRequest req, CancellationToken ct)
     {
-        var tgId = (TelegramId)req.regCommand.TelegramId;
+        var tgId = req.regCommand.TelegramId;
 
         var existing = await _repo.GetByTelegramIdAsync(tgId, ct);
         if (existing is not null)

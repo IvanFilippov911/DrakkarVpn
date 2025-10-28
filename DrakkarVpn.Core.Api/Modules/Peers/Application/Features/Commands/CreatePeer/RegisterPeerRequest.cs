@@ -7,8 +7,5 @@ namespace DrakkarVpn.Core.Api.Modules.Peers.Application.Features.Commands.Create
 public sealed record RegisterPeerRequest(
     Guid UserId,
     Guid ServerId,
-    Guid SubscriptionId,
-    string DeviceId,          
-    string? DeviceName,       
-    string? Platform
+    string DeviceId
 ) : IRequest<PeerRegisterResponseDto>;

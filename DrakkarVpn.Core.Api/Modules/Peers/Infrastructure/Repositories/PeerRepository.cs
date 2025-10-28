@@ -1,8 +1,10 @@
 using DrakkarVpn.Core.Api.Infrastructure.EF;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
 using System.Linq;
+using System.Linq.Expressions;
 using DrakkarVpn.Core.Api.Modules.Peers.Domain;
 using DrakkarVpn.Core.Api.Modules.Subscriptions.Domain.ValueObjects;
+using DrakkarVpn.Shared.Peers;
 using Microsoft.EntityFrameworkCore;
 
 namespace DrakkarVpn.Core.Api.Modules.Peers.Infrastructure.Repositories;
@@ -18,12 +20,6 @@ public sealed class PeerRepository : IPeerRepository
 
     public async Task AddAsync(Peer peer, CancellationToken ct) =>
         await _db.Peers.AddAsync(peer, ct);
-
-    public async Task<IReadOnlyList<Peer>> GetByUserAsync(Guid userId, CancellationToken ct) =>
-        await _db.Peers
-            .AsNoTracking()
-            .Where(p => p.UserId == userId)
-            .ToListAsync(ct);
     
 
     public async Task<IReadOnlyList<Peer>> GetByServerAsync(Guid serverId, CancellationToken ct) =>
@@ -55,20 +51,59 @@ public sealed class PeerRepository : IPeerRepository
         _db.Peers.Remove(peer);
     }
     
-    
-    public async Task<IReadOnlyList<Peer>> GetBySubscriptionAsync(SubscriptionId subscriptionId, CancellationToken ct) =>
-        await _db.Peers.Where(p => p.SubscriptionId == subscriptionId).ToListAsync(ct);
-
     public async Task<Peer?> GetByAgentUuidAsync(AgentPeerUuid uuid, CancellationToken ct) =>
         await _db.Peers
             .FirstOrDefaultAsync(p => p.AgentPeerUuid == uuid, ct);
     
     public Task<int> SaveChangesAsync(CancellationToken ct) =>
         _db.SaveChangesAsync(ct);
+    
+    public Task<Peer?> GetByDeviceIdAsync(string deviceId, CancellationToken ct) =>
+        _db.Peers.AsNoTracking()
+            .FirstOrDefaultAsync(p => p.DeviceId == deviceId, ct);
+    
+    public async Task<IReadOnlyList<T>> GetForRevokeAsync<T>(
+        Guid subscriptionId,
+        Expression<Func<Peer, T>> selector,
+        CancellationToken ct)
+    {
+        var items = await _db.Devices.AsNoTracking()
+            .Where(d => d.SubscriptionId == subscriptionId)
+            .Join(_db.Peers.AsNoTracking(),
+                d => d.DeviceId,
+                p => p.DeviceId,
+                (_, p) => p)
+            .Select(selector)
+            .ToListAsync(ct); 
 
-    public Task<Peer?> GetActiveBySubscriptionAndDeviceAsync(SubscriptionId subId, string deviceId, CancellationToken ct) =>
-        _db.Peers
+        return items;
+    }
+    
+    public async Task<Dictionary<string, PeerBriefDto>> GetMapByDeviceIdsOnServerAsync(
+        Guid serverId,
+        IReadOnlyCollection<string> deviceIds,
+        CancellationToken ct)
+    {
+        if (deviceIds is null || deviceIds.Count == 0)
+            return new();
+
+        var pairs = await _db.Peers
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.SubscriptionId == subId && p.DeviceId == deviceId && p.Status == PeerStatus.Active, ct);
+            .Where(p => p.ServerId == serverId && deviceIds.Contains(p.DeviceId))
+            .Select(p => new
+            {
+                p.DeviceId,
+                Peer = new PeerBriefDto(
+                    p.Id.Value,
+                    p.AgentPeerUuid.Value,
+                    (short)p.Status,
+                    p.LastHandshakeAt
+                )
+            })
+            .ToListAsync(ct);
 
+        return pairs.ToDictionary(x => x.DeviceId, x => x.Peer);
+    }
+
+    
 }

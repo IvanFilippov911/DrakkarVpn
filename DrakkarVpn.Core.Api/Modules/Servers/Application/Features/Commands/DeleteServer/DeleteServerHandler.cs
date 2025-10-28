@@ -13,7 +13,7 @@ public sealed class DeleteServerHandler : IRequestHandler<DeleteServerRequest, b
 
     public async Task<bool> Handle(DeleteServerRequest req, CancellationToken ct)
     {
-        var server = await _repo.GetAsync(new ServerId(req.ServerId), ct);
+        var server = await _repo.GetAsync(req.ServerId, ct);
         if (server is null)
             return false;
 

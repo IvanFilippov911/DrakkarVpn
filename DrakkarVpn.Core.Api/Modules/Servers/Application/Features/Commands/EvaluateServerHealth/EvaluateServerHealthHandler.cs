@@ -22,7 +22,7 @@ public sealed class EvaluateServerHealthHandler
 
     public async Task<bool> Handle(EvaluateServerHealthRequest req, CancellationToken ct)
     {
-        var server = await _repo.GetAsync(new ServerId(req.ServerId), ct);
+        var server = await _repo.GetAsync(req.ServerId, ct);
         if (server is null) return false;
 
         var newStatus = server.Status;
@@ -52,7 +52,7 @@ public sealed class EvaluateServerHealthHandler
         var slot10s = TruncateTo10sUtc(DateTime.UtcNow);
         
         await _mediator.Send(new UpsertServerMetricsHistoryRequest(
-            ServerId:        server.Id.Value,
+            ServerId:        server.Id,
             PeriodStartUtc:  slot10s,
             Reachable:       req.Reachable,
             PeersActive:     req.PeersActive,

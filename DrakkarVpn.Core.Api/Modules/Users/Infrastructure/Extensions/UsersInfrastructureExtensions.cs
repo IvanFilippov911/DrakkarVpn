@@ -17,15 +17,21 @@ public static class UsersInfrastructureExtensions
         services.AddMemoryCache();
 
         services.AddTelegramOptions(configuration);
-        services.AddJwtAuth(configuration);
+        //services.AddJwtAuth(configuration);
         
         services.AddScoped<IAppUserRepository, AppUserRepository>();
         services.AddScoped<IDeviceRepository, DeviceRepository>();
 
         services.AddSingleton<IJwtTokenService, JwtTokenService>();
-        services.AddSingleton<ITelegramInitDataValidator, TelegramInitDataValidator>();
+        
+        if (configuration.GetValue("Auth:BypassTelegramInitData", false))
+            services.AddSingleton<ITelegramInitDataValidator, DevBypassTelegramValidator>();
+        else
+            services.AddSingleton<ITelegramInitDataValidator, TelegramInitDataValidator>();
         services.AddSingleton<IReplayStore, InMemoryReplayStore>();
         services.AddSingleton<IDeviceIdGenerator, DeviceIdGenerator>();
+        
+        services.AddJwtAuth(configuration);
 
         return services;
     }

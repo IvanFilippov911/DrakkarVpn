@@ -63,7 +63,7 @@ public sealed class ServerHealthBackgroundWorker : BackgroundService
                         _lastPeersCount.AddOrUpdate(s.Id, metrics.PeersActive, (_, __) => metrics.PeersActive);
                     else
                         metrics = metrics with { PeersActive = GetLastPeersSafe(s.Id) };
-
+                    
                     await mediator.Send(new EvaluateServerHealthRequest(
                         s.Id,
                         metrics.Reachable,
@@ -82,9 +82,10 @@ public sealed class ServerHealthBackgroundWorker : BackgroundService
                     _logger.LogInformation("ServerMetricsHistory: cleaned entries older than 48h");
                 }
             }
-            catch (OperationCanceledException) { /* ignore */ }
+            catch (OperationCanceledException) { Console.WriteLine("Ошибка операции"); }
             catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 _logger.LogError(ex, "Health check error");
             }
 

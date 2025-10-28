@@ -18,7 +18,7 @@ public sealed class GetExpiredSubscriptionsHandler
         var subs = await _repository.GetExpiredActiveAsync(now, ct);
 
         return subs.Select(s => new ExpiredSubscriptionDto(
-            s.Id.Value,
+            s.Id,
             s.UserId,
             s.EndAt
         )).ToList();

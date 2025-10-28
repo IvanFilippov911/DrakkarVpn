@@ -18,7 +18,7 @@ public sealed class ServersAgentClient : BaseAgentClient, IServersAgentClient
 
     public async Task<BenchmarkResultDto> RunBenchmarkAsync(Guid serverId, CancellationToken ct)
     {
-        var server = await _repo.GetAsync(new ServerId(serverId), ct);
+        var server = await _repo.GetAsync(serverId, ct);
         var url = $"{server.AgentBaseUrl}benchmark";
         
         try

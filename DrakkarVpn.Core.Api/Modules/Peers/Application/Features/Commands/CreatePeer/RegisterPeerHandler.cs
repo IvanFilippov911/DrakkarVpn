@@ -3,7 +3,6 @@ using DrakkarVpn.Core.Api.Modules.Peers.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Peers.Domain;
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Servers.Domain.VO;
-using DrakkarVpn.Core.Api.Modules.Subscriptions.Domain.ValueObjects;
 using DrakkarVpn.Core.Api.Modules.Users.Application.Abstractions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -35,7 +34,7 @@ public sealed class RegisterPeerHandler : IRequestHandler<RegisterPeerRequest, P
         var user = await _users.GetByIdAsync(req.UserId, ct)
                    ?? throw new InvalidOperationException($"User {req.UserId} not found");
 
-        var server = await _servers.GetAsync(new ServerId(req.ServerId), ct)
+        var server = await _servers.GetAsync(req.ServerId, ct)
                     ?? throw new InvalidOperationException($"Server {req.ServerId} not found");
 
         if (!server.IsEligible())
@@ -49,14 +48,10 @@ public sealed class RegisterPeerHandler : IRequestHandler<RegisterPeerRequest, P
             agentPeerUuid = agentResult.PeerUuid;
             
             var peer = Peer.CreateNew(
-                userId:         req.UserId,
                 serverId:       req.ServerId,
-                subscriptionId: new SubscriptionId(req.SubscriptionId),
                 agentPeerUuid:  agentResult.PeerUuid,
                 configRaw:      agentResult.ConfigRaw,
                 deviceId:       req.DeviceId,
-                deviceName:     req.DeviceName,
-                platform:       req.Platform,
                 nowUtc:         DateTime.UtcNow
             );
 
@@ -72,8 +67,8 @@ public sealed class RegisterPeerHandler : IRequestHandler<RegisterPeerRequest, P
                 try { await _agent.RevokePeerAsync(server, agentPeerUuid.Value, ct); } catch {  }
             }
             
-            var existing = await _peers.GetActiveBySubscriptionAndDeviceAsync(
-                new SubscriptionId(req.SubscriptionId), req.DeviceId, ct);
+            var existing = await _peers.GetByDeviceIdAsync(
+                req.DeviceId, ct);
 
             if (existing is null) throw;
 

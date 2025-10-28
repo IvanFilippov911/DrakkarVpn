@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using DrakkarVpn.Shared.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -28,7 +29,7 @@ public static class AuthExtensions
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(o =>
             {
-                o.RequireHttpsMetadata = true;
+                o.RequireHttpsMetadata = false;
                 o.SaveToken = false;
                 o.TokenValidationParameters = new TokenValidationParameters
                 {
@@ -39,9 +40,7 @@ public static class AuthExtensions
                     ValidateAudience = true,
                     ValidAudience = opts.Audience,
                     ValidateLifetime = true,
-                    ClockSkew = TimeSpan.FromMinutes(1),
-                    NameClaimType = null,
-                    RoleClaimType = null
+                    ClockSkew = TimeSpan.FromMinutes(1)
                 };
                 
                 Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler.DefaultMapInboundClaims = false;

@@ -6,9 +6,7 @@ namespace DrakkarVpn.Core.Api.Modules.Peers.Domain;
 public sealed class Peer : IAggregateRoot
 {
     public PeerId Id { get; private set; }
-    public Guid UserId { get; private set; }
     public Guid ServerId { get; private set; }
-    public SubscriptionId SubscriptionId { get; private set; }
     public AgentPeerUuid AgentPeerUuid { get; private set; }
     public string ConfigRaw { get; private set; }
     public PeerStatus Status { get; private set; }
@@ -20,20 +18,14 @@ public sealed class Peer : IAggregateRoot
 
     private Peer(
         PeerId id,
-        Guid userId,
         Guid serverId,
-        SubscriptionId subscriptionId,
         AgentPeerUuid agentPeerUuid,
         string configRaw,
         DateTime createdAt,
-        string deviceId,
-        string? deviceName,
-        string? platform)
+        string deviceId)
     {
         Id = id;
-        UserId = userId;
         ServerId = serverId;
-        SubscriptionId = subscriptionId;
         AgentPeerUuid = agentPeerUuid;
         ConfigRaw = configRaw ?? throw new ArgumentNullException(nameof(configRaw));
         Status = PeerStatus.Active;
@@ -43,17 +35,13 @@ public sealed class Peer : IAggregateRoot
     }
 
     public static Peer CreateNew(
-        Guid userId,
         Guid serverId,
-        SubscriptionId subscriptionId,
         AgentPeerUuid agentPeerUuid,
         string configRaw,
         string deviceId,
-        string? deviceName,
-        string? platform,
         DateTime nowUtc)
-        => new(PeerId.New(), userId, serverId, subscriptionId, agentPeerUuid, configRaw, nowUtc,
-               deviceId, deviceName, platform);
+        => new(PeerId.New(), serverId, agentPeerUuid, configRaw, nowUtc,
+               deviceId);
 
     public void Revoke() => Status = PeerStatus.Revoked;
 

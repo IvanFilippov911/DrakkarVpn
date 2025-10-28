@@ -13,7 +13,7 @@ public sealed class RegisterServerHandler : IRequestHandler<RegisterServerReques
     public async Task<Guid> Handle(RegisterServerRequest req, CancellationToken ct)
     {
         var entity = Server.Register(
-            ServerId.New(),
+            Guid.NewGuid(),
             req.Name,
             new Region(req.Region),
             new PublicHost(req.PublicHost),
@@ -22,6 +22,6 @@ public sealed class RegisterServerHandler : IRequestHandler<RegisterServerReques
             req.MaxPeers);
 
         await _repo.AddAsync(entity, ct);
-        return entity.Id.Value;
+        return entity.Id;
     }
 }

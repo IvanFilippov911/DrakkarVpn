@@ -27,12 +27,12 @@ public sealed class CreateSubscriptionHandler : IRequestHandler<CreateSubscripti
         var startAt = DateTime.UtcNow;
         var endAt = startAt.Add(tariff.Duration);
         
-        var subscription = Subscription.CreateNew(request.UserId, startAt, endAt);
+        var subscription = Subscription.CreateNew(request.UserId, startAt, endAt, request.DeviceCount);
 
         await _repository.AddAsync(subscription, ct);
 
         return new SubscriptionDto(
-            subscription.Id.Value,
+            subscription.Id,
             subscription.UserId,
             subscription.StartAt,
             subscription.EndAt,
