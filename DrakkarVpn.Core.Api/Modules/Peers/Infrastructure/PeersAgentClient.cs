@@ -24,13 +24,13 @@ public sealed class PeersAgentClient : IPeersAgentClient
         if (wire is null || wire.PeerUuid == Guid.Empty || string.IsNullOrWhiteSpace(wire.ConfigRaw))
             throw new InvalidOperationException($"Agent {server.Id} returned invalid payload");
         
-        return new PeerAgentRegisterResponseDto(new AgentPeerUuid(wire.PeerUuid), wire.ConfigRaw);
+        return new PeerAgentRegisterResponseDto(wire.PeerUuid, wire.ConfigRaw);
     }
 
 
-    public async Task<bool> RevokePeerAsync(Server server, AgentPeerUuid peerUuid, CancellationToken ct)
+    public async Task<bool> RevokePeerAsync(Server server, Guid? peerUuid, CancellationToken ct)
     {
-        var url = $"{server.AgentBaseUrl}peers/{peerUuid.Value}";
+        var url = $"{server.AgentBaseUrl}peers/{peerUuid}";
         var resp = await _http.DeleteAsync(url, ct);
         return resp.IsSuccessStatusCode;
     }

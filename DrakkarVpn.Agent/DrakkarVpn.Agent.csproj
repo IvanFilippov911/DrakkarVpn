@@ -5,35 +5,33 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
-
+    
     <ItemGroup>
         <PackageReference Include="Grpc.Net.Client" Version="2.71.0" />
         <PackageReference Include="Grpc.Tools" Version="2.72.0">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.19"/>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2"/>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="API\" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <Protobuf Include="Infrastructure/gRpc/Protos/**/*.proto"
-                  GrpcServices="Client"
-                  ProtoRoot="Infrastructure/gRpc/Protos" />
-    </ItemGroup>
-    
-    <ItemGroup>
         <PackageReference Include="Google.Protobuf" Version="3.27.2" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.19" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+        
+        <PackageReference Include="MediatR" Version="12.2.0" />
+        <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.1.0" />
     </ItemGroup>
     
     <ItemGroup>
-      <ProjectReference Include="..\DrakkarVpn.Shared\DrakkarVpn.Shared.csproj" />
+        <ProjectReference Include="..\DrakkarVpn.Shared\DrakkarVpn.Shared.csproj" />
     </ItemGroup>
 
-
+    <ItemGroup>
+        <Protobuf Include="Infrastructure/Services/xray/Protos/**/*.proto"
+                  GrpcServices="Client"
+                  ProtoRoot="Infrastructure/Services/xray/Protos" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <Folder Include="API\" />
+    </ItemGroup>
 
 </Project>

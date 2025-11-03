@@ -7,5 +7,5 @@ namespace DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
 public interface IPeersAgentClient
 {
     Task<PeerAgentRegisterResponseDto> RegisterPeerAsync(Server server, CancellationToken ct);
-    Task<bool> RevokePeerAsync(Server server, AgentPeerUuid peerUuid, CancellationToken ct);
+    Task<bool> RevokePeerAsync(Server server, Guid? peerUuid, CancellationToken ct);
 }

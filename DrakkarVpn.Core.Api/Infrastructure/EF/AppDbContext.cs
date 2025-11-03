@@ -1,5 +1,6 @@
 using DrakkarVpn.Core.Api.Modules.Idempotency.Domain;
 using DrakkarVpn.Core.Api.Modules.Peers.Domain;
+using DrakkarVpn.Core.Api.Modules.Peers.Infrastructure.Entities;
 using DrakkarVpn.Core.Api.Modules.Servers.Domain;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.EF.Configurations;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.Entities;
@@ -23,6 +24,8 @@ public sealed class AppDbContext : DbContext
     public DbSet<Subscription> Subscriptions => Set<Subscription>();
     public DbSet<IdempotencyKey> IdempotencyKeys => Set<IdempotencyKey>();
     public DbSet<ServerMetricsHistory> ServerMetricsHistory => Set<ServerMetricsHistory>();
+    public DbSet<PeerMetricsHistory> PeerMetricsHistory => Set<PeerMetricsHistory>();
+    public DbSet<PeerSyncIssueEntity> PeerSyncIssues => Set<PeerSyncIssueEntity>();
 
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)

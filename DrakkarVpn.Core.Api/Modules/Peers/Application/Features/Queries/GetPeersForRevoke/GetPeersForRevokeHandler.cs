@@ -15,7 +15,7 @@ public sealed class GetPeersForRevokeHandler
         => _peers.GetForRevokeAsync(
             req.SubscriptionId,
             p => new PeerForRevokeDto(
-                p.Id.Value,
+                p.Id,
                 p.ServerId,
                 (int)p.Status
             ),

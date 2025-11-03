@@ -26,14 +26,14 @@ public sealed class RevokePeerHandler : IRequestHandler<RevokePeerRequest, bool>
 
     public async Task<bool> Handle(RevokePeerRequest req, CancellationToken ct)
     {
-        var peer = await _peers.GetByIdAsync(new PeerId(req.PeerId), ct);
+        var peer = await _peers.GetByIdAsync(req.PeerId, ct);
         if (peer is null) return false;
         
         if (!peer.IsActive()) return true;
         
         if (peer.ServerId != req.ServerId)
             throw new InvalidOperationException(
-                $"Peer {peer.Id.Value} belongs to server {peer.ServerId}, not {req.ServerId}");
+                $"Peer {peer.Id} belongs to server {peer.ServerId}, not {req.ServerId}");
 
         var server = await _servers.GetAsync(peer.ServerId, ct)
                     ?? throw new InvalidOperationException($"Server {peer.ServerId} not found");
@@ -41,7 +41,7 @@ public sealed class RevokePeerHandler : IRequestHandler<RevokePeerRequest, bool>
         var agentOk = await _agent.RevokePeerAsync(server, peer.AgentPeerUuid, ct);
         if (!agentOk)
             throw new InvalidOperationException(
-                $"Agent {server.Id} refused to revoke peer {peer.Id.Value}");
+                $"Agent {server.Id} refused to revoke peer {peer.Id}");
         
         peer.Revoke();
         await _peers.SaveChangesAsync(ct);

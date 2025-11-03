@@ -1,4 +1,6 @@
 using DrakkarVpn.Agent.Application.Abstractions;
+using DrakkarVpn.Agent.Application.Metrics.Queries.AgentMetrics;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DrakkarVpn.Agent.Controllers;
@@ -7,17 +9,14 @@ namespace DrakkarVpn.Agent.Controllers;
 [Route("metrics")]
 public class MetricsController : ControllerBase
 {
-    private readonly IMetricService _metricService;
-
-    public MetricsController(IMetricService metricService)
-    {
-        _metricService = metricService;
-    }
+    private readonly IMediator _mediator;
+    public MetricsController(IMediator mediator) => _mediator = mediator;
 
     [HttpGet]
     public async Task<IActionResult> Get(CancellationToken ct)
     {
-        var result = await _metricService.GetMetricAsync(ct);
-        return Ok(result);
+        var dto = await _mediator.Send(new GetAgentMetricsQuery(), ct);
+        return Ok(dto);
     }
+    
 }

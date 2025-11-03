@@ -17,13 +17,12 @@ public sealed class GetPeerByDeviceHandler : IRequestHandler<GetPeerByDeviceRequ
 
 
         return new GetPeerDto(
-            Id: peer.Id.Value,
+            Id: peer.Id,
             ServerId: peer.ServerId,
             DeviceId: peer.DeviceId,
-            AgentPeerId: peer.AgentPeerUuid.Value,
+            AgentPeerId: peer.AgentPeerUuid,
             Status: (int)peer.Status,
             CreatedAt: peer.CreatedAt,
-            LastHandshakeAt: peer.LastHandshakeAt,
             ConfigRaw: peer.ConfigRaw
         );
     }

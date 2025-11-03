@@ -4,5 +4,9 @@ public sealed record PeerBriefDto(
     Guid Id,
     Guid AgentPeerId,
     short Status,
-    DateTime? LastHandshakeAt
+    DateTime? LastDataAt,
+    long TotalRxBytes,
+    long TotalTxBytes,
+    double? VpnLatencyMs,
+    bool IsOnline   
 );

@@ -40,7 +40,7 @@ public sealed class RegisterPeerHandler : IRequestHandler<RegisterPeerRequest, P
         if (!server.IsEligible())
             throw new InvalidOperationException($"Server {req.ServerId} is not eligible");
 
-        AgentPeerUuid? agentPeerUuid = null;
+        Guid? agentPeerUuid = null;
 
         try
         {
@@ -58,13 +58,13 @@ public sealed class RegisterPeerHandler : IRequestHandler<RegisterPeerRequest, P
             await _peers.AddAsync(peer, ct);
             await _peers.SaveChangesAsync(ct);
             
-            return new PeerRegisterResponseDto(peer.AgentPeerUuid.Value, peer.ConfigRaw);
+            return new PeerRegisterResponseDto(peer.AgentPeerUuid, peer.ConfigRaw);
         }
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException pg && pg.SqlState == "23505")
         {
             if (agentPeerUuid is not null)
             {
-                try { await _agent.RevokePeerAsync(server, agentPeerUuid.Value, ct); } catch {  }
+                try { await _agent.RevokePeerAsync(server, agentPeerUuid, ct); } catch {  }
             }
             
             var existing = await _peers.GetByDeviceIdAsync(
@@ -72,13 +72,13 @@ public sealed class RegisterPeerHandler : IRequestHandler<RegisterPeerRequest, P
 
             if (existing is null) throw;
 
-            return new PeerRegisterResponseDto(existing.AgentPeerUuid.Value, existing.ConfigRaw);
+            return new PeerRegisterResponseDto(existing.AgentPeerUuid, existing.ConfigRaw);
         }
         catch
         {
             if (agentPeerUuid is not null)
             {
-                try { await _agent.RevokePeerAsync(server, agentPeerUuid.Value, ct); } catch { }
+                try { await _agent.RevokePeerAsync(server, agentPeerUuid, ct); } catch { }
             }
             throw;
         }

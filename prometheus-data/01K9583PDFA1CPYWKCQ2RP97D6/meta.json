@@ -1,0 +1,17 @@
+{
+	"ulid": "01K9583PDFA1CPYWKCQ2RP97D6",
+	"minTime": 1762174236542,
+	"maxTime": 1762178400000,
+	"stats": {
+		"numSamples": 830,
+		"numSeries": 10,
+		"numChunks": 10
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01K9583PDFA1CPYWKCQ2RP97D6"
+		]
+	},
+	"version": 1
+}

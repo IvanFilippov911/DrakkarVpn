@@ -1,9 +1,7 @@
 using DrakkarVpn.Core.Api.Infrastructure.EF;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
-using System.Linq;
 using System.Linq.Expressions;
 using DrakkarVpn.Core.Api.Modules.Peers.Domain;
-using DrakkarVpn.Core.Api.Modules.Subscriptions.Domain.ValueObjects;
 using DrakkarVpn.Shared.Peers;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,7 +12,7 @@ public sealed class PeerRepository : IPeerRepository
     private readonly AppDbContext _db;
     public PeerRepository(AppDbContext db) => _db = db;
 
-    public Task<Peer?> GetByIdAsync(PeerId id, CancellationToken ct) =>
+    public Task<Peer?> GetByIdAsync(Guid id, CancellationToken ct) =>
         _db.Peers
             .FirstOrDefaultAsync(p => p.Id == id, ct);
 
@@ -24,7 +22,6 @@ public sealed class PeerRepository : IPeerRepository
 
     public async Task<IReadOnlyList<Peer>> GetByServerAsync(Guid serverId, CancellationToken ct) =>
         await _db.Peers
-            .AsNoTracking()
             .Where(p => p.ServerId == serverId)
             .ToListAsync(ct);
 
@@ -51,7 +48,7 @@ public sealed class PeerRepository : IPeerRepository
         _db.Peers.Remove(peer);
     }
     
-    public async Task<Peer?> GetByAgentUuidAsync(AgentPeerUuid uuid, CancellationToken ct) =>
+    public async Task<Peer?> GetByAgentUuidAsync(Guid uuid, CancellationToken ct) =>
         await _db.Peers
             .FirstOrDefaultAsync(p => p.AgentPeerUuid == uuid, ct);
     
@@ -88,22 +85,24 @@ public sealed class PeerRepository : IPeerRepository
             return new();
 
         var pairs = await _db.Peers
-            .AsNoTracking()
             .Where(p => p.ServerId == serverId && deviceIds.Contains(p.DeviceId))
             .Select(p => new
             {
                 p.DeviceId,
                 Peer = new PeerBriefDto(
-                    p.Id.Value,
-                    p.AgentPeerUuid.Value,
+                    p.Id,
+                    p.AgentPeerUuid,
                     (short)p.Status,
-                    p.LastHandshakeAt
+                    p.LastDataAt,
+                    p.TotalRxBytes,
+                    p.TotalTxBytes,
+                    p.VpnLatencyMs,
+                    p.IsOnline
                 )
             })
             .ToListAsync(ct);
 
         return pairs.ToDictionary(x => x.DeviceId, x => x.Peer);
     }
-
     
 }

@@ -14,7 +14,7 @@ public sealed class GetPeerByUuidHandler
 
     public async Task<GetPeerByUuidResponse?> Handle(GetPeerByUuidRequest req, CancellationToken ct)
     {
-        var peer = await _peers.GetByAgentUuidAsync(new AgentPeerUuid(req.PeerUuid), ct);
+        var peer = await _peers.GetByAgentUuidAsync(req.PeerUuid, ct);
         if (peer is null) return null;
 
         return new GetPeerByUuidResponse(peer.ConfigRaw);

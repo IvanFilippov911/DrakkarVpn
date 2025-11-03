@@ -7,7 +7,7 @@ namespace DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
 
 public interface IPeerRepository
 {
-    Task<Peer?> GetByIdAsync(PeerId id, CancellationToken ct);
+    Task<Peer?> GetByIdAsync(Guid id, CancellationToken ct);
     Task AddAsync(Peer peer, CancellationToken ct);
     Task<IReadOnlyList<Peer>> GetByServerAsync(Guid serverId, CancellationToken ct);
 
@@ -18,7 +18,7 @@ public interface IPeerRepository
     Task<int> GetActiveCountByServerIdAsync(Guid serverId, CancellationToken ct);
 
     void Remove(Peer peer);
-    Task<Peer?> GetByAgentUuidAsync(AgentPeerUuid uuid, CancellationToken ct);
+    Task<Peer?> GetByAgentUuidAsync(Guid uuid, CancellationToken ct);
     
     Task<int> SaveChangesAsync(CancellationToken ct);
 
@@ -33,5 +33,6 @@ public interface IPeerRepository
         Guid serverId,
         IReadOnlyCollection<string> deviceIds,
         CancellationToken ct);
+    
 
 }

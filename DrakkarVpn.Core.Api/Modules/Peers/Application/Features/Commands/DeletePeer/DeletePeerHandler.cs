@@ -12,7 +12,7 @@ public sealed class DeletePeerHandler : IRequestHandler<DeletePeerRequest, bool>
 
     public async Task<bool> Handle(DeletePeerRequest req, CancellationToken ct)
     {
-        var peer = await _peers.GetByIdAsync(new PeerId(req.PeerId), ct);
+        var peer = await _peers.GetByIdAsync(req.PeerId, ct);
         if (peer is null)
             return false;
 

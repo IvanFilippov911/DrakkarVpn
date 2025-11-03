@@ -70,6 +70,7 @@ namespace DrakkarVpn.Core.Api.Migrations
             modelBuilder.Entity("DrakkarVpn.Core.Api.Modules.Peers.Domain.Peer", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -92,9 +93,23 @@ namespace DrakkarVpn.Core.Api.Migrations
                         .HasColumnType("character varying(64)")
                         .HasColumnName("device_id");
 
-                    b.Property<DateTime?>("LastHandshakeAt")
+                    b.Property<bool>("IsOnline")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_online");
+
+                    b.Property<DateTime?>("LastDataAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_handshake_at");
+                        .HasColumnName("last_data_at");
+
+                    b.Property<DateTime?>("LastLatencyAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_latency_at");
+
+                    b.Property<DateTime?>("LastPolledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_polled_at");
 
                     b.Property<Guid>("ServerId")
                         .HasColumnType("uuid")
@@ -103,6 +118,18 @@ namespace DrakkarVpn.Core.Api.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer")
                         .HasColumnName("status");
+
+                    b.Property<long>("TotalRxBytes")
+                        .HasColumnType("bigint")
+                        .HasColumnName("total_rx_bytes");
+
+                    b.Property<long>("TotalTxBytes")
+                        .HasColumnType("bigint")
+                        .HasColumnName("total_tx_bytes");
+
+                    b.Property<double?>("VpnLatencyMs")
+                        .HasColumnType("double precision")
+                        .HasColumnName("vpn_latency_ms");
 
                     b.HasKey("Id");
 
@@ -118,7 +145,96 @@ namespace DrakkarVpn.Core.Api.Migrations
                     b.HasIndex("ServerId")
                         .HasDatabaseName("ix_peers_server_id");
 
-                    b.ToTable("peers", (string)null);
+                    b.HasIndex("ServerId", "Status")
+                        .HasDatabaseName("ix_peers_server_status");
+
+                    b.ToTable("peers", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_peers_total_rx_bytes_nonneg", "total_rx_bytes >= 0");
+
+                            t.HasCheckConstraint("ck_peers_total_tx_bytes_nonneg", "total_tx_bytes >= 0");
+
+                            t.HasCheckConstraint("ck_peers_vpn_latency_ms_valid", "vpn_latency_ms IS NULL OR vpn_latency_ms >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("DrakkarVpn.Core.Api.Modules.Peers.Infrastructure.Entities.PeerMetricsHistory", b =>
+                {
+                    b.Property<DateTime>("PeriodStartUtc")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("period_start");
+
+                    b.Property<Guid>("ServerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("server_id");
+
+                    b.Property<Guid>("PeerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("peer_id");
+
+                    b.Property<bool>("IsOnline")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_online");
+
+                    b.Property<DateTime?>("LastDataAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("last_data_at");
+
+                    b.Property<DateTime?>("LastLatencyAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("last_latency_at");
+
+                    b.Property<long>("TotalRxBytes")
+                        .HasColumnType("bigint")
+                        .HasColumnName("total_rx_bytes");
+
+                    b.Property<long>("TotalTxBytes")
+                        .HasColumnType("bigint")
+                        .HasColumnName("total_tx_bytes");
+
+                    b.Property<double?>("VpnLatencyMs")
+                        .HasColumnType("double precision")
+                        .HasColumnName("vpn_latency_ms");
+
+                    b.HasKey("PeriodStartUtc", "ServerId", "PeerId");
+
+                    b.HasIndex("PeriodStartUtc");
+
+                    b.HasIndex("PeerId", "PeriodStartUtc");
+
+                    b.ToTable("peer_metrics_history", (string)null);
+                });
+
+            modelBuilder.Entity("DrakkarVpn.Core.Api.Modules.Peers.Infrastructure.Entities.PeerSyncIssueEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("AgentPeerUuid")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Details")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<DateTime>("DetectedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("PeerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ServerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServerId", "Type", "DetectedAtUtc");
+
+                    b.ToTable("peer_sync_issues", (string)null);
                 });
 
             modelBuilder.Entity("DrakkarVpn.Core.Api.Modules.Servers.Domain.Server", b =>

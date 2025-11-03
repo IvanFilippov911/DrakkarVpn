@@ -13,15 +13,15 @@ public sealed class GetPeerByIdHandler : IRequestHandler<GetPeerByIdRequest, Pee
 
     public async Task<PeerResponseDto> Handle(GetPeerByIdRequest req, CancellationToken ct)
     {
-        var peer = await _peers.GetByIdAsync(new PeerId(req.PeerId), ct);
+        var peer = await _peers.GetByIdAsync(req.PeerId, ct);
         if (peer is null)
             throw new InvalidOperationException($"Peer {req.PeerId} not found");
 
         return new PeerResponseDto(
-            peer.Id.Value,
+            peer.Id,
             peer.DeviceId,
             peer.ServerId,
-            peer.AgentPeerUuid.Value,
+            peer.AgentPeerUuid,
             peer.Status,
             peer.ConfigRaw,
             peer.CreatedAt

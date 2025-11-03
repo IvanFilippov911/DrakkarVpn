@@ -5,48 +5,133 @@ namespace DrakkarVpn.Core.Api.Modules.Peers.Domain;
 
 public sealed class Peer : IAggregateRoot
 {
-    public PeerId Id { get; private set; }
+    public Guid Id { get; private set; }
     public Guid ServerId { get; private set; }
-    public AgentPeerUuid AgentPeerUuid { get; private set; }
+    public Guid AgentPeerUuid { get; private set; }
+    public string DeviceId { get; private set; }
+    
     public string ConfigRaw { get; private set; }
     public PeerStatus Status { get; private set; }
-    public DateTime CreatedAt { get; private set; }
-    public string DeviceId { get; private set; }         
-    public DateTime? LastHandshakeAt { get; private set; }
+    public DateTime CreatedAt { get; private set; } 
     
+    public DateTime? LastDataAt { get; private set; }      
+    public long TotalRxBytes { get; private set; }         
+    public long TotalTxBytes { get; private set; }
+    public DateTime? LastPolledAt { get; private set; }    
+    public bool IsOnline { get; private set; }
+
+    
+    public double? VpnLatencyMs { get; private set; }      
+    public DateTime? LastLatencyAt { get; private set; }   
+    
+    private static readonly TimeSpan OnlineThreshold = TimeSpan.FromSeconds(120);
+    
+
     private Peer() { }
 
     private Peer(
-        PeerId id,
+        Guid id,
         Guid serverId,
-        AgentPeerUuid agentPeerUuid,
+        Guid agentPeerUuid,
         string configRaw,
-        DateTime createdAt,
-        string deviceId)
+        string deviceId,
+        DateTime createdAtUtc)
     {
         Id = id;
         ServerId = serverId;
         AgentPeerUuid = agentPeerUuid;
-        ConfigRaw = configRaw ?? throw new ArgumentNullException(nameof(configRaw));
-        Status = PeerStatus.Active;
-        CreatedAt = createdAt;
+        ConfigRaw = !string.IsNullOrWhiteSpace(configRaw) ? configRaw
+            : throw new ArgumentNullException(nameof(configRaw));
+        DeviceId = !string.IsNullOrWhiteSpace(deviceId) ? deviceId
+            : throw new ArgumentNullException(nameof(deviceId));
 
-        DeviceId = deviceId ?? throw new ArgumentNullException(nameof(deviceId));
+        Status = PeerStatus.Active;
+        CreatedAt = EnsureUtc(createdAtUtc);
     }
 
     public static Peer CreateNew(
         Guid serverId,
-        AgentPeerUuid agentPeerUuid,
+        Guid agentPeerUuid,
         string configRaw,
         string deviceId,
         DateTime nowUtc)
-        => new(PeerId.New(), serverId, agentPeerUuid, configRaw, nowUtc,
-               deviceId);
+        => new(Guid.NewGuid(), serverId, agentPeerUuid, configRaw, deviceId, nowUtc);
 
-    public void Revoke() => Status = PeerStatus.Revoked;
+    
+    public void Revoke()
+    {
+        if (Status == PeerStatus.Revoked) return;
+        Status = PeerStatus.Revoked;
+    }
 
     public bool IsActive() => Status == PeerStatus.Active;
-
-    public void TouchHandshake(DateTime nowUtc) => LastHandshakeAt = nowUtc;
     
+    public void RefreshOnlineStatus(DateTime nowUtc)
+    {
+        nowUtc = EnsureUtc(nowUtc);
+
+        IsOnline = LastDataAt.HasValue &&
+                   nowUtc - LastDataAt.Value <= OnlineThreshold;
+    }
+    
+
+    public void TouchData(DateTime atUtc)
+    {
+        atUtc = EnsureUtc(atUtc);
+        if (!LastDataAt.HasValue || atUtc > LastDataAt.Value)
+            LastDataAt = atUtc;
+    }
+
+ 
+    public void AddTraffic(long rxDelta, long txDelta, DateTime polledAtUtc)
+    {
+        polledAtUtc = EnsureUtc(polledAtUtc);
+        
+        if (LastPolledAt.HasValue && polledAtUtc <= LastPolledAt.Value)
+            return;
+        
+        if (LastPolledAt.HasValue &&
+            polledAtUtc - LastPolledAt.Value > TimeSpan.FromHours(1))
+        {
+            TotalRxBytes = Math.Max(0, rxDelta);
+            TotalTxBytes = Math.Max(0, txDelta);
+            LastPolledAt = polledAtUtc;
+            if (rxDelta > 0 || txDelta > 0)
+                TouchData(polledAtUtc);
+            return;
+        }
+
+        if (rxDelta < 0) rxDelta = 0;
+        if (txDelta < 0) txDelta = 0;
+        
+        const long maxDelta = 10L * 1024 * 1024 * 1024;
+        if (rxDelta > maxDelta) rxDelta = maxDelta;
+        if (txDelta > maxDelta) txDelta = maxDelta;
+
+        checked
+        {
+            TotalRxBytes += rxDelta;
+            TotalTxBytes += txDelta;
+        }
+
+        LastPolledAt = polledAtUtc;
+        if (rxDelta > 0 || txDelta > 0)
+            TouchData(polledAtUtc);
+    }
+
+    public void UpdateVpnLatencyMs(double latencyMs, DateTime atUtc)
+    {
+        atUtc = EnsureUtc(atUtc);
+        if (latencyMs < 0) return; 
+        VpnLatencyMs = latencyMs;
+        LastLatencyAt = atUtc;
+    }
+
+    
+    private static DateTime EnsureUtc(DateTime t)
+    {
+        if (t.Kind != DateTimeKind.Utc)
+            throw new ArgumentException("Timestamp must be UTC", nameof(t));
+        return t;
+    }
 }

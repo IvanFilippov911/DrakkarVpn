@@ -1,7 +1,7 @@
 using DrakkarVpn.Agent.Application.Abstractions;
 using DrakkarVpn.Agent.Application.Services;
 using DrakkarVpn.Agent.Infrastructure.Config;
-using DrakkarVpn.Agent.Infrastructure.Grpc;
+using DrakkarVpn.Agent.Infrastructure.Services.Grpc;
 using Grpc.Net.Client;
 using Microsoft.Extensions.Options;
 
@@ -9,20 +9,23 @@ namespace DrakkarVpn.Agent.Infrastructure.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddV2RayGrpc(this IServiceCollection services, IConfiguration cfg)
+    public static IServiceCollection AddXrayGrpc(this IServiceCollection services, IConfiguration cfg)
     {
-        services.Configure<V2RayOptions>(cfg.GetSection("V2RayOptions"));
-        
-        services.AddSingleton<IV2RayClient>(sp =>
+        services.Configure<XrayOptions>(cfg.GetSection("XRayOptions"));
+        services.AddSingleton<IGrpcChannelProvider, GrpcChannelProvider>();
+        services.AddSingleton<IXrayPeerClient>(sp =>
         {
-            var opts = sp.GetRequiredService<IOptions<V2RayOptions>>();
-            return new V2RayGrpcClient(opts);
+            var channels = sp.GetRequiredService<IGrpcChannelProvider>();
+            var opts     = sp.GetRequiredService<IOptions<XrayOptions>>();
+            return new XrayPeerGrpcClient(channels, opts);
         });
         
-        services.AddScoped<IV2RayService, V2RayService>();
-        services.AddScoped<IMetricService, MetricService>();
-        services.AddSingleton<INetworkMetricsService, NetworkMetricsService>();
-        services.AddScoped<IBenchmarkService, BenchmarkService>();
+        services.AddSingleton<IXrayStatsClient>(sp =>
+        {
+            var channels = sp.GetRequiredService<IGrpcChannelProvider>();
+            var opts     = sp.GetRequiredService<IOptions<XrayOptions>>();
+            return new XrayStatsGrpcClient(channels, opts);
+        });
 
         return services;
     }

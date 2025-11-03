@@ -7,6 +7,5 @@ public sealed record GetPeerDto(
     Guid AgentPeerId,
     string ConfigRaw,
     int Status,                 
-    DateTime CreatedAt,
-    DateTime? LastHandshakeAt
+    DateTime CreatedAt
 );
