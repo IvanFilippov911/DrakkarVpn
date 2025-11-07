@@ -21,7 +21,7 @@ public static class UsersInfrastructureExtensions
         
         services.AddScoped<IAppUserRepository, AppUserRepository>();
         services.AddScoped<IDeviceRepository, DeviceRepository>();
-
+        services.AddScoped<IUserTrafficRepository, UserTrafficRepository>();
         services.AddSingleton<IJwtTokenService, JwtTokenService>();
         
         if (configuration.GetValue("Auth:BypassTelegramInitData", false))
@@ -30,6 +30,7 @@ public static class UsersInfrastructureExtensions
             services.AddSingleton<ITelegramInitDataValidator, TelegramInitDataValidator>();
         services.AddSingleton<IReplayStore, InMemoryReplayStore>();
         services.AddSingleton<IDeviceIdGenerator, DeviceIdGenerator>();
+        
         
         services.AddJwtAuth(configuration);
 

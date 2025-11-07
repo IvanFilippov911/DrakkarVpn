@@ -17,8 +17,6 @@ public sealed class UpsertServerMetricsHistoryHandler
             PeriodStartUtc  = c.PeriodStartUtc,
             ServerId        = c.ServerId,
             Reachable       = c.Reachable,
-            PeersActive     = c.PeersActive,
-            MaxPeers        = c.MaxPeers,
             TrafficRxBytes  = c.TrafficRxBytes,
             TrafficTxBytes  = c.TrafficTxBytes,
             VpnSpeedMbps    = c.VpnSpeedMbps,

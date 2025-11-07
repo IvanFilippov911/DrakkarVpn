@@ -6,8 +6,6 @@ public sealed record UpsertServerMetricsHistoryRequest(
     Guid ServerId,
     DateTime PeriodStartUtc,
     bool Reachable,
-    int PeersActive,
-    int? MaxPeers,
     long TrafficRxBytes,
     long TrafficTxBytes,
     decimal VpnSpeedMbps,

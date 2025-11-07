@@ -9,4 +9,10 @@ public interface IPeerMetricsHistoryRepository
         CancellationToken ct);
 
     Task DeleteOlderThanAsync(TimeSpan ttl, CancellationToken ct);
+    
+    Task<IReadOnlyList<PeerMetricsHistory>> GetRangeAsync(
+        Guid peerId,
+        DateTime fromUtc,
+        DateTime toUtc,
+        CancellationToken ct);
 }

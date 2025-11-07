@@ -1,17 +1,22 @@
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Servers.Domain;
 using DrakkarVpn.Core.Api.Modules.Servers.Domain.VO;
+using DrakkarVpn.Shared;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Queries.GetServers;
 
-public sealed class GetServersHandler : IRequestHandler<GetServersRequest, IReadOnlyList<GetServerDto>>
+public sealed class GetServersHandler 
+    : IRequestHandler<GetServersRequest, IReadOnlyList<GetServerDto>>
 {
     private readonly IServerRepository _repo;
+
     public GetServersHandler(IServerRepository repo) => _repo = repo;
 
-    public async Task<IReadOnlyList<GetServerDto>> Handle(GetServersRequest request, CancellationToken ct)
+    public async Task<IReadOnlyList<GetServerDto>> Handle(
+        GetServersRequest request,
+        CancellationToken ct)
     {
         var query = _repo.Query();
 
@@ -20,7 +25,9 @@ public sealed class GetServersHandler : IRequestHandler<GetServersRequest, IRead
 
         if (!string.IsNullOrWhiteSpace(request.Status) &&
             Enum.TryParse<ServerStatus>(request.Status, true, out var status))
+        {
             query = query.Where(s => s.Status == status);
+        }
 
         return await query
             .OrderByDescending(s => s.Health.Reachable)

@@ -16,8 +16,14 @@ public sealed class GetServerHistoryHandler
         var fromUtc = (q.FromUtc ?? toUtc.AddHours(-24)).ToUniversalTime();
 
         var rows = await _repo.GetRangeAsync(q.ServerId, fromUtc, toUtc, ct);
-        return rows.Select(x => new ServerMetricsHistoryDto(
-            x.PeriodStartUtc, x.ServerId, x.Reachable, x.PeersActive, x.MaxPeers,
-            x.TrafficRxBytes, x.TrafficTxBytes, x.VpnSpeedMbps, x.InfraLatencyMs)).ToList();
+        return rows.Select(x => 
+            new ServerMetricsHistoryDto(
+            x.PeriodStartUtc, 
+            x.ServerId, 
+            x.Reachable,
+            x.TrafficRxBytes, 
+            x.TrafficTxBytes, 
+            x.VpnSpeedMbps, 
+            x.InfraLatencyMs)).ToList();
     }
 }

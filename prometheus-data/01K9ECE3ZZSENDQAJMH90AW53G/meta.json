@@ -1,0 +1,17 @@
+{
+	"ulid": "01K9ECE3ZZSENDQAJMH90AW53G",
+	"minTime": 1762481730166,
+	"maxTime": 1762488000000,
+	"stats": {
+		"numSamples": 355,
+		"numSeries": 10,
+		"numChunks": 10
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01K9ECE3ZZSENDQAJMH90AW53G"
+		]
+	},
+	"version": 1
+}

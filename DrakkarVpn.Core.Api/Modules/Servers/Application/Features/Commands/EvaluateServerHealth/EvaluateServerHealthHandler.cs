@@ -47,22 +47,7 @@ public sealed class EvaluateServerHealthHandler
             server.UpdateHealth(req.Reachable, req.PeersActive);
             server.UpdateMetrics(req.TrafficRxBytes, req.TrafficTxBytes, req.VpnSpeedMbps, req.InfraLatencyMs);
         }
-
         
-        var slot10s = TruncateTo10sUtc(DateTime.UtcNow);
-        
-        await _mediator.Send(new UpsertServerMetricsHistoryRequest(
-            ServerId:        server.Id,
-            PeriodStartUtc:  slot10s,
-            Reachable:       req.Reachable,
-            PeersActive:     req.PeersActive,
-            MaxPeers:        server.MaxPeers,
-            TrafficRxBytes:  req.TrafficRxBytes,
-            TrafficTxBytes:  req.TrafficTxBytes,
-            VpnSpeedMbps:    (decimal)req.VpnSpeedMbps,
-            InfraLatencyMs:  (decimal)req.InfraLatencyMs
-        ), ct);
-
         return true;
     }
 

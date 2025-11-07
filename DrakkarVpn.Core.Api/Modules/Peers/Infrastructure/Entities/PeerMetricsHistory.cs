@@ -10,9 +10,8 @@ public sealed class PeerMetricsHistory
     public long TotalTxBytes { get; set; }
 
     public bool IsOnline { get; set; }
+    public double? SpeedMbps { get; private set; }
 
     public double? VpnLatencyMs { get; set; }
     
-    public DateTime? LastDataAt { get; set; }
-    public DateTime? LastLatencyAt { get; set; }
 }

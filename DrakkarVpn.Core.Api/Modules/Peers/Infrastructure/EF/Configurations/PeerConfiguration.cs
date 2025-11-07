@@ -70,6 +70,10 @@ public sealed class PeerConfiguration : IEntityTypeConfiguration<Peer>
             .HasColumnName("is_online")
             .HasDefaultValue(false);
         
+        b.Property(x => x.SpeedMbps)
+            .HasColumnName("speed_mbps")
+            .HasPrecision(10, 2);
+        
         b.HasOne<Server>()
             .WithMany()
             .HasForeignKey(x => x.ServerId)
@@ -94,6 +98,7 @@ public sealed class PeerConfiguration : IEntityTypeConfiguration<Peer>
             .IsUnique()
             .HasFilter("\"status\" = 0")
             .HasDatabaseName("ux_peers_device_active");
+        
         
         b.ToTable(t =>
         {

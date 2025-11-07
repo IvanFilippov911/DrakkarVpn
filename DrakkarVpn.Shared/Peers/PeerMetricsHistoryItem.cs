@@ -5,7 +5,5 @@ public sealed record PeerMetricsHistoryItem(
     long TotalRxBytes,
     long TotalTxBytes,
     bool IsOnline,
-    double? VpnLatencyMs,
-    DateTime? LastDataAt,
-    DateTime? LastLatencyAt
+    double? VpnLatencyMs
 );

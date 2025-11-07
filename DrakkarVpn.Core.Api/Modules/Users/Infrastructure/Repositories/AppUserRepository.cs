@@ -50,7 +50,7 @@ public sealed class AppUserRepository : IAppUserRepository
         var items = await sorted
             .Skip(skip)
             .Take(take)
-            .SelectProjection()
+            .SelectProjection(_db, serverId)
             .ToListAsync(ct);
 
         var total = await joined.CountAsync(ct);

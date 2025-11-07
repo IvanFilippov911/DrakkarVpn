@@ -22,8 +22,6 @@ public sealed class ServerMetricsHistoryRepository : IServerMetricsHistoryReposi
         else
         {
             existing.Reachable      = e.Reachable;
-            existing.PeersActive    = e.PeersActive;
-            existing.MaxPeers       = e.MaxPeers;
             existing.TrafficRxBytes = e.TrafficRxBytes;
             existing.TrafficTxBytes = e.TrafficTxBytes;
             existing.VpnSpeedMbps   = e.VpnSpeedMbps;
@@ -40,6 +38,29 @@ public sealed class ServerMetricsHistoryRepository : IServerMetricsHistoryReposi
             .ExecuteDeleteAsync(ct); 
     }
     
+    public async Task<Dictionary<Guid, long>> GetTrafficSumAsync(
+        Guid[] serverIds,
+        DateTime fromUtc,
+        CancellationToken ct)
+    {
+        if (serverIds is null || serverIds.Length == 0)
+            return new();
+
+        var rows = await _db.ServerMetricsHistory
+            .AsNoTracking()
+            .Where(x => x.PeriodStartUtc >= fromUtc &&
+                        serverIds.Contains(x.ServerId))
+            .GroupBy(x => x.ServerId)
+            .Select(g => new
+            {
+                ServerId = g.Key,
+                Traffic = g.Sum(r => r.TrafficRxBytes + r.TrafficTxBytes)
+            })
+            .ToListAsync(ct);
+
+        return rows.ToDictionary(x => x.ServerId, x => x.Traffic);
+    }
+    
     public Task<List<ServerMetricsHistory>> GetRangeAsync(
         Guid serverId,
         DateTime fromUtc,
@@ -54,4 +75,7 @@ public sealed class ServerMetricsHistoryRepository : IServerMetricsHistoryReposi
             .OrderBy(x => x.PeriodStartUtc)
             .ToListAsync(ct);
     }
+    
+    
+    
 }

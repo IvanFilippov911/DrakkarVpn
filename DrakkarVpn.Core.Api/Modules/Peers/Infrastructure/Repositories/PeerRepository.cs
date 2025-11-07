@@ -92,10 +92,12 @@ public sealed class PeerRepository : IPeerRepository
                 Peer = new PeerBriefDto(
                     p.Id,
                     p.AgentPeerUuid,
-                    (short)p.Status,
+                    p.Status,
                     p.LastDataAt,
                     p.TotalRxBytes,
                     p.TotalTxBytes,
+                    p.SpeedMbps,
+                    p.LastPolledAt,
                     p.VpnLatencyMs,
                     p.IsOnline
                 )

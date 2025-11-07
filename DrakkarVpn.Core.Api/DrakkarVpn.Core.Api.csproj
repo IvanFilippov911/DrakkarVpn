@@ -33,6 +33,8 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Modules\Admin\Domain\" />
+      <Folder Include="Modules\Admin\Infrastructure\" />
       <Folder Include="Modules\Orchestrator\Domain\Events\" />
       <Folder Include="Modules\Orchestrator\Domain\ValueObjects\" />
       <Folder Include="Modules\Peers\" />

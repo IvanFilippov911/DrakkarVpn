@@ -30,18 +30,15 @@ public sealed class PeerMetricsHistoryConfiguration : IEntityTypeConfiguration<P
 
         b.Property(x => x.IsOnline)
             .HasColumnName("is_online");
+        
+        b.Property(x => x.SpeedMbps)
+            .HasColumnName("speed_mbps")
+            .HasPrecision(10, 2);
 
         b.Property(x => x.VpnLatencyMs)
             .HasColumnName("vpn_latency_ms")
             .HasColumnType("double precision");
-
-        b.Property(x => x.LastDataAt)
-            .HasColumnName("last_data_at")
-            .HasColumnType("timestamptz");
-
-        b.Property(x => x.LastLatencyAt)
-            .HasColumnName("last_latency_at")
-            .HasColumnType("timestamptz");
+        
         
         b.HasIndex(x => new { x.PeerId, x.PeriodStartUtc });
         b.HasIndex(x => x.PeriodStartUtc);

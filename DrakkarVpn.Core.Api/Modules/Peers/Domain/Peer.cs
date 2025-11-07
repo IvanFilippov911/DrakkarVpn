@@ -17,6 +17,7 @@ public sealed class Peer : IAggregateRoot
     public DateTime? LastDataAt { get; private set; }      
     public long TotalRxBytes { get; private set; }         
     public long TotalTxBytes { get; private set; }
+    public double? SpeedMbps { get; private set; }
     public DateTime? LastPolledAt { get; private set; }    
     public bool IsOnline { get; private set; }
 
@@ -96,18 +97,45 @@ public sealed class Peer : IAggregateRoot
             TotalRxBytes = Math.Max(0, rxDelta);
             TotalTxBytes = Math.Max(0, txDelta);
             LastPolledAt = polledAtUtc;
+            SpeedMbps    = null;
+
             if (rxDelta > 0 || txDelta > 0)
                 TouchData(polledAtUtc);
+
             return;
         }
-
+        
         if (rxDelta < 0) rxDelta = 0;
         if (txDelta < 0) txDelta = 0;
-        
+
         const long maxDelta = 10L * 1024 * 1024 * 1024;
         if (rxDelta > maxDelta) rxDelta = maxDelta;
         if (txDelta > maxDelta) txDelta = maxDelta;
+        
+        if (LastPolledAt.HasValue)
+        {
+            var deltaBytes = rxDelta + txDelta;
+            var dtSeconds  = (polledAtUtc - LastPolledAt.Value).TotalSeconds;
 
+            if (dtSeconds > 0)
+            {
+                if (deltaBytes <= 0)
+                {
+                    SpeedMbps = 0;
+                }
+                else
+                {
+                    var bits   = deltaBytes * 8d;
+                    var speed  = bits / dtSeconds / 1_000_000d;
+                    SpeedMbps  = Math.Round(speed, 2);
+                }
+            }
+        }
+        else
+        {
+            SpeedMbps = null;
+        }
+        
         checked
         {
             TotalRxBytes += rxDelta;
@@ -115,6 +143,7 @@ public sealed class Peer : IAggregateRoot
         }
 
         LastPolledAt = polledAtUtc;
+
         if (rxDelta > 0 || txDelta > 0)
             TouchData(polledAtUtc);
     }

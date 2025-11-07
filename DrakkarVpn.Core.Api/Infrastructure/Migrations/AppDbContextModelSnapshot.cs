@@ -115,6 +115,11 @@ namespace DrakkarVpn.Core.Api.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("server_id");
 
+                    b.Property<double?>("SpeedMbps")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("double precision")
+                        .HasColumnName("speed_mbps");
+
                     b.Property<int>("Status")
                         .HasColumnType("integer")
                         .HasColumnName("status");
@@ -176,13 +181,10 @@ namespace DrakkarVpn.Core.Api.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("is_online");
 
-                    b.Property<DateTime?>("LastDataAt")
-                        .HasColumnType("timestamptz")
-                        .HasColumnName("last_data_at");
-
-                    b.Property<DateTime?>("LastLatencyAt")
-                        .HasColumnType("timestamptz")
-                        .HasColumnName("last_latency_at");
+                    b.Property<double?>("SpeedMbps")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("double precision")
+                        .HasColumnName("speed_mbps");
 
                     b.Property<long>("TotalRxBytes")
                         .HasColumnType("bigint")
@@ -305,14 +307,6 @@ namespace DrakkarVpn.Core.Api.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)")
                         .HasColumnName("infra_latency_ms");
-
-                    b.Property<int?>("MaxPeers")
-                        .HasColumnType("integer")
-                        .HasColumnName("max_peers");
-
-                    b.Property<int>("PeersActive")
-                        .HasColumnType("integer")
-                        .HasColumnName("peers_active");
 
                     b.Property<bool>("Reachable")
                         .HasColumnType("boolean")

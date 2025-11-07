@@ -96,11 +96,40 @@ public static class UsersQueryableExtensions
             _                             => query.OrderByDescending(x => x.EndAtUtc ?? DateTime.MinValue).ThenBy(x => x.User.Id)
         };
 
-    public static IQueryable<UserIndexRowDto> SelectProjection(this IQueryable<UserEndRow> query)
-        => query.Select(x => new UserIndexRowDto(
+    public static IQueryable<UserIndexRowDto> SelectProjection(
+        this IQueryable<UserEndRow> query,
+        AppDbContext db,
+        Guid serverId)
+    {
+        return query.Select(x => new UserIndexRowDto(
             x.User.Id,
             x.User.TelegramId,
             x.User.CreatedAt,
-            x.User.Status
+            x.User.Status,
+            (
+                from p in db.Peers
+                join d in db.Devices      on p.DeviceId equals d.DeviceId
+                join s in db.Subscriptions on d.SubscriptionId equals s.Id
+                where p.ServerId == serverId
+                      && p.IsOnline
+                      && s.UserId == x.User.Id
+                select p.Id
+            ).Count(),
+            (
+                from d in db.Devices
+                join s in db.Subscriptions on d.SubscriptionId equals s.Id
+                where s.UserId == x.User.Id
+                select d.DeviceId
+            ).Distinct().Count(),
+            (
+                from p in db.Peers
+                join d in db.Devices      on p.DeviceId     equals d.DeviceId
+                join s in db.Subscriptions on d.SubscriptionId equals s.Id
+                where p.ServerId == serverId
+                      && s.UserId == x.User.Id
+                      && p.LastDataAt != null
+                select p.LastDataAt
+            ).Max()
         ));
+    }
 }

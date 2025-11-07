@@ -96,9 +96,7 @@ public sealed class PeerMetricsProcessor : IPeerMetricsProcessor
                 TotalRxBytes:    peer.TotalRxBytes,
                 TotalTxBytes:    peer.TotalTxBytes,
                 IsOnline:        peer.IsOnline,
-                VpnLatencyMs:    peer.VpnLatencyMs,
-                LastDataAt:      peer.LastDataAt,
-                LastLatencyAt:   peer.LastLatencyAt
+                VpnLatencyMs:    peer.VpnLatencyMs
             ));
         }
     }

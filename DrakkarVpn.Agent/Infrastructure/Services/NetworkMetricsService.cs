@@ -106,31 +106,7 @@ public sealed class NetworkMetricsService : INetworkMetricsService
             return 0;
         }
     }
-
-    public void CleanupOldSamples(TimeSpan maxAge)
-    {
-        if (maxAge <= TimeSpan.Zero)
-            throw new ArgumentException("Max age must be positive.", nameof(maxAge));
-
-        try
-        {
-            var cutoff = DateTime.UtcNow - maxAge;
-            foreach (var pair in _lastSamples.ToArray())
-            {
-                if (pair.Value.Timestamp < cutoff)
-                {
-                    _lastSamples.TryRemove(pair.Key, out _);
-                }
-            }
-
-            _logger.LogDebug("Cleaned up {count} old samples.", _lastSamples.Count);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to cleanup old samples.");
-        }
-    }
-
+    
     private long CalculateDelta(long current, long previous)
     {
         if (current >= previous)

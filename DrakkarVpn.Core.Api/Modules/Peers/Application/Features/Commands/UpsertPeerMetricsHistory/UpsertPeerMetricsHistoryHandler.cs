@@ -25,8 +25,6 @@ public sealed class UpsertPeerMetricsHistoryHandler
             TotalTxBytes   = i.TotalTxBytes,
             IsOnline       = i.IsOnline,
             VpnLatencyMs   = i.VpnLatencyMs,
-            LastDataAt      = i.LastDataAt,
-            LastLatencyAt   = i.LastLatencyAt
         }).ToArray();
 
         await _repo.UpsertRangeAsync(entities, ct);

@@ -6,5 +6,8 @@ public sealed record UserSummaryDto(
     Guid Id,
     long Telegram,
     DateTime CreatedAtUtc,
-    UserStatus Status
+    UserStatus Status,
+    bool IsOnline,
+    int DeviceCount,
+    DateTime?  LastSeenUtc
 );

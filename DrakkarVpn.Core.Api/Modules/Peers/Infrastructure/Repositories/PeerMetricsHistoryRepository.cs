@@ -33,8 +33,6 @@ public sealed class PeerMetricsHistoryRepository : IPeerMetricsHistoryRepository
                 row.TotalTxBytes    = item.TotalTxBytes;
                 row.IsOnline        = item.IsOnline;
                 row.VpnLatencyMs    = item.VpnLatencyMs;
-                row.LastDataAt      = item.LastDataAt;
-                row.LastLatencyAt   = item.LastLatencyAt;
             }
             else
             {
@@ -51,5 +49,23 @@ public sealed class PeerMetricsHistoryRepository : IPeerMetricsHistoryRepository
         return _db.PeerMetricsHistory
             .Where(x => x.PeriodStartUtc < border)
             .ExecuteDeleteAsync(ct);
+    }
+    
+    public async Task<IReadOnlyList<PeerMetricsHistory>> GetRangeAsync(
+        Guid peerId,
+        DateTime fromUtc,
+        DateTime toUtc,
+        CancellationToken ct)
+    {
+        var rows = await _db.PeerMetricsHistory
+            .AsNoTracking()
+            .Where(x =>
+                x.PeerId == peerId &&
+                x.PeriodStartUtc >= fromUtc &&
+                x.PeriodStartUtc <= toUtc)
+            .OrderBy(x => x.PeriodStartUtc)
+            .ToListAsync(ct);
+
+        return rows; 
     }
 }

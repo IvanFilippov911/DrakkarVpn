@@ -1,0 +1,17 @@
+{
+	"ulid": "01K9EHV231QCREEZ1RX8DN7B81",
+	"minTime": 1762488001612,
+	"maxTime": 1762495200000,
+	"stats": {
+		"numSamples": 425,
+		"numSeries": 10,
+		"numChunks": 10
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01K9EHV231QCREEZ1RX8DN7B81"
+		]
+	},
+	"version": 1
+}

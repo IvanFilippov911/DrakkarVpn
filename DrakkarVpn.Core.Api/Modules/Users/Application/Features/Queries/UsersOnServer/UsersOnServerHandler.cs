@@ -37,7 +37,7 @@ public sealed class ListServerUsersQueryHandler
             subsByUser.TryGetValue(u.UserId, out var sub);
             
             return new UserCardDto(
-                new UserSummaryDto(u.UserId, u.Telegram, u.CreatedAtUtc, u.Status),
+                new UserSummaryDto(u.UserId, u.Telegram, u.CreatedAtUtc, u.Status, u.IsOnline, u.DeviceCount, u.LastSeenUtc),
                 new SubscriptionSummaryDto(
                     sub?.Id ?? Guid.Empty,
                     sub?.IsActive ?? false,

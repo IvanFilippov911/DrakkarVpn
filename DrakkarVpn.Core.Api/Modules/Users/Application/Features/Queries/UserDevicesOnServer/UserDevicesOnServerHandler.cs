@@ -39,8 +39,7 @@ public sealed class GetUserDevicesOnServerHandler
                     Name: d.Name,
                     Platform: d.Platform,
                     CreatedAt: d.CreatedAt,
-                    LastSeen: d.LastSeen,
-                    Status: (short)d.Status,
+                    Status: d.Status,
                     Peer: peer
                 );
             })
