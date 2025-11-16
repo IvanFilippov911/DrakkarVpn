@@ -1,6 +1,7 @@
 using DrakkarVpn.Core.Api.Infrastructure.EF;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Peers.Infrastructure.Entities;
+using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Queries.GetServers;
 using Microsoft.EntityFrameworkCore;
 
 namespace DrakkarVpn.Core.Api.Modules.Peers.Infrastructure.Repositories;
@@ -67,5 +68,27 @@ public sealed class PeerMetricsHistoryRepository : IPeerMetricsHistoryRepository
             .ToListAsync(ct);
 
         return rows; 
+    }
+    
+    public async Task<IReadOnlyList<ServerOnlinePointDto>> GetServerPeersOnlineTimelineAsync(
+        Guid serverId,
+        DateTime fromUtc,
+        DateTime toUtc,
+        CancellationToken ct)
+    {
+        return await _db.PeerMetricsHistory
+            .AsNoTracking()
+            .Where(x =>
+                x.ServerId == serverId &&
+                x.PeriodStartUtc >= fromUtc &&
+                x.PeriodStartUtc <= toUtc &&
+                x.IsOnline)
+            .GroupBy(x => x.PeriodStartUtc)
+            .OrderBy(g => g.Key)               
+            .Select(g => new ServerOnlinePointDto(
+                g.Key,                          
+                g.Count()                       
+            ))
+            .ToListAsync(ct);
     }
 }

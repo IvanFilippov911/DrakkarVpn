@@ -27,7 +27,7 @@ public sealed class TariffsController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateTariffBody body, CancellationToken ct)
     {
-        await _mediator.Send(new UpdateTariffRequest(id, body.Name, body.Price, body.Duration), ct);
+        await _mediator.Send(body, ct);
         return NoContent();
     }
 

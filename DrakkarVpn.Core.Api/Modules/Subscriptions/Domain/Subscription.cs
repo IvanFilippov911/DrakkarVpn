@@ -51,9 +51,11 @@ public sealed class Subscription
 
     public void Expire() => Status = SubscriptionStatus.Expired;
     
-    public void ChangeMaxDevices(int newMaxDevices)
+    public void UpdateMaxDevices(int maxDevices)
     {
-        if (newMaxDevices < 1) throw new ArgumentOutOfRangeException(nameof(newMaxDevices));
-        MaxDevices = newMaxDevices;
+        if (maxDevices <= 0)
+            throw new ArgumentOutOfRangeException(nameof(maxDevices));
+    
+        MaxDevices = maxDevices;
     }
 }

@@ -6,6 +6,8 @@ using DrakkarVpn.Core.Api.Modules.Servers.Domain;
 using DrakkarVpn.Core.Api.Modules.Subscriptions.Application.Features.Queries.GetActiveSubscriptionByUser;
 using DrakkarVpn.Core.Api.Modules.Users.Application.Features.Queries.CountActiveDevicesBySubscription;
 using DrakkarVpn.Core.Api.Modules.Users.Application.Features.Queries.GetUserByTelegramId;
+using DrakkarVpn.Core.Api.Modules.Users.Domain;
+using DrakkarVpn.Shared.Errors;
 using MediatR;
 
 namespace DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Commands.AllocatePeer;
@@ -21,6 +23,11 @@ public sealed class AllocatePeerHandler : IRequestHandler<AllocatePeerRequest, P
             throw new ArgumentException("DeviceId is required", nameof(req.DeviceId));
         
         var user = await _mediator.Send(new GetUserByTelegramIdRequest(req.TelegramId), ct);
+        if (user is null)
+            throw new InvalidOperationException("User not found");
+
+        if (user.Status == UserStatus.Banned.ToString())
+            throw new UserBannedException(user.Id);
         
         var sub = await _mediator.Send(new GetActiveSubscriptionByUserRequest(user.Id), ct);
         if (sub is null)
@@ -29,10 +36,6 @@ public sealed class AllocatePeerHandler : IRequestHandler<AllocatePeerRequest, P
         var peerExist = await _mediator.Send(new GetPeerByDeviceRequest(req.DeviceId), ct);
         if (peerExist is not null)
             return new PeerRegisterResponseDto(peerExist.AgentPeerId, peerExist.ConfigRaw);
-        
-        var used = await _mediator.Send(new CountActiveDevicesBySubscriptionRequest(sub.Id), ct);
-        if (used > sub.MaxDevices)
-            throw new InvalidOperationException("Device limit reached");
         
         var servers = await _mediator.Send(new GetServersRequest(req.Region, nameof(ServerStatus.Enabled)), ct);
         var server = servers

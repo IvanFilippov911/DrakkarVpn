@@ -14,7 +14,7 @@ public static class PeersInfrastructureExtensions
         services.AddScoped<IPeerMetricsHistoryRepository, PeerMetricsHistoryRepository>();
         services.AddScoped<IPeerMetricsProcessor, PeerMetricsProcessor>();
         services.AddScoped<IPeerSyncIssueRepository, PeerSyncIssueRepository>();
-
+        services.AddScoped<IPeerRevoker, PeerRevoker>();
 
         return services;
     }

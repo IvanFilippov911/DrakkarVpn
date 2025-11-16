@@ -34,5 +34,8 @@ public interface IPeerRepository
         IReadOnlyCollection<string> deviceIds,
         CancellationToken ct);
     
+    Task<int> CountOnServerAsync(Guid serverId, CancellationToken ct);
+    Task<IReadOnlyList<Peer>> GetListActiveByUserAsync(Guid userId, CancellationToken ct);
+    
 
 }

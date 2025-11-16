@@ -1,4 +1,5 @@
 using DrakkarVpn.Core.Api.Modules.Peers.Infrastructure.Entities;
+using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Queries.GetServers;
 
 namespace DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
 
@@ -15,4 +16,7 @@ public interface IPeerMetricsHistoryRepository
         DateTime fromUtc,
         DateTime toUtc,
         CancellationToken ct);
+    
+    Task<IReadOnlyList<ServerOnlinePointDto>> GetServerPeersOnlineTimelineAsync(
+        Guid serverId, DateTime fromUtc, DateTime toUtc, CancellationToken ct);
 }

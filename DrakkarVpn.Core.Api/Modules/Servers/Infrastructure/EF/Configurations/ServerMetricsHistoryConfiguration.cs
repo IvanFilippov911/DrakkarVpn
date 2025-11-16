@@ -18,5 +18,6 @@ public sealed class ServerMetricsHistoryConfiguration : IEntityTypeConfiguration
         b.Property(x => x.TrafficTxBytes).HasColumnName("traffic_tx_bytes");
         b.Property(x => x.VpnSpeedMbps).HasColumnName("vpn_speed_mbps").HasPrecision(10,2);
         b.Property(x => x.InfraLatencyMs).HasColumnName("infra_latency_ms").HasPrecision(10,2);
+        
     }
 }

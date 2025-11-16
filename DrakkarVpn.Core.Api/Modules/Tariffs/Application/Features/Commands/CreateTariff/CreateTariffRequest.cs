@@ -5,5 +5,6 @@ namespace DrakkarVpn.Core.Api.Modules.Tariffs.Application.Features.Commands.Crea
 public sealed record CreateTariffRequest(
     string Name,
     decimal Price,
-    TimeSpan Duration
+    TimeSpan Duration,
+    int DefaultMaxDevices
 ) : IRequest<Guid>;

@@ -13,6 +13,6 @@ public sealed class DevBypassTelegramValidator : ITelegramInitDataValidator
         if (!_enabled) throw new InvalidOperationException("Bypass disabled");
         
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        return (TelegramId: 6, AuthDateUnix: now, QueryId: "dev-qid");
+        return (TelegramId: 7, AuthDateUnix: now, QueryId: "dev-qid");
     }
 }

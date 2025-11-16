@@ -97,18 +97,4 @@ public sealed class OrchestratorController : ControllerBase
         var result = await _mediator.Send(request, ct);
         return Ok(result);
     }
-    
-    
-    [HttpGet("{serverId:guid}/{userId:guid}/devices")]
-    [ProducesResponseType(typeof(IReadOnlyList<DeviceListItemDto>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<DeviceListItemDto>>> GetUserDevicesOnServer(
-        [FromRoute] Guid serverId,
-        [FromRoute] Guid userId,
-        CancellationToken ct = default)
-    {
-        var query = new UserDevicesOnServerQuery(ServerId: serverId, UserId: userId);
-        var result = await _mediator.Send(query, ct);
-        return Ok(result);
-    }
-
 }

@@ -60,6 +60,16 @@ public sealed class ServerRepository : IServerRepository
             })
             .ToList();
     }
+    
+    public async Task<Dictionary<Guid, Server>> GetByIdsAsync(Guid[] ids, CancellationToken ct)
+    {
+        if (ids.Length == 0)
+            return new();
+
+        return await _db.Servers
+            .Where(s => ids.Contains(s.Id))
+            .ToDictionaryAsync(s => s.Id, ct);
+    }
 
 
 

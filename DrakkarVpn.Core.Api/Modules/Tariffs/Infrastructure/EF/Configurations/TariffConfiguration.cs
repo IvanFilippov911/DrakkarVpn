@@ -37,5 +37,8 @@ internal sealed class TariffConfiguration : IEntityTypeConfiguration<Tariff>
 
         builder.Property(x => x.CreatedAt)
             .IsRequired();
+        
+        builder.Property(x => x.DefaultMaxDevices)
+            .IsRequired();
     }
 }

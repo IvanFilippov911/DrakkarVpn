@@ -3,6 +3,7 @@ using DrakkarVpn.Core.Api.Modules.Users.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Users.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Users.Application.Features.Queries.CountActiveDevicesBySubscription;
 using DrakkarVpn.Core.Api.Modules.Users.Domain;
+using DrakkarVpn.Shared.Errors;
 using MediatR;
 
 namespace DrakkarVpn.Core.Api.Modules.Users.Application.Features.Commands.ConnectDevice;
@@ -72,7 +73,12 @@ public sealed class ConnectDeviceHandler : IRequestHandler<ConnectDeviceRequest,
         }
 
         
-        var user = await _users.GetByTelegramIdAsync(telegramId, ct);
+        var user = await _users.GetByTelegramIdAsync(telegramId, ct)
+                   ?? throw new InvalidOperationException("User not found");
+        
+        if (user.Status == UserStatus.Banned)
+            throw new UserBannedException(user.Id);
+        
         var sub = await _mediator.Send(new GetActiveSubscriptionByUserRequest(user.Id), ct);
         if (sub is null) throw new Exception("Subscription not found");
         

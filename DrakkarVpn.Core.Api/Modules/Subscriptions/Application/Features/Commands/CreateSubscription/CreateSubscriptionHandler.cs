@@ -23,11 +23,17 @@ public sealed class CreateSubscriptionHandler : IRequestHandler<CreateSubscripti
         var tariff = await _tariffs.GetByIdAsync(new(request.TariffId), ct);
         if (tariff is null || tariff.Status != TariffStatus.Active)
             throw new InvalidOperationException($"Tariff {request.TariffId} not available");
-        
+    
         var startAt = DateTime.UtcNow;
-        var endAt = startAt.Add(tariff.Duration);
-        
-        var subscription = Subscription.CreateNew(request.UserId, startAt, endAt, request.DeviceCount);
+        var endAt   = startAt.Add(tariff.Duration);
+
+        var maxDevices = request.DeviceCount ?? tariff.DefaultMaxDevices;
+
+        var subscription = Subscription.CreateNew(
+            request.UserId, 
+            startAt, 
+            endAt, 
+            maxDevices);
 
         await _repository.AddAsync(subscription, ct);
 
@@ -36,7 +42,8 @@ public sealed class CreateSubscriptionHandler : IRequestHandler<CreateSubscripti
             subscription.UserId,
             subscription.StartAt,
             subscription.EndAt,
-            subscription.Status.ToString()
+            subscription.Status.ToString(),
+            subscription.MaxDevices
         );
     }
 }

@@ -6,5 +6,6 @@ public sealed record UpdateTariffRequest(
     Guid TariffId,
     string Name,
     decimal Price,
-    TimeSpan Duration
+    TimeSpan Duration,
+    int DefaultMaxDevices
 ) : IRequest<Unit>;

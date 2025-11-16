@@ -1,5 +1,5 @@
-using System.Net;
-using System.Text.Json;
+using DrakkarVpn.Shared.Errors;
+using DrakkarVpn.Shared.Errors.DomainErrors;
 using FluentValidation;
 
 namespace DrakkarVpn.Core.Api.Middlewares;
@@ -7,7 +7,15 @@ namespace DrakkarVpn.Core.Api.Middlewares;
 public sealed class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
-    public ExceptionHandlingMiddleware(RequestDelegate next) => _next = next;
+    private readonly ILogger<ExceptionHandlingMiddleware> _logger;
+
+    public ExceptionHandlingMiddleware(
+        RequestDelegate next,
+        ILogger<ExceptionHandlingMiddleware> logger)
+    {
+        _next    = next;
+        _logger  = logger;
+    }
 
     public async Task Invoke(HttpContext ctx)
     {
@@ -15,28 +23,80 @@ public sealed class ExceptionHandlingMiddleware
         {
             await _next(ctx);
         }
-        catch (ValidationException ex)
+        catch (Exception ex)
         {
-            ctx.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-            ctx.Response.ContentType = "application/json";
-
-            var errors = ex.Errors.Select(e => new { e.PropertyName, e.ErrorMessage });
-            await ctx.Response.WriteAsync(JsonSerializer.Serialize(new
-            {
-                title = "Validation failed",
-                status = 400,
-                errors
-            }));
+            await HandleExceptionAsync(ctx, ex);
         }
-        catch (InvalidOperationException ex) when (ex.Message == "User not found")
+    }
+
+    private async Task HandleExceptionAsync(HttpContext ctx, Exception ex)
+    {
+        _logger.LogError(ex, "Unhandled exception");
+        ctx.Response.ContentType = "application/json";
+
+        switch (ex)
         {
-            ctx.Response.StatusCode = (int)HttpStatusCode.NotFound;
-            ctx.Response.ContentType = "application/json";
-            await ctx.Response.WriteAsync(JsonSerializer.Serialize(new
-            {
-                title = ex.Message,
-                status = 404
-            }));
+            case DomainException de:
+                ctx.Response.StatusCode = StatusCodes.Status400BadRequest;
+                await ctx.Response.WriteAsJsonAsync(new
+                {
+                    code    = de.Code,
+                    area    = de.Area.ToString(),
+                    message = de.Message
+                });
+                break;
+            
+            case ValidationException vex:
+                ctx.Response.StatusCode = StatusCodes.Status400BadRequest;
+                await ctx.Response.WriteAsJsonAsync(new
+                {
+                    code   = "VALIDATION_FAILED",
+                    errors = vex.Errors.Select(e => new
+                    {
+                        field   = e.PropertyName,
+                        message = e.ErrorMessage
+                    })
+                });
+                break;
+            
+            case UserBannedException:
+                ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
+                await ctx.Response.WriteAsJsonAsync(new
+                {
+                    code    = "USER_BANNED",
+                    message = ex.Message
+                });
+                break;
+            
+            case InvalidOperationException ioe when ioe.Message == "User not found":
+                ctx.Response.StatusCode = StatusCodes.Status404NotFound;
+                await ctx.Response.WriteAsJsonAsync(new
+                {
+                    code    = "USER_NOT_FOUND",
+                    message = ioe.Message
+                });
+                break;
+            
+            case PeersRevokeFailedException e:
+                ctx.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                await ctx.Response.WriteAsJsonAsync(new
+                {
+                    code    = "PEERS_REVOKE_FAILED",
+                    message = e.Message,
+                    userId  = e.UserId,
+                    revoked = e.Revoked,
+                    failed  = e.Failed
+                });
+                break;
+            
+            default:
+                ctx.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                await ctx.Response.WriteAsJsonAsync(new
+                {
+                    code    = "INTERNAL_ERROR",
+                    message = "Unexpected error"
+                });
+                break;
         }
     }
 }

@@ -12,16 +12,16 @@ public sealed class RevokePeerHandler : IRequestHandler<RevokePeerRequest, bool>
 {
     private readonly IPeerRepository _peers;
     private readonly IServerRepository _servers;
-    private readonly IPeersAgentClient _agent;
+    private readonly IPeerRevoker _revoker;
 
     public RevokePeerHandler(
         IPeerRepository peers,
         IServerRepository servers,
-        IPeersAgentClient agent)
+        IPeerRevoker revoker)
     {
         _peers = peers;
         _servers = servers;
-        _agent = agent;
+        _revoker = revoker;
     }
 
     public async Task<bool> Handle(RevokePeerRequest req, CancellationToken ct)
@@ -38,14 +38,11 @@ public sealed class RevokePeerHandler : IRequestHandler<RevokePeerRequest, bool>
         var server = await _servers.GetAsync(peer.ServerId, ct)
                     ?? throw new InvalidOperationException($"Server {peer.ServerId} not found");
         
-        var agentOk = await _agent.RevokePeerAsync(server, peer.AgentPeerUuid, ct);
-        if (!agentOk)
+        var ok = await _revoker.RevokeAsync(peer, server, ct);
+        if (!ok)
             throw new InvalidOperationException(
                 $"Agent {server.Id} refused to revoke peer {peer.Id}");
         
-        peer.Revoke();
-        await _peers.SaveChangesAsync(ct);
-
         return true;
     }
 }

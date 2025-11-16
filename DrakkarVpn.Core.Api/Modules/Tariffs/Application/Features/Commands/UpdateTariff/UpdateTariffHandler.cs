@@ -16,7 +16,7 @@ public sealed class UpdateTariffHandler : IRequestHandler<UpdateTariffRequest, U
         if (tariff is null)
             throw new InvalidOperationException($"Tariff {request.TariffId} not found");
 
-        tariff.Update(request.Name, request.Price, request.Duration);
+        tariff.Update(request.Name, request.Price, request.Duration, request.DefaultMaxDevices);
 
         return Unit.Value;
     }

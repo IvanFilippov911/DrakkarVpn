@@ -39,6 +39,8 @@ public sealed class PeerMetricsHistoryConfiguration : IEntityTypeConfiguration<P
             .HasColumnName("vpn_latency_ms")
             .HasColumnType("double precision");
         
+        b.HasIndex(x => new { x.ServerId, x.PeriodStartUtc, x.IsOnline })
+            .HasDatabaseName("ix_peer_hist_srv_period_online");
         
         b.HasIndex(x => new { x.PeerId, x.PeriodStartUtc });
         b.HasIndex(x => x.PeriodStartUtc);

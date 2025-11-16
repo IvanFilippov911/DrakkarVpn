@@ -12,7 +12,7 @@ public sealed class CreateTariffHandler : IRequestHandler<CreateTariffRequest, G
 
     public async Task<Guid> Handle(CreateTariffRequest request, CancellationToken ct)
     {
-        var tariff = Tariff.CreateNew(request.Name, request.Duration, request.Price);
+        var tariff = Tariff.CreateNew(request.Name, request.Duration, request.Price, request.DefaultMaxDevices);
         await _repo.AddAsync(tariff, ct);
         return tariff.Id.Value;
     }

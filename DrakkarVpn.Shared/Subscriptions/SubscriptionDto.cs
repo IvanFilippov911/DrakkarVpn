@@ -5,5 +5,6 @@ public sealed record SubscriptionDto(
     Guid UserId,
     DateTime StartAt,
     DateTime EndAt,
-    string Status
+    string Status,
+    int? MaxDevices
 );

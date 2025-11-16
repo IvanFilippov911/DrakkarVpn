@@ -57,7 +57,7 @@ public sealed class PeerRepository : IPeerRepository
     
     public Task<Peer?> GetByDeviceIdAsync(string deviceId, CancellationToken ct) =>
         _db.Peers.AsNoTracking()
-            .FirstOrDefaultAsync(p => p.DeviceId == deviceId, ct);
+            .FirstOrDefaultAsync(p => p.DeviceId == deviceId && p.Status == PeerStatus.Active, ct);
     
     public async Task<IReadOnlyList<T>> GetForRevokeAsync<T>(
         Guid subscriptionId,
@@ -107,4 +107,24 @@ public sealed class PeerRepository : IPeerRepository
         return pairs.ToDictionary(x => x.DeviceId, x => x.Peer);
     }
     
+    public Task<int> CountOnServerAsync(Guid serverId, CancellationToken ct)
+    {
+        return _db.Peers
+            .AsNoTracking()
+            .CountAsync(p => p.ServerId == serverId, ct);
+    }
+    
+    public async Task<IReadOnlyList<Peer>> GetListActiveByUserAsync(Guid userId, CancellationToken ct)
+    {
+        var q =
+            from p in _db.Peers
+            join d in _db.Devices       on p.DeviceId equals d.DeviceId
+            join s in _db.Subscriptions on d.SubscriptionId equals s.Id
+            where s.UserId == userId
+                  && p.Status == PeerStatus.Active
+            select p;
+
+        return await q
+            .ToListAsync(ct);
+    }
 }

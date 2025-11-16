@@ -3,4 +3,8 @@ using MediatR;
 
 namespace DrakkarVpn.Core.Api.Modules.Subscriptions.Application.Features.Commands.RenewSubscription;
 
-public sealed record RenewSubscriptionRequest(Guid SubscriptionId, Guid TariffId) : IRequest<SubscriptionDto>;
+public sealed record RenewSubscriptionRequest(
+    Guid SubscriptionId,
+    Guid TariffId,
+    int? DeviceCount = null 
+) : IRequest<SubscriptionDto>;

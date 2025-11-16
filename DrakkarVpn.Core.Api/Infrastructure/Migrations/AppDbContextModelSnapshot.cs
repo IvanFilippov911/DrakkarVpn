@@ -204,6 +204,9 @@ namespace DrakkarVpn.Core.Api.Migrations
 
                     b.HasIndex("PeerId", "PeriodStartUtc");
 
+                    b.HasIndex("ServerId", "PeriodStartUtc", "IsOnline")
+                        .HasDatabaseName("ix_peer_hist_srv_period_online");
+
                     b.ToTable("peer_metrics_history", (string)null);
                 });
 
@@ -379,6 +382,9 @@ namespace DrakkarVpn.Core.Api.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("DefaultMaxDevices")
+                        .HasColumnType("integer");
+
                     b.Property<TimeSpan>("Duration")
                         .HasColumnType("interval");
 
@@ -393,6 +399,9 @@ namespace DrakkarVpn.Core.Api.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.HasKey("Id");
 
                     b.ToTable("tariffs", (string)null);
@@ -405,9 +414,22 @@ namespace DrakkarVpn.Core.Api.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<string>("BanReason")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("ban_reason");
+
+                    b.Property<DateTime?>("BannedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("banned_at_utc");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
+
+                    b.Property<bool>("IsInternal")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_internal");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer")
@@ -417,7 +439,15 @@ namespace DrakkarVpn.Core.Api.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("telegram_id");
 
+                    b.Property<string>("Username")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("username");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("IsInternal")
+                        .HasDatabaseName("ix_users_is_internal");
 
                     b.HasIndex("TelegramId")
                         .IsUnique()

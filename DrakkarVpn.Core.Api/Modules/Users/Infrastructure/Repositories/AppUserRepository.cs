@@ -15,6 +15,9 @@ public sealed class AppUserRepository : IAppUserRepository
 
     public Task<AppUser?> GetByIdAsync(Guid id, CancellationToken ct) =>
         _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id, ct);
+    
+    public Task<AppUser?> GetForUpdateAsync(Guid id, CancellationToken ct) =>
+        _db.Users.FirstOrDefaultAsync(u => u.Id == id, ct);
 
     public Task<AppUser?> GetByTelegramIdAsync(long tgId, CancellationToken ct) =>
         _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.TelegramId == tgId, ct);
