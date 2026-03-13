@@ -1,0 +1,99 @@
+version: "3.9"
+
+services:
+
+  core-api:
+    build:
+      context: ../..
+      dockerfile: hosts/DrakkarVpn.User.Api/Dockerfile
+    container_name: drakkar-user-api
+    restart: always
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Db: Host=${POSTGRES_HOST};Port=${POSTGRES_PORT};Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+    volumes:
+      - ../../runtime/logs:/var/log/drakkar
+    networks:
+      - drakkar-net
+    depends_on:
+      - db-migrator
+
+
+  admin-api:
+    build:
+      context: ../..
+      dockerfile: hosts/DrakkarVpn.Admin.Api/Dockerfile
+    container_name: drakkar-admin-api
+    restart: always
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Db: Host=${POSTGRES_HOST};Port=${POSTGRES_PORT};Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      ConnectionStrings__Redis: ${REDIS_HOST}:${REDIS_PORT}
+    volumes:
+      - ../../runtime/logs:/var/log/drakkar
+    networks:
+      - drakkar-net
+    depends_on:
+      - db-migrator
+
+
+  db-migrator:
+    build:
+      context: ../..
+      dockerfile: hosts/DrakkarVpn.DbMigrator/Dockerfile
+    container_name: drakkar-db-migrator
+    restart: "no"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__Db: Host=${POSTGRES_HOST};Port=${POSTGRES_PORT};Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+    networks:
+      - drakkar-net
+
+
+  bot:
+    build:
+      context: ../..
+      dockerfile: hosts/DrakkarVpn.Bot/Dockerfile
+    container_name: drakkar-bot
+    restart: always
+    environment:
+      Telegram__Token: ${TELEGRAM_BOT_TOKEN}
+      WebApp__BaseUrl: ${WEBAPP_BASE_URL}
+      UserFlowApi__BaseUrl: ${USER_API_URL}
+    volumes:
+      - ../../runtime/logs:/var/log/drakkar
+    networks:
+      - drakkar-net
+
+
+  webapp:
+    build:
+      context: ../../drakkar-vpn-web
+      dockerfile: Dockerfile
+    container_name: drakkar-webapp
+    restart: always
+    networks:
+      - drakkar-net
+
+
+  nginx:
+    image: nginx:alpine
+    container_name: drakkar-nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - webapp
+      - core-api
+      - admin-api
+    networks:
+      - drakkar-net
+
+
+networks:
+  drakkar-net:
+    external: true

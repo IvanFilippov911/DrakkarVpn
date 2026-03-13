@@ -1,0 +1,74 @@
+# -----------------------------
+# Git
+# -----------------------------
+.git
+.gitignore
+
+# -----------------------------
+# .NET build artifacts
+# -----------------------------
+**/bin/
+**/obj/
+**/out/
+**/TestResults/
+
+# Rider / VS
+.idea/
+.vscode/
+*.user
+*.suo
+*.DotSettings.user
+
+# -----------------------------
+# Logs
+# -----------------------------
+*.log
+logs/
+runtime/logs/
+
+# -----------------------------
+# OS junk
+# -----------------------------
+.DS_Store
+Thumbs.db
+
+# -----------------------------
+# Node / React
+# -----------------------------
+**/node_modules/
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+
+# React build output
+dist/
+build/
+
+# -----------------------------
+# Observability runtime data
+# -----------------------------
+runtime/loki-data/
+runtime/prometheus-data/
+runtime/grafana-data/
+
+# WAL / TSDB
+*.wal
+*.tsdb
+
+# -----------------------------
+# Docker runtime volumes
+# -----------------------------
+docker-data/
+
+# -----------------------------
+# Environment files
+# -----------------------------
+.env
+.env.*
+!.env.example
+
+# -----------------------------
+# Temporary
+# -----------------------------
+tmp/
+temp/
