@@ -1,3 +1,4 @@
+using DrakkarVpn.AdminAuth.Application.Authorization;
 using DrakkarVpn.Core.Api.Modules.Admin.API.Contracts;
 using DrakkarVpn.Core.Api.Modules.Admin.API.Contracts.Users.Response;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.DTOs;
@@ -14,11 +15,13 @@ using DrakkarVpn.Core.Api.Modules.Users.Domain;
 using DrakkarVpn.Shared;
 using DrakkarVpn.Shared.Subscriptions;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DrakkarVpn.Core.Api.Modules.Admin.API;
 
 [ApiController]
+[Authorize]
 [Route("api/admin")]
 public sealed class AdminUsersController : ControllerBase
 {
@@ -29,6 +32,7 @@ public sealed class AdminUsersController : ControllerBase
         _mediator = mediator;
     }
     
+    [Authorize(Policy = AdminPolicies.UsersRead)]
     [HttpGet("users")]
     [ProducesResponseType(typeof(PagedResponseDto<AdminUserCardDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<BulkUsersOperationResponse>> GetUsers(
@@ -56,6 +60,7 @@ public sealed class AdminUsersController : ControllerBase
     }
     
 
+    [Authorize(Policy = AdminPolicies.UsersManage)]
     [HttpPost("users/{userId:guid}/ban")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -72,6 +77,7 @@ public sealed class AdminUsersController : ControllerBase
         return NoContent();
     }
 
+    [Authorize(Policy = AdminPolicies.UsersManage)]
     [HttpPost("users/ban")]
     [ProducesResponseType(typeof(BulkUsersOperationResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<BulkUsersOperationResponse>> BulkBanUsers(
@@ -82,6 +88,7 @@ public sealed class AdminUsersController : ControllerBase
         return Ok(res);
     }
 
+    [Authorize(Policy = AdminPolicies.UsersManage)]
     [HttpPost("users/{userId:guid}/unban")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> UnbanUser(
@@ -95,6 +102,8 @@ public sealed class AdminUsersController : ControllerBase
         return NoContent();
     }
     
+    
+    [Authorize(Policy = AdminPolicies.UsersManage)]
     [HttpPost("users/unban")]
     [ProducesResponseType(typeof(BulkUsersOperationResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<BulkUsersOperationResponse>> BulkUnbanUsers(
@@ -105,6 +114,7 @@ public sealed class AdminUsersController : ControllerBase
         return Ok(res);
     }
 
+    [Authorize(Policy = AdminPolicies.UsersManage)]
     [HttpPost("users/{userId:guid}/internal")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -117,6 +127,7 @@ public sealed class AdminUsersController : ControllerBase
         return ok ? NoContent() : NotFound();
     }
 
+    [Authorize(Policy = AdminPolicies.UsersManage)]
     [HttpPost("users/internal")]
     [ProducesResponseType(typeof(BulkUsersOperationResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<BulkUsersOperationResponse>> BulkMarkUsersInternal(
@@ -128,6 +139,7 @@ public sealed class AdminUsersController : ControllerBase
     }
     
     
+    [Authorize(Policy = AdminPolicies.UsersRead)]
     [HttpGet("users/{userId:guid}/details")]
     [ProducesResponseType(typeof(AdminUserDetailsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<AdminUserDetailsDto>> GetUserDetails(

@@ -1,3 +1,4 @@
+using DrakkarVpn.AdminAuth.Application.Exceptions;
 using DrakkarVpn.Shared.Errors;
 using DrakkarVpn.Shared.Errors.DomainErrors;
 using FluentValidation;
@@ -70,6 +71,42 @@ public sealed class ExceptionHandlingMiddleware
                     message = ex.Message
                 });
                 break;
+
+            case InvalidAdminCredentialsException iace:
+                ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                await ctx.Response.WriteAsJsonAsync(new
+                {
+                    code = "ADMIN_INVALID_CREDENTIALS",
+                    message = iace.Message
+                });
+                break;
+
+            case AdminInactiveException aie:
+                ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
+                await ctx.Response.WriteAsJsonAsync(new
+                {
+                    code = "ADMIN_INACTIVE",
+                    message = aie.Message
+                });
+                break;
+
+            case InvalidRefreshTokenException irte:
+                ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                await ctx.Response.WriteAsJsonAsync(new
+                {
+                    code = "INVALID_REFRESH_TOKEN",
+                    message = irte.Message
+                });
+                break;
+
+            case MissingRefreshTokenException mrte:
+                ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                await ctx.Response.WriteAsJsonAsync(new
+                {
+                    code = "REFRESH_TOKEN_REQUIRED",
+                    message = mrte.Message
+                });
+                break;
             
             case InvalidOperationException ioe when ioe.Message == "User not found":
                 ctx.Response.StatusCode = StatusCodes.Status404NotFound;
@@ -77,6 +114,15 @@ public sealed class ExceptionHandlingMiddleware
                 {
                     code    = "USER_NOT_FOUND",
                     message = ioe.Message
+                });
+                break;
+
+            case InvalidOperationException ioe when ioe.Message == "Current admin context is unavailable":
+                ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                await ctx.Response.WriteAsJsonAsync(new
+                {
+                    code = "ADMIN_AUTH_REQUIRED",
+                    message = "Admin authentication is required"
                 });
                 break;
             

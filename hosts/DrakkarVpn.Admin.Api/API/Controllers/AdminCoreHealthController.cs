@@ -1,14 +1,17 @@
+using DrakkarVpn.AdminAuth.Application.Authorization;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Queries.GetCoreHealth;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Queries.GetCoreHealthHistory;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Queries.HealthSystem.GetCoreHealth;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Queries.HealthSystem.GetCoreHealthHistory;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DrakkarVpn.Core.Api.Modules.Admin.API;
 
 [ApiController]
+[Authorize(Policy = AdminPolicies.ObservabilityRead)]
 [Route("api/admin")]
 public sealed class AdminCoreHealthController : ControllerBase
 {

@@ -1,3 +1,4 @@
+using DrakkarVpn.AdminAuth.Application.Authorization;
 using DrakkarVpn.Admin.Api.Application.Features.Commands.Tariffs.AdminCreateTariff;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Commands.Tariffs.AdminDisableTariff;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Commands.Tariffs.AdminEnableTariff;
@@ -6,11 +7,13 @@ using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Queries.Tariffs.Adm
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Queries.Tariffs.AdminGetTariffById;
 using DrakkarVpn.Shared.Tariffs;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DrakkarVpn.Core.Api.Modules.Admin.API.Controllers;
 
 [ApiController]
+[Authorize(Policy = AdminPolicies.TariffsManage)]
 [Route("api/admin/tariffs")]
 public sealed class AdminTariffsController : ControllerBase
 {

@@ -1,13 +1,16 @@
+using DrakkarVpn.AdminAuth.Application.Authorization;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Queries.Errors.DeleteCoreErrorEvent;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Queries.GetCoreErrorEvents;
 using DrakkarVpn.Shared;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DrakkarVpn.Core.Api.Modules.Admin.API;
 
 [ApiController]
+[Authorize(Policy = AdminPolicies.ObservabilityRead)]
 [Route("admin/core/errors")]
 public sealed class AdminCoreErrorsController : ControllerBase
 {

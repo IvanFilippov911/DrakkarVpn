@@ -1,3 +1,4 @@
+using DrakkarVpn.AdminAuth.Application.Authorization;
 using DrakkarVpn.Core.Api.Modules.Admin.API.Contracts;
 using DrakkarVpn.Core.Api.Modules.Admin.API.Contracts.Subscriptions.Request;
 using DrakkarVpn.Core.Api.Modules.Admin.API.Contracts.Subscriptions.Response;
@@ -8,11 +9,13 @@ using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Commands.Subscripti
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Commands.Subscriptions.AdminGrantSubscription;
 using DrakkarVpn.Shared.Subscriptions;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DrakkarVpn.Core.Api.Modules.Admin.API;
 
 [ApiController]
+[Authorize(Policy = AdminPolicies.SubscriptionsManage)]
 [Route("api/admin")]
 public sealed class AdminSubscriptionsController : ControllerBase
 {

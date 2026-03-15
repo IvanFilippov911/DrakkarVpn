@@ -1,3 +1,4 @@
+using DrakkarVpn.AdminAuth;
 using DrakkarVpn.Observability;
 using DrakkarVpn.Peers;
 using DrakkarVpn.Servers;
@@ -22,6 +23,7 @@ public static class AdminHostCompositionExtensions
         //services.AddExecutionPipelines();
 
         // modules infrastructure
+        services.AddAdminAuthInfrastructure(configuration);
         services.AddObservabilityInfrastructure(configuration);
         services.AddUsersInfrastructure(configuration);
         services.AddPeersInfrastructure(configuration);
@@ -30,6 +32,7 @@ public static class AdminHostCompositionExtensions
         services.AddTariffsInfrastructure(configuration);
 
         // host-specific module services
+        services.AddAdminAuthAdminHost(configuration);
         services.AddObservabilityAdminHost();
         services.AddUsersAdminHost();
         services.AddPeersAdminHost();

@@ -9,7 +9,7 @@ public sealed class IdempotencyDbContextFactory : IDesignTimeDbContextFactory<Id
     {
         var connectionString =
             Environment.GetEnvironmentVariable("ConnectionStrings__Db")
-            ?? "Host=127.0.0.1;Port=5432;Database=drakkar;Username=postgres;Password=postgres";
+            ?? "Host=127.0.0.1;Port=5432;Database=drakkar;Username=postgres;Password=ginger567789";
 
         var options = new DbContextOptionsBuilder<IdempotencyDbContext>()
             .UseNpgsql(connectionString)

@@ -1,3 +1,4 @@
+using DrakkarVpn.AdminAuth.Application.Authorization;
 using DrakkarVpn.Core.Api.Modules.Admin.API.Contracts;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Commands.Servers.DeleteServer;
@@ -14,11 +15,13 @@ using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Queries.GetServer
 using DrakkarVpn.Shared;
 using DrakkarVpn.Shared.Servers;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DrakkarVpn.Core.Api.Modules.Admin.API;
 
 [ApiController]
+[Authorize]
 [Route("api/admin")]
 public sealed class AdminServersController : ControllerBase
 {
@@ -29,6 +32,7 @@ public sealed class AdminServersController : ControllerBase
         _mediator = mediator;
     }
 
+    [Authorize(Policy = AdminPolicies.ServersRead)]
     [HttpGet("servers")]
     public async Task<ActionResult<PagedResponseDto<AdminServerCardDto>>> GetServers(
         [FromQuery] GetAdminServersQuery query,
@@ -38,6 +42,7 @@ public sealed class AdminServersController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize(Policy = AdminPolicies.ServersRead)]
     [HttpGet("servers/{serverId:guid}")]
     public async Task<ActionResult<GetServersDetailDto>> GetServer(
         Guid serverId,
@@ -48,6 +53,7 @@ public sealed class AdminServersController : ControllerBase
         return Ok(dto);
     }
 
+    [Authorize(Policy = AdminPolicies.ObservabilityRead)]
     [HttpGet("servers/{serverId:guid}/history")]
     public async Task<ActionResult<IReadOnlyList<ServerMetricsHistoryDto>>> GetServerHistory(
         Guid serverId,
@@ -62,6 +68,7 @@ public sealed class AdminServersController : ControllerBase
     }
     
 
+    [Authorize(Policy = AdminPolicies.ObservabilityRead)]
     [HttpGet("servers/{serverId:guid}/peers-online-history")]
     public async Task<ActionResult<IReadOnlyList<ServerOnlinePointDto>>> GetPeersOnlineHistory(
         Guid serverId,
@@ -75,6 +82,7 @@ public sealed class AdminServersController : ControllerBase
         return Ok(dto);
     }
 
+    [Authorize(Policy = AdminPolicies.ServersManage)]
     [HttpPost("servers")]
     public async Task<ActionResult<Guid>> RegisterServer(
         [FromBody] RegisterServerRequest cmd,
@@ -84,6 +92,7 @@ public sealed class AdminServersController : ControllerBase
         return Created($"/api/admin/servers/{id}", new { id });
     }
 
+    [Authorize(Policy = AdminPolicies.ServersManage)]
     [HttpDelete("servers/{serverId:guid}")]
     public async Task<IActionResult> DeleteServer(
         Guid serverId,
@@ -93,6 +102,7 @@ public sealed class AdminServersController : ControllerBase
         return ok ? NoContent() : Conflict();
     }
 
+    [Authorize(Policy = AdminPolicies.PeersManage)]
     [HttpPost("servers/{serverId:guid}/peers/revoke")]
     [ProducesResponseType(typeof(AdminRevokeServerPeersApiResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<AdminRevokeServerPeersApiResponse>> RevokeAllServerPeers(
@@ -106,6 +116,7 @@ public sealed class AdminServersController : ControllerBase
         return Ok(new AdminRevokeServerPeersApiResponse(revoked));
     }
     
+    [Authorize(Policy = AdminPolicies.ServersRead)]
     [HttpGet("{serverId:guid}/peers")]
     [ProducesResponseType(typeof(PagedResponseDto<ServerPeerDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<PagedResponseDto<ServerPeerDto>>> GetServerPeers(

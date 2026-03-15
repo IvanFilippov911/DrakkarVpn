@@ -2,7 +2,9 @@ using DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Subscriptions.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Tariffs.Application.Abstracts;
 using DrakkarVpn.Core.Api.Modules.Users.Application.Abstractions;
+using DrakkarVpn.AdminAuth.Application.Abstractions;
 using DrakkarVpn.Execution.Application.Pipelines;
+using DrakkarVpn.AdminAuth.Infrastructure.EF;
 using DrakkarVpn.Peers.Infrastructure.EF;
 using DrakkarVpn.Servers.Application.Abstractions;
 using DrakkarVpn.Servers.Infrastructure.EF;
@@ -18,12 +20,14 @@ public static class Entry
 {
     public static IServiceCollection AddUnitOfWorkBehaviors(this IServiceCollection services)
     {
+        services.AddScoped<IAdminAuthUnitOfWork, AdminAuthUnitOfWork>();
         services.AddScoped<IUsersUnitOfWork, UsersUnitOfWork>();
         services.AddScoped<ISubscriptionsUnitOfWork, SubscriptionsUnitOfWork>();
         services.AddScoped<IPeersUnitOfWork, PeersUnitOfWork>();
         services.AddScoped<IServersUnitOfWork, ServersUnitOfWork>();
         services.AddScoped<ITariffsUnitOfWork, TariffsUnitOfWork>();
 
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AdminAuthUnitOfWorkBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(UsersUnitOfWorkBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(SubscriptionsUnitOfWorkBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(PeersUnitOfWorkBehavior<,>));

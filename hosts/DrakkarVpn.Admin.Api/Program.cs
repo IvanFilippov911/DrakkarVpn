@@ -1,4 +1,5 @@
 using DrakkarVpn.Admin.Api.DI;
+using DrakkarVpn.AdminAuth.DI;
 using DrakkarVpn.HostInfrastructure;
 using DrakkarVpn.HostInfrastructure.Infrastructure.Middlewares;
 using Prometheus;
@@ -11,7 +12,8 @@ var services = builder.Services;
 var configuration = builder.Configuration;
 
 services.AddAdminHostApi()
-    .AddLocalCorsForFrontend();
+    .AddFrontendCors(configuration, builder.Environment)
+    .AddForwardedHeadersSupport(configuration, builder.Environment);
 
 services.AddAdminHostComposition(configuration);
 services.AddDrakkarMediatR();
@@ -20,9 +22,15 @@ services.AddUnitOfWorkBehaviors();
 
 var app = builder.Build();
 
-app.UseSwagger();
-app.UseSwaggerUI();
+await app.Services.SeedAdminAuthAsync();
 
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseForwardedHeaders();
 app.UseRouting();
 app.UseCors("AllowFrontend");
 app.UseAuthentication();

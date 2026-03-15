@@ -1,3 +1,4 @@
+using DrakkarVpn.HostInfrastructure;
 using DrakkarVpn.Idempotency;
 using DrakkarVpn.Observability;
 using DrakkarVpn.Peers;
@@ -22,9 +23,8 @@ public static class UserHostCompositionExtensions
         services.AddRedis(configuration);
         services.AddMemoryCache();
 
-        // execution
-        //services.AddExecutionModule();
-        //services.AddExecutionPipelines();
+        
+        services.AddUnitOfWorkBehaviors();
 
         // modules infrastructure
         services.AddObservabilityInfrastructure(configuration);
@@ -39,7 +39,7 @@ public static class UserHostCompositionExtensions
 
         // host-specific module services
         services.AddObservabilityUserHost();
-        services.AddUsersUserHost();
+        services.AddUsersUserHost(configuration);
         services.AddPeersUserHost();
         services.AddServersUserHost();
         services.AddSubscriptionsUserHost();

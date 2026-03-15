@@ -1,5 +1,7 @@
-﻿
 
+
+using DrakkarVpn.AdminAuth;
+using DrakkarVpn.AdminAuth.Infrastructure.EF;
 using DrakkarVpn.Core.Api.Modules.Peers.Infrastructure.EF;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.EF;
 using DrakkarVpn.Core.Api.Modules.Subscriptions.Infrastructure;
@@ -25,6 +27,7 @@ var config = builder.Configuration;
 
 
 services.AddUsersInfrastructure(config);
+services.AddAdminAuthInfrastructure(config);
 services.AddPeersInfrastructure(config);
 services.AddServersInfrastructure(config);
 services.AddSubscriptionsInfrastructure(config);
@@ -38,6 +41,7 @@ using var scope = app.Services.CreateScope();
 var sp = scope.ServiceProvider;
 
 await sp.GetRequiredService<UsersDbContext>().Database.MigrateAsync();
+await sp.GetRequiredService<AdminAuthDbContext>().Database.MigrateAsync();
 await sp.GetRequiredService<PeerDbContext>().Database.MigrateAsync();
 await sp.GetRequiredService<ServerDbContext>().Database.MigrateAsync();
 await sp.GetRequiredService<SubscriptionDbContext>().Database.MigrateAsync();

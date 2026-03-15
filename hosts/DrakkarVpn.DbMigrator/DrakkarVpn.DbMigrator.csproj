@@ -21,6 +21,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\infrastructure\DrakkarVpn.Idempotency\DrakkarVpn.Idempotency.csproj" />
+        <ProjectReference Include="..\..\modules\DrakkarVpn.AdminAuth\DrakkarVpn.AdminAuth.csproj" />
         <ProjectReference Include="..\..\modules\DrakkarVpn.Users\DrakkarVpn.Users.csproj" />
         <ProjectReference Include="..\..\modules\DrakkarVpn.Peers\DrakkarVpn.Peers.csproj" />
         <ProjectReference Include="..\..\modules\DrakkarVpn.Servers\DrakkarVpn.Servers.csproj" />

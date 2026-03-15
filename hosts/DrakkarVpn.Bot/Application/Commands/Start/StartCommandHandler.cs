@@ -1,5 +1,6 @@
 using DrakkarVpn.Bot.Application.Abstractions;
 using MediatR;
+using Microsoft.Extensions.Configuration;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -10,10 +11,16 @@ public class StartCommandHandler : IRequestHandler<StartCommand, Unit>
 {
     private readonly ITelegramBotClient _bot;
     private readonly IUserFlowClient _userClient;
-    public StartCommandHandler(ITelegramBotClient bot, IUserFlowClient userClient)
+    private readonly IConfiguration _configuration;
+
+    public StartCommandHandler(
+        ITelegramBotClient bot,
+        IUserFlowClient userClient,
+        IConfiguration configuration)
     {
         _bot = bot;
         _userClient = userClient;
+        _configuration = configuration;
     }
 
     public async Task<Unit> Handle(StartCommand req, CancellationToken ct)
@@ -23,8 +30,11 @@ public class StartCommandHandler : IRequestHandler<StartCommand, Unit>
         var tgId = req.Message.From?.Id ?? 0;
 
         await _userClient.RegisterAsync(tgId, ct);
-        
-        var webAppUrl = "https://info-construct-utility-colours.trycloudflare.com";
+
+        var webAppUrl = _configuration["WebApp:BaseUrl"];
+
+        if (string.IsNullOrWhiteSpace(webAppUrl))
+            throw new InvalidOperationException("Configuration WebApp:BaseUrl is missing");
 
         var webApp = new WebAppInfo { Url = webAppUrl };
         var keyboard = new InlineKeyboardMarkup(

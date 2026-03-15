@@ -6,7 +6,9 @@ COPY Directory.Packages.props ./
 
 COPY hosts/DrakkarVpn.DbMigrator/DrakkarVpn.DbMigrator.csproj hosts/DrakkarVpn.DbMigrator/
 
+COPY infrastructure/DrakkarVpn.Shared/DrakkarVpn.Shared.csproj infrastructure/DrakkarVpn.Shared/
 COPY infrastructure/DrakkarVpn.Idempotency/DrakkarVpn.Idempotency.csproj infrastructure/DrakkarVpn.Idempotency/
+COPY modules/DrakkarVpn.AdminAuth/DrakkarVpn.AdminAuth.csproj modules/DrakkarVpn.AdminAuth/
 COPY modules/DrakkarVpn.Users/DrakkarVpn.Users.csproj modules/DrakkarVpn.Users/
 COPY modules/DrakkarVpn.Peers/DrakkarVpn.Peers.csproj modules/DrakkarVpn.Peers/
 COPY modules/DrakkarVpn.Servers/DrakkarVpn.Servers.csproj modules/DrakkarVpn.Servers/

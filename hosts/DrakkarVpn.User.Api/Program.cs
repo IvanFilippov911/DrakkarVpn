@@ -13,7 +13,8 @@ var configuration = builder.Configuration;
 
 services.AddUserHostApi()
     .AddSwaggerJwt()
-    .AddLocalCorsForFrontend();
+    .AddFrontendCors(configuration, builder.Environment)
+    .AddForwardedHeadersSupport(configuration, builder.Environment);
 
 services.AddDrakkarMediatR();
 
@@ -22,9 +23,13 @@ services.AddUnitOfWorkBehaviors();
 
 var app = builder.Build();
 
-app.UseSwagger();
-app.UseSwaggerUI();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
+app.UseForwardedHeaders();
 app.UseRouting();
 app.UseCors("AllowFrontend");
 app.UseAuthentication();

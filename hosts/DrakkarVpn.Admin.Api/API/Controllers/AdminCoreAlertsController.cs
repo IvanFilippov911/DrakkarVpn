@@ -1,4 +1,5 @@
 
+using DrakkarVpn.AdminAuth.Application.Authorization;
 
 using DrakkarVpn.Core.Api.Modules.Admin.API.Contracts;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.DTOs;
@@ -9,11 +10,13 @@ using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Queries.GetGlobalCo
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Metadata;
 using DrakkarVpn.Shared;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DrakkarVpn.Core.Api.Modules.Admin.API;
 
 [ApiController]
+[Authorize(Policy = AdminPolicies.ObservabilityRead)]
 [Route("api/admin/core/alerts")]
 public sealed class AdminCoreAlertsController : ControllerBase
 {

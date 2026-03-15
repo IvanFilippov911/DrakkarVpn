@@ -20,7 +20,7 @@ public sealed class PeersDbContextFactory : IDesignTimeDbContextFactory<PeerDbCo
 
         var connectionString =
             configuration.GetConnectionString("Db")
-            ?? "Host=127.0.0.1;Port=5432;Database=drakkar;Username=postgres;Password=postgres";
+            ?? "Host=127.0.0.1;Port=5432;Database=drakkar;Username=postgres;Password=ginger567789";
 
         var options = new DbContextOptionsBuilder<PeerDbContext>()
             .UseNpgsql(connectionString)

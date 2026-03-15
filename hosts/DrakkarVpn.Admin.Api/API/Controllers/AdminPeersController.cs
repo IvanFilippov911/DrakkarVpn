@@ -1,13 +1,16 @@
+using DrakkarVpn.AdminAuth.Application.Authorization;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Commands.Peers.RevokePeer;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Queries.Peers.GetPeerDetails;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Queries.Peers.GetPeerHistory;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.DTOs;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DrakkarVpn.Core.Api.Modules.Admin.API;
 
 [ApiController]
+[Authorize(Policy = AdminPolicies.PeersManage)]
 [Route("api/admin")]
 public sealed class AdminPeersController : ControllerBase
 {

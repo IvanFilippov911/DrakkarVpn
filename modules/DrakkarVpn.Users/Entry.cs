@@ -1,4 +1,5 @@
 using DrakkarVpn.Core.Api.Modules.Users.Application.Abstractions;
+using DrakkarVpn.Core.Api.Modules.Users.Infrastructure;
 using DrakkarVpn.Core.Api.Modules.Users.Infrastructure.Auth;
 using DrakkarVpn.Core.Api.Modules.Users.Infrastructure.Repositories;
 using DrakkarVpn.Core.Api.Modules.Users.Infrastructure.Security;
@@ -9,6 +10,7 @@ using DrakkarVpn.Users.Application.Features.Services;
 using DrakkarVpn.Users.Infrastructure.Devices;
 using DrakkarVpn.Users.Infrastructure.EF;
 using DrakkarVpn.Users.Infrastructure.EF.Repositories.ReadRepositories;
+using DrakkarVpn.Users.Infrastructure.Extensions;
 using DrakkarVpn.Users.Infrastructure.Repositories;
 using DrakkarVpn.Users.Infrastructure.Repositories.ReadRepositories;
 using Microsoft.EntityFrameworkCore;
@@ -28,7 +30,7 @@ public static class Entry
         return services;
     }
     
-    public static IServiceCollection AddUsersUserHost(this IServiceCollection services)
+    public static IServiceCollection AddUsersUserHost(this IServiceCollection services,  IConfiguration configuration)
     {
         services.AddScoped<IUserRegistrationService, UserRegistrationService>();
         services.AddScoped<IConnectDeviceService, ConnectDeviceService>();
@@ -37,7 +39,9 @@ public static class Entry
         services.AddScoped<IDeviceIdGenerator, DeviceIdGenerator>();
         services.AddScoped<ITelegramInitDataValidator, TelegramInitDataValidator>();
         services.AddScoped<IJwtTokenService, JwtTokenService>();
-        services.AddSingleton<IReplayStore, InMemoryReplayStore>(); 
+        services.AddSingleton<IReplayStore, InMemoryReplayStore>();
+        services.AddJwtAuth(configuration);
+        services.AddTelegramOptions(configuration);
 
         return services;
     }
