@@ -1,4 +1,6 @@
 using DrakkarVpn.AdminAuth.Application.Authorization;
+using DrakkarVpn.Core.Api.Modules.Admin.API.Contracts.Core;
+using DrakkarVpn.Core.Api.Modules.Admin.API.Mappings;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Queries.GetCoreHealth;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Queries.GetCoreHealthHistory;
@@ -23,11 +25,11 @@ public sealed class AdminCoreHealthController : ControllerBase
     }
 
     [HttpGet("core/health")]
-    [ProducesResponseType(typeof(CoreHealthDto), StatusCodes.Status200OK)]
-    public async Task<ActionResult<CoreHealthDto>> GetCoreHealth(CancellationToken ct = default)
+    [ProducesResponseType(typeof(CoreHealthApiResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<CoreHealthApiResponse>> GetCoreHealth(CancellationToken ct = default)
     {
         var dto = await _mediator.Send(new GetCoreHealthQuery(), ct);
-        return Ok(dto);
+        return Ok(dto.ToApiResponse());
     }
 
     [HttpGet("core/health/history")]

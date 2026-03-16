@@ -1,5 +1,7 @@
 using DrakkarVpn.AdminAuth.Application.Authorization;
 using DrakkarVpn.Core.Api.Modules.Admin.API.Contracts;
+using DrakkarVpn.Core.Api.Modules.Admin.API.Contracts.Servers;
+using DrakkarVpn.Core.Api.Modules.Admin.API.Mappings;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Commands.Servers.DeleteServer;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Commands.Servers.RegisterServer;
@@ -34,28 +36,31 @@ public sealed class AdminServersController : ControllerBase
 
     [Authorize(Policy = AdminPolicies.ServersRead)]
     [HttpGet("servers")]
-    public async Task<ActionResult<PagedResponseDto<AdminServerCardDto>>> GetServers(
+    [ProducesResponseType(typeof(PagedResponseDto<AdminServerCardApiResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PagedResponseDto<AdminServerCardApiResponse>>> GetServers(
         [FromQuery] GetAdminServersQuery query,
         CancellationToken ct = default)
     {
         var result = await _mediator.Send(query, ct);
-        return Ok(result);
+        return Ok(result.ToApiResponse());
     }
 
     [Authorize(Policy = AdminPolicies.ServersRead)]
     [HttpGet("servers/{serverId:guid}")]
-    public async Task<ActionResult<GetServersDetailDto>> GetServer(
+    [ProducesResponseType(typeof(ServerDetailsApiResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ServerDetailsApiResponse>> GetServer(
         Guid serverId,
         CancellationToken ct = default)
     {
         var dto = await _mediator.Send(new GetServerByIdRequest(serverId), ct);
         if (dto is null) return NotFound();
-        return Ok(dto);
+        return Ok(dto.ToApiResponse());
     }
 
     [Authorize(Policy = AdminPolicies.ObservabilityRead)]
     [HttpGet("servers/{serverId:guid}/history")]
-    public async Task<ActionResult<IReadOnlyList<ServerMetricsHistoryDto>>> GetServerHistory(
+    [ProducesResponseType(typeof(IReadOnlyList<ServerMetricsHistoryApiResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<ServerMetricsHistoryApiResponse>>> GetServerHistory(
         Guid serverId,
         [FromQuery] int minutes = 24 * 60,
         CancellationToken ct = default)
@@ -64,13 +69,14 @@ public sealed class AdminServersController : ControllerBase
             new GetServerHistoryLastRequest(serverId, minutes),
             ct);
 
-        return Ok(dto);
+        return Ok(dto.ToApiResponse());
     }
     
 
     [Authorize(Policy = AdminPolicies.ObservabilityRead)]
     [HttpGet("servers/{serverId:guid}/peers-online-history")]
-    public async Task<ActionResult<IReadOnlyList<ServerOnlinePointDto>>> GetPeersOnlineHistory(
+    [ProducesResponseType(typeof(IReadOnlyList<ServerOnlinePointApiResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<ServerOnlinePointApiResponse>>> GetPeersOnlineHistory(
         Guid serverId,
         [FromQuery] int minutes = 24 * 60,
         CancellationToken ct = default)
@@ -79,17 +85,19 @@ public sealed class AdminServersController : ControllerBase
             new GetServerPeersOnlineHistoryQuery(serverId, minutes),
             ct);
 
-        return Ok(dto);
+        return Ok(dto.ToApiResponse());
     }
 
     [Authorize(Policy = AdminPolicies.ServersManage)]
     [HttpPost("servers")]
-    public async Task<ActionResult<Guid>> RegisterServer(
-        [FromBody] RegisterServerRequest cmd,
+    [ProducesResponseType(typeof(RegisterServerApiResponse), StatusCodes.Status201Created)]
+    public async Task<ActionResult<RegisterServerApiResponse>> RegisterServer(
+        [FromBody] RegisterServerApiRequest body,
         CancellationToken ct = default)
     {
-        var id = await _mediator.Send(cmd, ct);
-        return Created($"/api/admin/servers/{id}", new { id });
+        var cmd = body.ToCommand();
+        var id  = await _mediator.Send(cmd, ct);
+        return Created($"/api/admin/servers/{id}", new RegisterServerApiResponse(id));
     }
 
     [Authorize(Policy = AdminPolicies.ServersManage)]
@@ -118,8 +126,8 @@ public sealed class AdminServersController : ControllerBase
     
     [Authorize(Policy = AdminPolicies.ServersRead)]
     [HttpGet("{serverId:guid}/peers")]
-    [ProducesResponseType(typeof(PagedResponseDto<ServerPeerDto>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<PagedResponseDto<ServerPeerDto>>> GetServerPeers(
+    [ProducesResponseType(typeof(PagedResponseDto<ServerPeerApiResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PagedResponseDto<ServerPeerApiResponse>>> GetServerPeers(
         Guid serverId,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 25,
@@ -140,6 +148,6 @@ public sealed class AdminServersController : ControllerBase
                 PeerSortDirection: peerSortDirection),
             ct);
 
-        return Ok(result);
+        return Ok(result.ToApiResponse());
     }
 }

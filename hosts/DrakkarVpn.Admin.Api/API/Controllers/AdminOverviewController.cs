@@ -1,14 +1,18 @@
+using DrakkarVpn.Core.Api.Modules.Admin.API.Contracts.Overview;
+using DrakkarVpn.Core.Api.Modules.Admin.API.Mappings;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Queries.GetAdminOverview;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Queries.GetServersOverview;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Queries.GetUsersOverview;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DrakkarVpn.Core.Api.Modules.Admin.API.Controllers;
 
 
 [ApiController]
+[Authorize]
 [Route("api/admin")]
 public sealed class AdminOverviewController : ControllerBase
 {
@@ -20,11 +24,11 @@ public sealed class AdminOverviewController : ControllerBase
     }
     
     [HttpGet("overview")]
-    [ProducesResponseType(typeof(AdminOverviewDto), StatusCodes.Status200OK)]
-    public async Task<ActionResult<AdminOverviewDto>> GetOverview(CancellationToken ct = default)
+    [ProducesResponseType(typeof(AdminOverviewApiResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<AdminOverviewApiResponse>> GetOverview(CancellationToken ct = default)
     {
         var dto = await _mediator.Send(new GetAdminOverviewQuery(), ct);
-        return Ok(dto);
+        return Ok(dto.ToApiResponse());
     }
     
     [HttpGet("overview/servers")]

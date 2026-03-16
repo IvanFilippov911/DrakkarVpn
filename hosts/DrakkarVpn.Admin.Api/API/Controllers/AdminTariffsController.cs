@@ -1,11 +1,12 @@
 using DrakkarVpn.AdminAuth.Application.Authorization;
+using DrakkarVpn.Core.Api.Modules.Admin.API.Contracts.Tariffs;
+using DrakkarVpn.Core.Api.Modules.Admin.API.Mappings;
 using DrakkarVpn.Admin.Api.Application.Features.Commands.Tariffs.AdminCreateTariff;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Commands.Tariffs.AdminDisableTariff;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Commands.Tariffs.AdminEnableTariff;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Commands.Tariffs.AdminUpdateTariff;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Queries.Tariffs.AdminGetActiveTariffs;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Queries.Tariffs.AdminGetTariffById;
-using DrakkarVpn.Shared.Tariffs;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,21 +22,20 @@ public sealed class AdminTariffsController : ControllerBase
     public AdminTariffsController(IMediator mediator) => _mediator = mediator;
 
     [HttpPost]
-    public async Task<ActionResult<Guid>> Create([FromBody] CreateTariffBody body, CancellationToken ct)
+    [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
+    public async Task<ActionResult<Guid>> Create([FromBody] CreateTariffApiRequest body, CancellationToken ct)
     {
-        var id = await _mediator.Send(
-            new AdminCreateTariffCommand(body.Name, TimeSpan.FromDays(body.DurationDays), body.Price, body.DefaultMaxDevices),
-            ct);
+        var cmd = body.ToCommand();
+        var id = await _mediator.Send(cmd, ct);
 
         return CreatedAtAction(nameof(GetById), new { id }, id);
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateTariffBody body, CancellationToken ct)
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateTariffApiRequest body, CancellationToken ct)
     {
-        await _mediator.Send(
-            new AdminUpdateTariffCommand(id, body.Name, TimeSpan.FromDays(body.DurationDays), body.Price, body.DefaultMaxDevices),
-            ct);
+        var cmd = body.ToCommand(id);
+        await _mediator.Send(cmd, ct);
 
         return NoContent();
     }
@@ -55,16 +55,18 @@ public sealed class AdminTariffsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<TariffDto>> GetById(Guid id, CancellationToken ct)
+    [ProducesResponseType(typeof(TariffApiResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<TariffApiResponse>> GetById(Guid id, CancellationToken ct)
     {
         var tariff = await _mediator.Send(new AdminGetTariffByIdQuery(id), ct);
-        return tariff is not null ? Ok(tariff) : NotFound();
+        return tariff is not null ? Ok(tariff.ToApiResponse()) : NotFound();
     }
 
     [HttpGet("active")]
-    public async Task<ActionResult<IReadOnlyList<TariffDto>>> GetActive(CancellationToken ct)
-        => Ok(await _mediator.Send(new AdminGetActiveTariffsQuery(), ct));
-
-    public sealed record CreateTariffBody(string Name, int DurationDays, decimal Price, int DefaultMaxDevices);
-    public sealed record UpdateTariffBody(string Name, int DurationDays, decimal Price, int DefaultMaxDevices);
+    [ProducesResponseType(typeof(IReadOnlyList<TariffApiResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<TariffApiResponse>>> GetActive(CancellationToken ct)
+    {
+        var items = await _mediator.Send(new AdminGetActiveTariffsQuery(), ct);
+        return Ok(items.ToApiResponse());
+    }
 }

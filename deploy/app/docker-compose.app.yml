@@ -12,13 +12,14 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__Db: Host=${POSTGRES_HOST};Port=${POSTGRES_PORT};Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      Telegram__BotToken: ${TELEGRAM_BOT_TOKEN}
+      Telegram__Token: ${TELEGRAM_BOT_TOKEN}
     volumes:
       - ../../runtime/logs:/var/log/drakkar
     networks:
       - drakkar-net
     depends_on:
       - db-migrator
-
 
   admin-api:
     build:
@@ -44,7 +45,6 @@ services:
     depends_on:
       - db-migrator
 
-
   db-migrator:
     build:
       context: ../..
@@ -57,7 +57,6 @@ services:
     networks:
       - drakkar-net
 
-
   bot:
     build:
       context: ../..
@@ -66,13 +65,13 @@ services:
     restart: always
     environment:
       Telegram__Token: ${TELEGRAM_BOT_TOKEN}
+      Telegram__BotToken: ${TELEGRAM_BOT_TOKEN}
       WebApp__BaseUrl: ${WEBAPP_BASE_URL}
       UserFlowApi__BaseUrl: ${USER_API_URL}
     volumes:
       - ../../runtime/logs:/var/log/drakkar
     networks:
       - drakkar-net
-
 
   webapp:
     build:
@@ -84,7 +83,6 @@ services:
     restart: always
     networks:
       - drakkar-net
-
 
   nginx:
     image: nginx:alpine
@@ -102,7 +100,6 @@ services:
       - admin-api
     networks:
       - drakkar-net
-
 
 networks:
   drakkar-net:

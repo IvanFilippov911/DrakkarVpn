@@ -105,3 +105,7 @@ logs/
 **/prometheus-data/
 **/grafana-data/
 runtime/
+
+# project docs and prompts (root only)
+/docs/
+/promts/
