@@ -22,7 +22,7 @@ public sealed class AdminOverviewReadStore : IAdminOverviewReadStore
         var totalServers = await _db.Servers.CountAsync(ct);
 
         var serversOnline = await _db.Servers.CountAsync(
-            s => s.Status == ServerStatus.Enabled && s.Health.Reachable,
+            s => s.Status == ServerStatus.Enabled && s.HealthReachable,
             ct);
 
         var totalActivePeers = await _db.Peers.CountAsync(

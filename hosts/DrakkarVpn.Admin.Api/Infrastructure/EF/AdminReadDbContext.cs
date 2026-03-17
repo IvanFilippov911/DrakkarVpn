@@ -1,7 +1,7 @@
 using DrakkarVpn.Core.Api.Modules.Peers.Infrastructure.Entities;
-using DrakkarVpn.Core.Api.Modules.Servers.Domain;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.Entities;
 using DrakkarVpn.Core.Api.Modules.Subscriptions.Infrastructure.EF.Entity;
+using DrakkarVpn.Core.Api.Modules.Admin.Infrastructure.EF.Entities;
 using DrakkarVpn.Users.Infrastructure.EF.Entity;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,7 +17,7 @@ public sealed class AdminReadDbContext : DbContext
     public DbSet<PeerTrafficAgg> PeerTrafficAggs => Set<PeerTrafficAgg>();
     public DbSet<SubscriptionEntity> Subscriptions => Set<SubscriptionEntity>();
     public DbSet<UserRealtimeStats> UsersRealtimeStats => Set<UserRealtimeStats>();
-    public DbSet<Server> Servers => Set<Server>();
+    public DbSet<AdminServerEntity> Servers => Set<AdminServerEntity>();
     public DbSet<ServerMetricsHistory> ServerMetricsHistories => Set<ServerMetricsHistory>();
     public DbSet<PeerMetricsHistory>  PeerMetricsHistories => Set<PeerMetricsHistory>();
     
