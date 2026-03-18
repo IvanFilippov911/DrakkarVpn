@@ -1,6 +1,6 @@
 namespace DrakkarVpn.Users.Infrastructure.EF.Entity;
 
-public sealed class UserEntity
+public sealed class UserReadEntity
 {
     public Guid Id { get; set; }
     public long TelegramId { get; set; }

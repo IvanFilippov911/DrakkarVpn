@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DrakkarVpn.Users.Infrastructure.EF.Configurations;
 
-public sealed class DeviceEntityConfig : IEntityTypeConfiguration<DeviceEntity>
+public sealed class DeviceEntityConfig : IEntityTypeConfiguration<DeviceReadEntity>
 {
-    public void Configure(EntityTypeBuilder<DeviceEntity> b)
+    public void Configure(EntityTypeBuilder<DeviceReadEntity> b)
     {
-        b.ToTable("devices");
+        b.ToTable("devices",  schema: "users");
 
         b.HasKey(x => x.DeviceId);
 
@@ -55,7 +55,7 @@ public sealed class DeviceEntityConfig : IEntityTypeConfiguration<DeviceEntity>
             .HasDatabaseName("ix_devices_status");
 
         // FK (опционально, но норм)
-        b.HasOne<UserEntity>()
+        b.HasOne<UserReadEntity>()
             .WithMany()
             .HasForeignKey(x => x.UserId)
             .OnDelete(DeleteBehavior.Cascade);

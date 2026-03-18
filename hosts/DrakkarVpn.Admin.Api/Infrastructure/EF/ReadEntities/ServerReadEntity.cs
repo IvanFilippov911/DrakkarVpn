@@ -6,7 +6,7 @@ namespace DrakkarVpn.Core.Api.Modules.Admin.Infrastructure.EF.Entities;
 /// Read-oriented server model for admin read-side. Maps to "servers" table.
 /// Intentionally avoids write-side aggregate/value objects to keep EF mapping stable.
 /// </summary>
-public sealed class AdminServerEntity
+public sealed class ServerReadEntity
 {
     public Guid Id { get; init; }
     public string Name { get; init; } = default!;

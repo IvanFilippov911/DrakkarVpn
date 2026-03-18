@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DrakkarVpn.Core.Api.Modules.Peers.Infrastructure.EF.Configurations;
 
-public sealed class PeerEntityConfig : IEntityTypeConfiguration<PeerEntity>
+public sealed class PeerEntityConfig : IEntityTypeConfiguration<PeerReadEntity>
 {
-    public void Configure(EntityTypeBuilder<PeerEntity> b)
+    public void Configure(EntityTypeBuilder<PeerReadEntity> b)
     {
-        b.ToTable("peers");
+        b.ToTable("peers", schema: "peers");
         
         b.HasKey(x => x.Id);
 

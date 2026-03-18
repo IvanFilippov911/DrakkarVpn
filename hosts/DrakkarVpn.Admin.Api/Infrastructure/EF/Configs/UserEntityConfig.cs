@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DrakkarVpn.Users.Infrastructure.EF.Configurations;
 
-public sealed class UserEntityConfig : IEntityTypeConfiguration<UserEntity>
+public sealed class UserEntityConfig : IEntityTypeConfiguration<UserReadEntity>
 {
-    public void Configure(EntityTypeBuilder<UserEntity> b)
+    public void Configure(EntityTypeBuilder<UserReadEntity> b)
     {
-        b.ToTable("users");
+        b.ToTable("app_users", schema: "users");
 
         b.HasKey(x => x.Id);
 

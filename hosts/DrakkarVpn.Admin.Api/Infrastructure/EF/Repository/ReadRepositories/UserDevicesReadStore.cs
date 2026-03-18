@@ -1,4 +1,5 @@
 using DrakkarVpn.Core.Api.Modules.Admin.Infrastructure.EF;
+using DrakkarVpn.Admin.Api.Infrastructure.EF.ReadEntities;
 using DrakkarVpn.Users.Application.Abstractions;
 using DrakkarVpn.Users.Application.DTOs;
 using DrakkarVpn.Users.Application.DTOs.Admin;
@@ -19,7 +20,7 @@ public sealed class UserDevicesReadStore : IUserDevicesReadStore
             where d.UserId == userId
             join p in _db.Peers on d.DeviceId equals p.DeviceId into peerJoin
             from p in peerJoin.DefaultIfEmpty()
-            join agg in _db.PeerTrafficAggs on p.Id equals agg.PeerId into aggJoin
+            join agg in _db.AdminPeerTrafficAggs on p.Id equals agg.PeerId into aggJoin
             from agg in aggJoin.DefaultIfEmpty()
             orderby d.CreatedAtUtc descending
             select new { Device = d, Peer = p, Agg = agg }

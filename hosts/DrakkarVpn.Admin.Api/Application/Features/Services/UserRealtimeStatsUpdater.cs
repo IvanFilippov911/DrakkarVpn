@@ -1,7 +1,7 @@
 using DrakkarVpn.Admin.Api.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Admin.Infrastructure.EF;
+using DrakkarVpn.Admin.Api.Infrastructure.EF.ReadEntities;
 using DrakkarVpn.Shared.Subscriptions;
-using DrakkarVpn.Users.Infrastructure.EF.Entity;
 using Microsoft.EntityFrameworkCore;
 
 namespace DrakkarVpn.Admin.Api.Application.Features.Services;
@@ -45,7 +45,7 @@ public sealed class UserRealtimeStatsUpdater : IUserRealtimeStatsUpdater
     }
 
     
-    private async Task<List<UserRealtimeStats>> BuildStatsBatchAsync(
+    private async Task<List<AdminUserRealtimeStatsReadEntity>> BuildStatsBatchAsync(
         IReadOnlyCollection<Guid> userIds,
         DateTime nowUtc,
         CancellationToken ct)
@@ -65,7 +65,7 @@ public sealed class UserRealtimeStatsUpdater : IUserRealtimeStatsUpdater
             from d in _db.Devices
             join p in _db.Peers on d.DeviceId equals p.DeviceId into peersJoin
             from p in peersJoin.DefaultIfEmpty()
-            join agg in _db.PeerTrafficAggs on p.Id equals agg.PeerId into aggsJoin
+            join agg in _db.AdminPeerTrafficAggs on p.Id equals agg.PeerId into aggsJoin
             from agg in aggsJoin.DefaultIfEmpty()
             where userIds.Contains(d.UserId)
             group new { d, p, agg } by d.UserId
@@ -94,7 +94,7 @@ public sealed class UserRealtimeStatsUpdater : IUserRealtimeStatsUpdater
             })
             .ToListAsync(ct);
 
-        var result = new List<UserRealtimeStats>(userIds.Count);
+        var result = new List<AdminUserRealtimeStatsReadEntity>(userIds.Count);
 
         foreach (var userId in userIds)
         {
@@ -102,7 +102,7 @@ public sealed class UserRealtimeStatsUpdater : IUserRealtimeStatsUpdater
             var pr  = peers.FirstOrDefault(x => x.UserId == userId);
             var sub = subs.FirstOrDefault(x => x.UserId == userId);
 
-            result.Add(new UserRealtimeStats
+            result.Add(new AdminUserRealtimeStatsReadEntity
             {
                 UserId                  = userId,
                 DeviceCount             = dev?.DeviceCount ?? 0,
@@ -124,7 +124,7 @@ public sealed class UserRealtimeStatsUpdater : IUserRealtimeStatsUpdater
     }
 
     private async Task UpsertStatsAsync(
-        IReadOnlyCollection<UserRealtimeStats> stats,
+        IReadOnlyCollection<AdminUserRealtimeStatsReadEntity> stats,
         CancellationToken ct)
     {
         if (stats.Count == 0)
@@ -132,7 +132,7 @@ public sealed class UserRealtimeStatsUpdater : IUserRealtimeStatsUpdater
 
         var ids = stats.Select(s => s.UserId).ToList();
 
-        var existingIds = await _db.UsersRealtimeStats
+        var existingIds = await _db.AdminUsersRealtimeStats
             .Where(x => ids.Contains(x.UserId))
             .Select(x => x.UserId)
             .ToListAsync(ct);
@@ -146,9 +146,9 @@ public sealed class UserRealtimeStatsUpdater : IUserRealtimeStatsUpdater
             .ToList();
 
         if (toInsert.Count > 0)
-            await _db.UsersRealtimeStats.AddRangeAsync(toInsert, ct);
+            await _db.AdminUsersRealtimeStats.AddRangeAsync(toInsert, ct);
 
         if (toUpdate.Count > 0)
-            _db.UsersRealtimeStats.UpdateRange(toUpdate);
+            _db.AdminUsersRealtimeStats.UpdateRange(toUpdate);
     }
 }

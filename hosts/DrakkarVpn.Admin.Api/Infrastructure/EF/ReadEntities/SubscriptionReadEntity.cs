@@ -4,7 +4,7 @@ using DrakkarVpn.Shared.Subscriptions;
 
 namespace DrakkarVpn.Core.Api.Modules.Subscriptions.Infrastructure.EF.Entity;
 
-public sealed class SubscriptionEntity
+public sealed class SubscriptionReadEntity
 {
     public Guid Id { get; set; }
     public Guid UserId { get; set; }

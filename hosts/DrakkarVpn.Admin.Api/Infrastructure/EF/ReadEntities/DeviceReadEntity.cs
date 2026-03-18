@@ -3,7 +3,7 @@ using DrakkarVpn.Users.Application.Abstractions;
 
 namespace DrakkarVpn.Users.Infrastructure.EF.Entity;
 
-public sealed class DeviceEntity
+public sealed class DeviceReadEntity
 {
     public string DeviceId { get; set; } = default!;
     public Guid UserId { get; set; }

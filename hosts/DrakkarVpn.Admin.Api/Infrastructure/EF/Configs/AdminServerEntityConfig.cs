@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DrakkarVpn.Core.Api.Modules.Admin.Infrastructure.EF.Configs;
 
-public sealed class AdminServerEntityConfig : IEntityTypeConfiguration<AdminServerEntity>
+public sealed class AdminServerEntityConfig : IEntityTypeConfiguration<ServerReadEntity>
 {
-    public void Configure(EntityTypeBuilder<AdminServerEntity> b)
+    public void Configure(EntityTypeBuilder<ServerReadEntity> b)
     {
-        b.ToTable("servers");
+        b.ToTable("servers", schema: "servers");
         b.HasKey(x => x.Id);
 
         b.Property(x => x.Id)

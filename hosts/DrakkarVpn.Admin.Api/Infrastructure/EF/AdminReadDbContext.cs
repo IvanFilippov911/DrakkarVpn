@@ -1,7 +1,7 @@
-using DrakkarVpn.Core.Api.Modules.Peers.Infrastructure.Entities;
-using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.Entities;
 using DrakkarVpn.Core.Api.Modules.Subscriptions.Infrastructure.EF.Entity;
 using DrakkarVpn.Core.Api.Modules.Admin.Infrastructure.EF.Entities;
+using DrakkarVpn.Admin.Api.Infrastructure.EF.ReadEntities;
+using DrakkarVpn.Core.Api.Modules.Peers.Infrastructure.Entities;
 using DrakkarVpn.Users.Infrastructure.EF.Entity;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,15 +11,14 @@ public sealed class AdminReadDbContext : DbContext
 {
     public AdminReadDbContext(DbContextOptions<AdminReadDbContext> options) : base(options) {}
 
-    public DbSet<UserEntity> Users => Set<UserEntity>();
-    public DbSet<DeviceEntity> Devices => Set<DeviceEntity>();
-    public DbSet<PeerEntity> Peers => Set<PeerEntity>();
-    public DbSet<PeerTrafficAgg> PeerTrafficAggs => Set<PeerTrafficAgg>();
-    public DbSet<SubscriptionEntity> Subscriptions => Set<SubscriptionEntity>();
-    public DbSet<UserRealtimeStats> UsersRealtimeStats => Set<UserRealtimeStats>();
-    public DbSet<AdminServerEntity> Servers => Set<AdminServerEntity>();
-    public DbSet<ServerMetricsHistory> ServerMetricsHistories => Set<ServerMetricsHistory>();
-    public DbSet<PeerMetricsHistory>  PeerMetricsHistories => Set<PeerMetricsHistory>();
+    public DbSet<UserReadEntity> Users => Set<UserReadEntity>();
+    public DbSet<DeviceReadEntity> Devices => Set<DeviceReadEntity>();
+    public DbSet<PeerReadEntity> Peers => Set<PeerReadEntity>();
+    public DbSet<SubscriptionReadEntity> Subscriptions => Set<SubscriptionReadEntity>();
+    public DbSet<ServerReadEntity> Servers => Set<ServerReadEntity>();
+    public DbSet<AdminPeerTrafficAggReadEntity> AdminPeerTrafficAggs => Set<AdminPeerTrafficAggReadEntity>();
+    public DbSet<AdminUserRealtimeStatsReadEntity> AdminUsersRealtimeStats => Set<AdminUserRealtimeStatsReadEntity>();
+    public DbSet<AdminServerMetricsHistoryReadEntity> AdminServerMetricsHistories => Set<AdminServerMetricsHistoryReadEntity>();
     
     
 

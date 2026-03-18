@@ -80,7 +80,7 @@ public sealed class AdminOverviewReadStore : IAdminOverviewReadStore
         var todayStart = nowUtc.Date;
         var since24h   = nowUtc.AddHours(-24);
 
-        var stats = await _db.ServerMetricsHistories
+        var stats = await _db.AdminServerMetricsHistories
             .AsNoTracking()
             .Where(h => h.PeriodStartUtc >= since24h)
             .GroupBy(_ => 1)

@@ -1,6 +1,6 @@
 namespace DrakkarVpn.Core.Api.Modules.Peers.Infrastructure.Entities;
 
-public sealed class PeerEntity
+public sealed class PeerReadEntity
 {
     public Guid Id { get; set; }
     public Guid ServerId { get; set; }
