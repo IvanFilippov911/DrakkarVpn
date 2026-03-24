@@ -17,6 +17,8 @@ public sealed class ServerPollState
         LastTxDelta = 0;
 
         UpdatedAtUtc = DateTime.UtcNow;
+        // PostgreSQL column is NOT NULL; EF does not emit a default on insert for bytea row-version tokens.
+        RowVersion = new byte[8];
     }
 
     public Guid ServerId { get; private set; }
