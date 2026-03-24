@@ -1,6 +1,6 @@
-using DrakkarVpn.Core.Api.Modules.Peers.API.Contracts.Response;
+using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.DTOs;
 using MediatR;
 
 namespace DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Queries.GetPeerProvisionJob;
 
-public sealed record GetPeerProvisionJobQuery(Guid JobId) : IRequest<PeerProvisionJobResponse?>;
+public sealed record GetPeerProvisionJobQuery(Guid JobId) : IRequest<PeerProvisionJobDto?>;

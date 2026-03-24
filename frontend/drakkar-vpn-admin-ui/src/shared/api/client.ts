@@ -4,7 +4,6 @@ import { getStoredAccessToken } from '../lib/authTokenStorage'
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 if (!API_BASE_URL) {
-  // eslint-disable-next-line no-console
   console.warn(
     '[Drakkar Admin] VITE_API_BASE_URL is not defined. API client will use relative URLs.',
   )

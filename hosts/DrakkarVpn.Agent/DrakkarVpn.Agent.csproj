@@ -21,7 +21,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\infrastructure\DrakkarVpn.Shared\DrakkarVpn.Shared.csproj" />
-        <ProjectReference Include="..\..\modules\DrakkarVpn.Peers\DrakkarVpn.Peers.csproj" />
     </ItemGroup>
 
     <ItemGroup>

@@ -1,0 +1,10 @@
+[Interface]
+Address = ${WG_IP}/16
+ListenPort = ${WG_AGENT_PORT}
+PrivateKey = ${WG_AGENT_PRIVATE_KEY}
+
+[Peer]
+PublicKey = ${WG_CORE_PUBLIC_KEY}
+Endpoint = ${WG_CORE_ENDPOINT}
+AllowedIPs = ${WG_CORE_IP}/32
+PersistentKeepalive = 25

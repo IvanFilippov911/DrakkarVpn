@@ -1,8 +1,5 @@
-version: "3.9"
-
 services:
-
-  core-api:
+  user-api:
     build:
       context: ../..
       dockerfile: hosts/DrakkarVpn.User.Api/Dockerfile
@@ -67,19 +64,30 @@ services:
       Telegram__Token: ${TELEGRAM_BOT_TOKEN}
       Telegram__BotToken: ${TELEGRAM_BOT_TOKEN}
       WebApp__BaseUrl: ${WEBAPP_BASE_URL}
-      UserFlowApi__BaseUrl: ${USER_API_URL}
+      UserFlowApi__BaseUrl: ${USER_API_INTERNAL_URL}
     volumes:
       - ../../runtime/logs:/var/log/drakkar
     networks:
       - drakkar-net
 
-  webapp:
+  user-ui:
     build:
       context: ../../frontend/drakkar-vpn-user-ui
       dockerfile: Dockerfile
       args:
-        VITE_API_BASE: ${VITE_API_BASE:-https://api.drakkar-network.com}
-    container_name: drakkar-webapp
+        VITE_API_BASE: /api
+    container_name: drakkar-user-ui
+    restart: always
+    networks:
+      - drakkar-net
+
+  admin-ui:
+    build:
+      context: ../../frontend/drakkar-vpn-admin-ui
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE: /api
+    container_name: drakkar-admin-ui
     restart: always
     networks:
       - drakkar-net
@@ -95,8 +103,9 @@ services:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       - ${LETSENCRYPT_DIR:-/etc/letsencrypt}:/etc/letsencrypt:ro
     depends_on:
-      - webapp
-      - core-api
+      - user-ui
+      - admin-ui
+      - user-api
       - admin-api
     networks:
       - drakkar-net

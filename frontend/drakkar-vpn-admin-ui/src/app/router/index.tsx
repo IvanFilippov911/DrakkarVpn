@@ -10,8 +10,8 @@ import { UsersPage } from '../../pages/users/UsersPage'
 import { TariffsPage } from '../../pages/tariffs/TariffsPage'
 import { ErrorsPage } from '../../pages/errors/ErrorsPage'
 import { getStoredAccessToken } from '../../shared/lib/authTokenStorage'
-import { clearSession } from '../../shared/api/auth'
-import { useCurrentAdminQuery } from '../../features/auth/useCurrentAdminQuery'
+import { clearSession } from '../../entities/auth/session'
+import { useCurrentAdminQuery } from '../../entities/auth'
 
 type AuthGuardProps = {
   children: ReactElement
@@ -19,7 +19,7 @@ type AuthGuardProps = {
 
 function AuthGuard({ children }: AuthGuardProps) {
   const token = getStoredAccessToken()
-  const { data: _admin, isPending, isError } = useCurrentAdminQuery({
+  const { isPending, isError } = useCurrentAdminQuery({
     enabled: !!token,
   })
 

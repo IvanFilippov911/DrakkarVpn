@@ -1,4 +1,4 @@
-using DrakkarVpn.Core.Api.Modules.Peers.API.Contracts.Response;
+using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.DTOs;
 using DrakkarVpn.Users.Application.Abstractions;
 using DrakkarVpn.Users.Application.DTOs;
 using MediatR;
@@ -6,13 +6,13 @@ using MediatR;
 namespace DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Commands.ConnectDevice;
 
 public sealed class ConnectDeviceCommandHandler
-    : IRequestHandler<ConnectDeviceRequest, ConnectDeviceResponse>
+    : IRequestHandler<ConnectDeviceRequest, ConnectDeviceResultDto>
 {
     private readonly IConnectDeviceService _svc;
 
     public ConnectDeviceCommandHandler(IConnectDeviceService svc) => _svc = svc;
 
-    public async Task<ConnectDeviceResponse> Handle(ConnectDeviceRequest req, CancellationToken ct)
+    public async Task<ConnectDeviceResultDto> Handle(ConnectDeviceRequest req, CancellationToken ct)
     {
         var input = new ConnectDeviceInput(
             InitData: req.InitData,
@@ -23,7 +23,7 @@ public sealed class ConnectDeviceCommandHandler
 
         var result = await _svc.ConnectAsync(input, ct);
 
-        return new ConnectDeviceResponse(
+        return new ConnectDeviceResultDto(
             AccessToken: result.AccessToken,
             DeviceId: result.DeviceId
         );

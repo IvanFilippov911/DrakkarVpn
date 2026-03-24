@@ -39,6 +39,7 @@
         <ProjectReference Include="..\..\modules\DrakkarVpn.Servers\DrakkarVpn.Servers.csproj" />
         <ProjectReference Include="..\..\infrastructure\DrakkarVpn.Shared\DrakkarVpn.Shared.csproj" />
         <ProjectReference Include="..\..\modules\DrakkarVpn.Subscriptions\DrakkarVpn.Subscriptions.csproj" />
+        <ProjectReference Include="..\..\modules\DrakkarVpn.Tariffs\DrakkarVpn.Tariffs.csproj" />
         <ProjectReference Include="..\..\modules\DrakkarVpn.Users\DrakkarVpn.Users.csproj" />
         <ProjectReference Include="..\..\infrastructure\DrakkarVpn.Idempotency\DrakkarVpn.Idempotency.csproj" />
     </ItemGroup>

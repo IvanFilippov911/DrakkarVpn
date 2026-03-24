@@ -1,35 +1,8 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { z } from 'zod'
 import { useNavigate } from 'react-router-dom'
 import { useLoginMutation } from '../../features/auth/useLoginMutation'
-import { isAxiosError } from 'axios'
-
-const loginSchema = z.object({
-  email: z.string().min(1, 'Введите email').email('Некорректный email'),
-  password: z.string().min(1, 'Введите пароль'),
-  rememberMe: z.boolean().default(true),
-})
-
-type LoginFormValues = z.infer<typeof loginSchema>
-
-function getLoginErrorMessage(error: unknown): string {
-  if (!isAxiosError(error)) {
-    return 'Произошла ошибка. Попробуйте ещё раз.'
-  }
-
-  const status = error.response?.status
-  const code = (error.response?.data as { code?: string } | undefined)?.code
-
-  if (status === 401) {
-    return 'Неверный email или пароль'
-  }
-  if (status === 403 || code === 'ADMIN_INACTIVE') {
-    return 'Учётная запись администратора отключена'
-  }
-
-  return 'Произошла ошибка. Попробуйте ещё раз.'
-}
+import { getLoginErrorMessage, loginSchema, type LoginFormValues } from '../../features/auth/login/model'
 
 export function LoginPage() {
   const navigate = useNavigate()

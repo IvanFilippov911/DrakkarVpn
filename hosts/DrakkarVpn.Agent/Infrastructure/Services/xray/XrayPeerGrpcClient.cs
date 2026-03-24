@@ -35,24 +35,23 @@ public sealed class XrayPeerGrpcClient : IXrayPeerClient
     private StatsService.StatsServiceClient CreateStatsClient()
         => new StatsService.StatsServiceClient(GetChannel());
 
-    
     public async Task RegisterPeerAsync(Guid peerUuid, CancellationToken ct)
     {
         var client = CreateHandlerClient();
 
         var vless = new Account
         {
-            Id          = peerUuid.ToString(),
-            Flow        = "",
-            Encryption  = "",
-            XorMode     = 0,
-            Seconds     = 0,
-            Padding     = ""
+            Id = peerUuid.ToString(),
+            Flow = "",
+            Encryption = "",
+            XorMode = 0,
+            Seconds = 0,
+            Padding = ""
         };
 
         var typedAccount = new TypedMessage
         {
-            Type  = "xray.proxy.vless.Account",
+            Type = "xray.proxy.vless.Account",
             Value = vless.ToByteString()
         };
 
@@ -60,21 +59,21 @@ public sealed class XrayPeerGrpcClient : IXrayPeerClient
         {
             User = new User
             {
-                Email   = $"{peerUuid}@drakkar.local",
+                Email = $"{peerUuid}@drakkar.local",
                 Account = typedAccount
             }
         };
 
         var request = new AlterInboundRequest
         {
-            Tag       = "vless-in",
+            Tag = _options.InboundTag,
             Operation = new TypedMessage
             {
-                Type  = "xray.app.proxyman.command.AddUserOperation",
+                Type = "xray.app.proxyman.command.AddUserOperation",
                 Value = addUser.ToByteString()
             }
         };
-        
+
         try
         {
             await client.AlterInboundAsync(request, cancellationToken: ct);
@@ -93,21 +92,18 @@ public sealed class XrayPeerGrpcClient : IXrayPeerClient
         {
             throw new PeersAgentApplyFailedException("XRAY_UNKNOWN", ex.Message);
         }
-        
     }
-    
+
     private static bool IsAlreadyExists(RpcException ex)
     {
         if (ex.StatusCode == StatusCode.AlreadyExists)
             return true;
-        
+
         var msg = ex.Status.Detail ?? ex.Message ?? string.Empty;
         return msg.Contains("already", StringComparison.OrdinalIgnoreCase)
                && msg.Contains("exist", StringComparison.OrdinalIgnoreCase);
     }
-    
-    
-    
+
     public async Task<bool> RevokePeerAsync(Guid peerUuid, CancellationToken ct)
     {
         var client = CreateHandlerClient();
@@ -119,10 +115,10 @@ public sealed class XrayPeerGrpcClient : IXrayPeerClient
 
         var request = new AlterInboundRequest
         {
-            Tag       = "vless-in",
+            Tag = _options.InboundTag,
             Operation = new TypedMessage
             {
-                Type  = "xray.app.proxyman.command.RemoveUserOperation",
+                Type = "xray.app.proxyman.command.RemoveUserOperation",
                 Value = removeUser.ToByteString()
             }
         };
@@ -144,13 +140,13 @@ public sealed class XrayPeerGrpcClient : IXrayPeerClient
         }
     }
 
-    
     public async Task<IReadOnlyList<PeersResultDto>> GetListPeersAsync(CancellationToken ct)
     {
-        var client   = CreateHandlerClient();
+        var client = CreateHandlerClient();
+
         var response = await client.GetInboundUsersAsync(new GetInboundUserRequest
         {
-            Tag = "vless-in"
+            Tag = _options.InboundTag
         }, cancellationToken: ct);
 
         return response.Users

@@ -1,5 +1,5 @@
+using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Options;
-using DrakkarVpn.Core.Api.Modules.Peers.API.Contracts.Response;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Peers.Domain.enums;
 using DrakkarVpn.Shared.Peers;
@@ -9,7 +9,7 @@ using Microsoft.Extensions.Options;
 namespace DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Queries.GetPeerProvisionJob;
 
 public sealed class GetPeerProvisionJobHandler
-    : IRequestHandler<GetPeerProvisionJobQuery, PeerProvisionJobResponse?>
+    : IRequestHandler<GetPeerProvisionJobQuery, PeerProvisionJobDto?>
 {
     private readonly IPeerProvisionJobsService _svc;
     private readonly VpnLinkOptions _link;
@@ -22,7 +22,7 @@ public sealed class GetPeerProvisionJobHandler
         _link = linkOptions.Value;
     }
 
-    public async Task<PeerProvisionJobResponse?> Handle(GetPeerProvisionJobQuery q, CancellationToken ct)
+    public async Task<PeerProvisionJobDto?> Handle(GetPeerProvisionJobQuery q, CancellationToken ct)
     {
         var job = await _svc.GetAsync(q.JobId, ct);
         if (job is null) return null;
@@ -38,7 +38,7 @@ public sealed class GetPeerProvisionJobHandler
         if (status == PeerProvisionStatus.Ready && job.AgentPeerUuid.HasValue)
             happ = _link.BuildHappLink(job.AgentPeerUuid.Value.ToString());
 
-        return new PeerProvisionJobResponse(
+        return new PeerProvisionJobDto(
             JobId: job.JobId,
             Status: status,
             Attempt: job.Attempt,

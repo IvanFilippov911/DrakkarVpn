@@ -68,6 +68,12 @@ public sealed class PeerProvisionJobsService : IPeerProvisionJobsService
         );
     }
 
+    public Task<Guid?> GetActiveJobIdByDeviceIdAsync(string deviceId, CancellationToken ct)
+    {
+        var normalized = NormalizeDeviceId(deviceId);
+        return _repo.GetActiveJobIdByDeviceIdAsync(normalized, ct);
+    }
+
     public Task<IReadOnlyList<PeerProvisionJob>> AcquireBatchAsync(
         int take,
         TimeSpan lease,

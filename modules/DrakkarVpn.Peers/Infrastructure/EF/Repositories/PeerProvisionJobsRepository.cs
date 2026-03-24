@@ -128,6 +128,15 @@ public sealed class PeerProvisionJobsRepository : IPeerProvisionJobsRepository
     public Task<PeerProvisionJob?> GetByIdAsync(Guid jobId, CancellationToken ct)
         => _db.PeerProvisionJobs.AsNoTracking().FirstOrDefaultAsync(x => x.JobId == jobId, ct);
 
+    public Task<Guid?> GetActiveJobIdByDeviceIdAsync(string deviceId, CancellationToken ct)
+        => _db.PeerProvisionJobs
+            .AsNoTracking()
+            .Where(x => x.DeviceId == deviceId
+                        && x.State != PeerProvisionState.Failed
+                        && x.State != PeerProvisionState.Ready)
+            .Select(x => (Guid?)x.JobId)
+            .FirstOrDefaultAsync(ct);
+
     public Task MarkAgentAppliedAsync(Guid jobId, DateTime nowUtc, CancellationToken ct)
     {
         nowUtc = DateTime.SpecifyKind(nowUtc, DateTimeKind.Utc);

@@ -8,6 +8,8 @@ public interface IPeerProvisionJobsRepository
     Task<Guid> CreateOrGetAsync(PeerProvisionJobCreateDto dto, DateTime nowUtc, CancellationToken ct);
     Task<PeerProvisionJob?> GetByIdAsync(Guid jobId, CancellationToken ct);
 
+    Task<Guid?> GetActiveJobIdByDeviceIdAsync(string deviceId, CancellationToken ct);
+
     Task<IReadOnlyList<PeerProvisionJob>> AcquireBatchAsync(
         int take,
         TimeSpan lease,

@@ -19,7 +19,7 @@ services.AddUserHostApi()
 services.AddDrakkarMediatR();
 
 services.AddUserHostComposition(configuration);
-services.AddUnitOfWorkBehaviors();
+services.AddUserHostUnitOfWorkBehaviors();
 
 var app = builder.Build();
 

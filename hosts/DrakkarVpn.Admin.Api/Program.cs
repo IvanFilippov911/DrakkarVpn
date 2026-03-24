@@ -18,7 +18,7 @@ services.AddAdminHostApi()
 services.AddAdminHostComposition(configuration);
 services.AddDrakkarMediatR();
 services.AddAdminInfrastructureModule(configuration);
-services.AddUnitOfWorkBehaviors();
+services.AddAdminHostUnitOfWorkBehaviors();
 
 var app = builder.Build();
 

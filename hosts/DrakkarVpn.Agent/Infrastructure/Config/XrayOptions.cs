@@ -8,7 +8,7 @@ public sealed class XrayOptions
     public string LocalApiHost { get; set; } = "127.0.0.1";
     public int ApiPort { get; set; } = 10085;
 
-    public string InboundTag { get; set; } = "vless-in";
+    public string InboundTag { get; set; } = "vless-reality-in";
     public string UserEmailSuffix { get; set; } = "@drakkar.local";
 
     public string DefaultInterface { get; set; } = "eth0";
