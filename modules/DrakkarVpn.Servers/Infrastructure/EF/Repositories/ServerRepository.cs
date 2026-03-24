@@ -4,6 +4,7 @@ using DrakkarVpn.Core.Api.Modules.Servers.Domain;
 using DrakkarVpn.Core.Api.Modules.Servers.Domain.VO;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.EF;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.EF.ReadModels;
+using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.Entities;
 using DrakkarVpn.Servers.Infrastructure.EF.Extensions;
 using DrakkarVpn.Shared;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +23,7 @@ public sealed class ServerRepository : IServerRepository
     public async Task AddAsync(Server server, CancellationToken ct)
     {
         await _db.Servers.AddAsync(server, ct);
+        await _db.ServerPollStates.AddAsync(new ServerPollState(server.Id), ct);
     }
 
     public async Task DeleteAsync(Server server, CancellationToken ct)

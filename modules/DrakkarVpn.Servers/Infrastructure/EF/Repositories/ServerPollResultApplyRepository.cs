@@ -84,7 +84,7 @@ public sealed class ServerPollResultApplyRepository : IServerPollResultApplyRepo
                             CASE
                                 WHEN i.reachable THEN
                                     CASE
-                                        WHEN p.old_status = @status_disabled THEN @status_draining
+                                        WHEN p.old_status = @status_disabled THEN @status_enabled
                                         WHEN p.old_status = @status_draining THEN @status_enabled
                                         ELSE
                                             CASE

@@ -26,8 +26,8 @@ public sealed class Server : IAggregateRoot
             : agentTokenEncrypted;
 
         MaxPeers = maxPeers;
-        Status = ServerStatus.Enabled;
-        Health = new HealthSnapshot(true, 0, DateTime.MinValue);
+        Status = ServerStatus.Disabled;
+        Health = new HealthSnapshot(false, 0, DateTime.UtcNow);
         Metrics = MetricsSnapshot.Default;
         Benchmark = BenchmarkSnapshot.Empty;
         CreatedAt = DateTime.UtcNow;
