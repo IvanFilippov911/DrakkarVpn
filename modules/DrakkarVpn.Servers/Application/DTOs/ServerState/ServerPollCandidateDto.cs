@@ -5,5 +5,6 @@ public sealed record ServerPollCandidateDto(
     uint Xmin,
     int LastKnownPeersActive,
     long LastRxTotal,
-    long LastTxTotal
+    long LastTxTotal,
+    string AgentBaseUrl
 );

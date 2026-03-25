@@ -1,24 +1,24 @@
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Queries.GetServers.ServerState;
+using DrakkarVpn.Observability.Application.Abstracts.Services;
 using DrakkarVpn.Observability.Application.Features.Services.Alerts.Factories.Servers;
-using MediatR;
 
 namespace DrakkarVpn.Core.Api.Modules.Servers.Application.Services;
 
 public sealed class ServerPollResultApplyService : IServerPollResultApplyService
 {
     private readonly IServerPollResultApplyRepository _repo;
-    private readonly IMediator _mediator;
     private readonly IServerAlertFactory _alerts;
+    private readonly ICoreAlertService _coreAlertService;
 
     public ServerPollResultApplyService(
         IServerPollResultApplyRepository repo,
-        IMediator mediator,
+        ICoreAlertService coreAlertService,
         IServerAlertFactory alerts)
     {
         _repo = repo;
-        _mediator = mediator;
         _alerts = alerts;
+        _coreAlertService = coreAlertService;
     }
 
     public async Task ApplyPollResultsAsync(
@@ -37,8 +37,7 @@ public sealed class ServerPollResultApplyService : IServerPollResultApplyService
         foreach (var u in updates)
         {
             var cmds = _alerts.Build(u, nowUtc);
-            foreach (var cmdAlert in cmds)
-                await _mediator.Send(cmdAlert, ct);
+            await _coreAlertService.CreateBatchAsync(cmds, ct);
         }
     }
 }

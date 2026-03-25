@@ -50,7 +50,12 @@ internal sealed class ServerPollStateConfiguration : IEntityTypeConfiguration<Se
             .HasMaxLength(128);
         
         b.Property(x => x.RowVersion)
-            .IsRowVersion();
+            // PostgreSQL не имеет аналога SQL Server rowversion с автогенерацией.
+            // В нашей схеме колонка `RowVersion` NOT NULL и без DEFAULT,
+            // поэтому EF обязан передавать значение при INSERT.
+            .IsConcurrencyToken()
+            .IsRequired()
+            .ValueGeneratedNever();
 
         b.Property(x => x.UpdatedAtUtc)
             .IsRequired();

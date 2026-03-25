@@ -25,7 +25,7 @@ public sealed class ServerMetricsHistoryRepository : IServerMetricsHistoryReposi
         nowUtc         = DateTime.SpecifyKind(nowUtc, DateTimeKind.Utc);
 
         const string sql = """
-            INSERT INTO server_metrics_history (
+            INSERT INTO servers.server_metrics_history (
                 period_start,
                 server_id,
                 reachable,
@@ -36,16 +36,16 @@ public sealed class ServerMetricsHistoryRepository : IServerMetricsHistoryReposi
             )
             SELECT
                 @period_start_utc,
-                sps.server_id,
-                COALESCE(sps.last_poll_success, false)
+                sps."ServerId",
+                COALESCE(sps."LastPollSuccess", false)
                     AND COALESCE(sr.health_reachable, false) AS reachable,
-                sps.last_rx_delta,
-                sps.last_tx_delta,
+                sps."LastRxDelta",
+                sps."LastTxDelta",
                 sr.metrics_vpn_speed_mbps,
                 sr.metrics_infra_latency_ms
-            FROM server_poll_states sps
-            JOIN servers sr ON sr.id = sps.server_id
-            WHERE sps.server_id = ANY(@server_ids::uuid[])
+            FROM servers.server_poll_states sps
+            JOIN servers.servers sr ON sr.id = sps."ServerId"
+            WHERE sps."ServerId" = ANY(@server_ids::uuid[])
             ON CONFLICT (server_id, period_start)
             DO UPDATE SET
                 reachable              = EXCLUDED.reachable,
@@ -55,7 +55,9 @@ public sealed class ServerMetricsHistoryRepository : IServerMetricsHistoryReposi
                 infra_latency_ms       = EXCLUDED.infra_latency_ms;
             """;
 
-        await using var conn = (NpgsqlConnection)_db.Database.GetDbConnection();
+        // IMPORTANT: do not dispose the connection that belongs to the EF Core DbContext.
+        // Disposing it may break subsequent repository calls within the same DI scope.
+        var conn = (NpgsqlConnection)_db.Database.GetDbConnection();
         if (conn.State != ConnectionState.Open)
             await conn.OpenAsync(ct);
 

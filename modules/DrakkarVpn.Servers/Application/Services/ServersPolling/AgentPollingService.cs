@@ -10,18 +10,15 @@ namespace DrakkarVpn.Core.Api.Modules.Servers.Application.Services;
 public sealed class AgentPollingService : IAgentPollingService
 {
     private readonly IHttpClientFactory _http;
-    private readonly IServerRepository _servers;
     private readonly ILogger<AgentPollingService> _log;
 
     private static readonly TimeSpan HttpTimeout = TimeSpan.FromSeconds(5);
 
     public AgentPollingService(
         IHttpClientFactory http,
-        IServerRepository servers,
         ILogger<AgentPollingService> log)
     {
         _http = http;
-        _servers = servers;
         _log = log;
     }
 
@@ -64,13 +61,9 @@ public sealed class AgentPollingService : IAgentPollingService
     }
 
     private async Task<ServerPollResultDto> PollOneInternalAsync(
-        ServerPollCandidateDto c,
+        ServerPollCandidateDto candidate,
         CancellationToken ct)
     {
-        var server = await _servers.GetAsync(c.ServerId, ct);
-        if (server is null)
-            return ServerPollResultDto.Failure(c, errorCode: "ServerNotFound");
-
         var client = _http.CreateClient();
         client.Timeout = HttpTimeout;
 
@@ -79,21 +72,21 @@ public sealed class AgentPollingService : IAgentPollingService
         try
         {
             var metrics = await client.GetFromJsonAsync<AgentMetricsDto>(
-                $"{server.AgentBaseUrl}metrics",
+                $"{candidate.AgentBaseUrl}metrics",
                 ct);
 
             sw.Stop();
 
             if (metrics is null)
-                return ServerPollResultDto.Failure(c, (int)sw.ElapsedMilliseconds, "EmptyResponse");
+                return ServerPollResultDto.Failure(candidate, (int)sw.ElapsedMilliseconds, "EmptyResponse");
 
             return new ServerPollResultDto(
-                ServerId:       c.ServerId,
-                Xmin:           c.Xmin,
+                ServerId:       candidate.ServerId,
+                Xmin:           candidate.Xmin,
                 Reachable:      metrics.Reachable,
                 PeersActive:    metrics.Reachable
                     ? metrics.PeersActive
-                    : c.LastKnownPeersActive,
+                    : candidate.LastKnownPeersActive,
                 RxTotal:        metrics.TrafficRxBytes,
                 TxTotal:        metrics.TrafficTxBytes,
                 InfraLatencyMs: metrics.InfraLatencyMs,
@@ -106,18 +99,18 @@ public sealed class AgentPollingService : IAgentPollingService
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
             sw.Stop();
-            return ServerPollResultDto.Failure(c, (int)sw.ElapsedMilliseconds, "Timeout");
+            return ServerPollResultDto.Failure(candidate, (int)sw.ElapsedMilliseconds, "Timeout");
         }
         catch (HttpRequestException)
         {
             sw.Stop();
-            return ServerPollResultDto.Failure(c, (int)sw.ElapsedMilliseconds, "ConnectionFailed");
+            return ServerPollResultDto.Failure(candidate, (int)sw.ElapsedMilliseconds, "ConnectionFailed");
         }
         catch (Exception ex)
         {
             sw.Stop();
-            _log.LogDebug(ex, "Agent poll failed for server {ServerId}", c.ServerId);
-            return ServerPollResultDto.Failure(c, (int)sw.ElapsedMilliseconds, "UnhandledError");
+            _log.LogDebug(ex, "Agent poll failed for server {ServerId}", candidate.ServerId);
+            return ServerPollResultDto.Failure(candidate, (int)sw.ElapsedMilliseconds, "UnhandledError");
         }
     }
 }

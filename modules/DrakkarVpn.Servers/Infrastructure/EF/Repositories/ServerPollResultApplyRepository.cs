@@ -57,9 +57,9 @@ public sealed class ServerPollResultApplyRepository : IServerPollResultApplyRepo
                     s.id AS server_id,
                     s.status AS old_status,
                     s.max_peers,
-                    ps.consecutive_failures
-                FROM servers s
-                JOIN server_poll_states ps ON ps.server_id = s.id
+                    ps."ConsecutiveFailures" AS consecutive_failures
+                FROM servers.servers s
+                JOIN servers.server_poll_states ps ON ps."ServerId" = s.id
                 JOIN input i ON i.server_id = s.id
             ),
             calc AS (
@@ -102,7 +102,7 @@ public sealed class ServerPollResultApplyRepository : IServerPollResultApplyRepo
                 JOIN input i ON i.server_id = p.server_id
             ),
             upd AS (
-                UPDATE servers s
+                UPDATE servers.servers s
                 SET
                     status = c.new_status,
 
@@ -146,7 +146,8 @@ public sealed class ServerPollResultApplyRepository : IServerPollResultApplyRepo
             FROM upd;
             """;
 
-        await using var conn = (NpgsqlConnection)_db.Database.GetDbConnection();
+        
+        var conn = (NpgsqlConnection)_db.Database.GetDbConnection();
         if (conn.State != ConnectionState.Open)
             await conn.OpenAsync(ct);
 

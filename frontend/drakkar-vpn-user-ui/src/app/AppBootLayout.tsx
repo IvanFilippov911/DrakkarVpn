@@ -16,9 +16,23 @@ export function AppBootLayout() {
   const { mutateAsync: registerAsync } = useRegister()
   const { mutateAsync: connectAsync } = useConnectDevice()
 
+  const waitForTelegramWebApp = async (timeoutMs: number): Promise<boolean> => {
+    const start = Date.now()
+    // window.Telegram.WebApp иногда появляется чуть позже инициализации React.
+    while (Date.now() - start < timeoutMs) {
+      if (window.Telegram?.WebApp) return true
+      await new Promise((r) => window.setTimeout(r, 50))
+    }
+    return Boolean(window.Telegram?.WebApp)
+  }
+
   const runBoot = useCallback(async () => {
     setPhase('running')
     setErrorMessage(null)
+    initTelegramChrome()
+
+    await waitForTelegramWebApp(2000)
+    // На всякий случай ещё раз активируем ready/expand.
     initTelegramChrome()
 
     const ctx = readTelegramBootContext()

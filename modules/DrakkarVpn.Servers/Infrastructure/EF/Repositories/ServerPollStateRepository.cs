@@ -18,12 +18,12 @@ public sealed class ServerPollStateRepository : IServerPollStateRepository
     }
 
     public async Task<IReadOnlyList<ServerPollCandidateDto>> AcquireBatchAsync(
-        DateTime nowUtc,
-        int batchSize,
-        TimeSpan leaseDuration,
-        TimeSpan stuckTimeout,
-        string instanceId,
-        CancellationToken ct)
+    DateTime nowUtc,
+    int batchSize,
+    TimeSpan leaseDuration,
+    TimeSpan stuckTimeout,
+    string instanceId,
+    CancellationToken ct)
     {
         if (batchSize <= 0)
             return Array.Empty<ServerPollCandidateDto>();
@@ -73,15 +73,18 @@ public sealed class ServerPollStateRepository : IServerPollStateRepository
                 u."LastTxTotal"
         )
         SELECT
-            "ServerId",
-            xmin,
-            "LastKnownPeersActive",
-            "LastRxTotal",
-            "LastTxTotal"
-        FROM leased;
+            l."ServerId",
+            l.xmin,
+            l."LastKnownPeersActive",
+            l."LastRxTotal",
+            l."LastTxTotal",
+            srv.agent_base_url
+        FROM leased l
+        INNER JOIN servers.servers srv ON srv.id = l."ServerId";
         """;
 
-        await using var conn = (NpgsqlConnection)_db.Database.GetDbConnection();
+
+        var conn = (NpgsqlConnection)_db.Database.GetDbConnection();
         if (conn.State != ConnectionState.Open)
             await conn.OpenAsync(ct);
 
@@ -100,12 +103,19 @@ public sealed class ServerPollStateRepository : IServerPollStateRepository
         while (await reader.ReadAsync(ct))
         {
             var serverId = reader.GetGuid(0);
-            var xmin = (uint)reader.GetFieldValue<uint>(1);
+            var xmin = reader.GetFieldValue<uint>(1);
             var peers = reader.IsDBNull(2) ? 0 : reader.GetInt32(2);
             var rx = reader.IsDBNull(3) ? 0L : reader.GetInt64(3);
             var tx = reader.IsDBNull(4) ? 0L : reader.GetInt64(4);
+            var agentBaseUrl = reader.GetString(5);
 
-            list.Add(new ServerPollCandidateDto(serverId, xmin, peers, rx, tx));
+            list.Add(new ServerPollCandidateDto(
+                serverId,
+                xmin,
+                peers,
+                rx,
+                tx,
+                agentBaseUrl));
         }
 
         return list;
@@ -244,7 +254,7 @@ public sealed class ServerPollStateRepository : IServerPollStateRepository
         SELECT "ServerId" FROM updated;
         """;
 
-        await using var conn = (NpgsqlConnection)_db.Database.GetDbConnection();
+        var conn = (NpgsqlConnection)_db.Database.GetDbConnection();
         if (conn.State != ConnectionState.Open)
             await conn.OpenAsync(ct);
 
