@@ -36,6 +36,11 @@ public sealed class VpnAccessContextService : IVpnAccessContextService
         var sub = await _subsQuery.GetActiveByUserAsync(user.Id, nowUtc, ct);
         if (sub is null)
             throw new InvalidOperationException("No active subscription");
+        
+        var countDevice = await _usersQuery.CountActiveDevicesByUserAsync(user.Id, ct);
+        if (countDevice > sub.MaxDevices)
+            throw new InvalidOperationException("Device limit exceeded");
+        
 
         return new VpnAccessContextDto(
             UserId: user.Id,

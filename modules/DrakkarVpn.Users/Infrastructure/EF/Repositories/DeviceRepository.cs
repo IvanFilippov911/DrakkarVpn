@@ -1,6 +1,7 @@
 using DrakkarVpn.Core.Api.Modules.Users.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Users.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Users.Domain;
+using DrakkarVpn.Users.Application.Abstractions.Repositories;
 using DrakkarVpn.Users.Infrastructure.EF;
 using Microsoft.EntityFrameworkCore;
 
@@ -38,6 +39,8 @@ public sealed class DeviceRepository : IDeviceRepository
                     .SetProperty(d => d.Platform,d => platform!= null ? platform: d.Platform)
                 , ct);
     }
+    
+    
     
     public Task<int> CountActiveByUserAsync(Guid userId, CancellationToken ct) =>
         _db.Devices.AsNoTracking()

@@ -34,9 +34,6 @@ public sealed class UserFlowController : ControllerBase
         return Ok(result.ToApiResponse());
     }
     
-    [HttpPost("subscriptions/purchase")]
-    public async Task<ActionResult<Guid>> PurchaseSubscription([FromBody] PurchaseSubscriptionRequest body, CancellationToken ct)
-        => Ok(await _mediator.Send(body, ct));
     
     [HttpPost("devices/connect")]
     public async Task<ActionResult<ConnectDeviceResponse>> ConnectDevice([FromBody] ConnectDeviceRequest body, CancellationToken ct)
@@ -50,15 +47,7 @@ public sealed class UserFlowController : ControllerBase
 
         return Ok(res.ToApiResponse());
     }
-
-    [HttpGet("tariffs")]
-    [ProducesResponseType(typeof(IReadOnlyList<UserTariffResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<UserTariffResponse>>> GetActiveTariffs(CancellationToken ct)
-    {
-        var items = await _mediator.Send(new GetActiveTariffsQuery(), ct);
-        return Ok(items.ToUserApiResponse());
-    }
-
+    
     [Authorize]
     [HttpGet("home-context")]
     [ProducesResponseType(typeof(HomeContextResponse), StatusCodes.Status200OK)]
@@ -72,6 +61,23 @@ public sealed class UserFlowController : ControllerBase
         var res = await _mediator.Send(req, ct);
         return Ok(res.ToApiResponse());
     }
+    
+    
+    [Authorize]
+    [HttpGet("tariffs")]
+    [ProducesResponseType(typeof(IReadOnlyList<UserTariffResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<UserTariffResponse>>> GetActiveTariffs(CancellationToken ct)
+    {
+        var items = await _mediator.Send(new GetActiveTariffsQuery(), ct);
+        return Ok(items.ToUserApiResponse());
+    }
+    
+    
+    [Authorize]
+    [HttpPost("subscriptions/purchase")]
+    public async Task<ActionResult<Guid>> PurchaseSubscription([FromBody] PurchaseSubscriptionRequest body, CancellationToken ct)
+        => Ok(await _mediator.Send(body, ct));
+    
 
     [Authorize]
     [HttpGet("vpn/config/current")]

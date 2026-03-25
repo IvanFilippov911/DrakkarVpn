@@ -49,7 +49,14 @@ public sealed class HomeContextService : IHomeContextService
                 State: HomeScreenStateDto.NoSubscription,
                 PendingProvisionJobId: null,
                 PollUrl: null);
-
+        
+        var countDevice = await _users.CountActiveDevicesByUserAsync(user.Id, ct);
+        if (countDevice > sub.MaxDevices)
+            return new HomeContextDto(
+                State: HomeScreenStateDto.DeviceLimitExceeded,
+                PendingProvisionJobId: null,
+                PollUrl: null);
+        
         var peer = await _peers.GetActivePeerForDeviceAsync(deviceId, ct);
         if (peer is not null)
             return new HomeContextDto(

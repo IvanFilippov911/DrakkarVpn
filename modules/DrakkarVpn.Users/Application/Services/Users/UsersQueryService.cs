@@ -4,6 +4,7 @@ using DrakkarVpn.Core.Api.Modules.Users.Domain;
 using DrakkarVpn.Shared;
 using DrakkarVpn.Shared.Subscriptions;
 using DrakkarVpn.Users.Application.Abstractions;
+using DrakkarVpn.Users.Application.Abstractions.Repositories;
 
 namespace DrakkarVpn.Users.Application.Features.Services;
 

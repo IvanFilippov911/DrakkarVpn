@@ -24,7 +24,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Application\DTOs\Enums\" />
         <Folder Include="Infrastructure\ConnectionDevice\" />
     </ItemGroup>
 

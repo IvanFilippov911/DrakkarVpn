@@ -1,5 +1,6 @@
 using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.DTOs;
 using DrakkarVpn.Users.Application.Abstractions;
+using DrakkarVpn.Users.Application.Abstractions.Services;
 using DrakkarVpn.Users.Application.DTOs;
 using MediatR;
 

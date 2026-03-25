@@ -1,11 +1,11 @@
 using DrakkarVpn.Core.Api.Modules.Users.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Users.Domain;
-using DrakkarVpn.Shared;
 
-namespace DrakkarVpn.Core.Api.Modules.Users.Application.Abstractions;
+namespace DrakkarVpn.Users.Application.Abstractions.Repositories;
 
 public interface IDeviceRepository
 {
+    Task<Device?> GetByIdAsync(string deviceId, CancellationToken ct);
     Task<bool> OwnsAsync(Guid userId, string deviceId, CancellationToken ct);
     Task AddAsync(Device device, CancellationToken ct);
     Task UpdateAsync(string deviceId, string? name, string? platform, CancellationToken ct);

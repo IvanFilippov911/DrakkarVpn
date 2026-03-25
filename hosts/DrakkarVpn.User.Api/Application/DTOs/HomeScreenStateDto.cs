@@ -6,6 +6,7 @@ public enum HomeScreenStateDto : short
     NoSubscription = 1,
     NotStarted     = 2,
     Pending        = 3,
-    Ready          = 4
+    Ready          = 4,
+    DeviceLimitExceeded = 5
 }
 

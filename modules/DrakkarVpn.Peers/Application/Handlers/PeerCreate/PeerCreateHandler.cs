@@ -3,6 +3,7 @@ using DrakkarVpn.Core.Api.Modules.Peers.Application.DTOs.ProvisionPeers;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Errors;
 using DrakkarVpn.Core.Api.Modules.Peers.Infrastructure.Entities;
 using DrakkarVpn.Shared.InstanceProvider;
+using DrakkarVpn.Users.Application.Abstractions.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -15,19 +16,22 @@ public sealed class PeerCreateHandler : IRequestHandler<PeerCreateCommand, Unit>
     private readonly IPeersDomainCreateService     _domain;
     private readonly ILogger<PeerCreateHandler>    _log;
     private readonly IInstanceIdProvider           _instanceIdProvider;
+    private readonly IDeviceLifecycleService _deviceLifecycleService;
 
     public PeerCreateHandler(
         IPeerProvisionJobsService jobs,
         IPeerAgentProvisioningService agent,
         IPeersDomainCreateService domain,
         ILogger<PeerCreateHandler> log,
-        IInstanceIdProvider instanceIdProvider)
+        IInstanceIdProvider instanceIdProvider,
+        IDeviceLifecycleService  deviceLifecycleService)
     {
         _jobs               = jobs;
         _agent              = agent;
         _domain             = domain;
         _log                = log;
         _instanceIdProvider = instanceIdProvider;
+        _deviceLifecycleService = deviceLifecycleService;
     }
 
     public async Task<Unit> Handle(PeerCreateCommand cmd, CancellationToken ct)
@@ -210,6 +214,8 @@ public sealed class PeerCreateHandler : IRequestHandler<PeerCreateCommand, Unit>
                     peerId: res.PeerId!.Value,
                     nowUtc: nowUtc,
                     ct: ct);
+                
+                await _deviceLifecycleService.ActivateAsync(snap.DeviceId, ct);
                 continue;
             }
 

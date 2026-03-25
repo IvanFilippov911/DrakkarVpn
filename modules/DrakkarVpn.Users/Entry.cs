@@ -5,8 +5,13 @@ using DrakkarVpn.Core.Api.Modules.Users.Infrastructure.Repositories;
 using DrakkarVpn.Core.Api.Modules.Users.Infrastructure.Security;
 using DrakkarVpn.Core.Api.Modules.Users.Infrastructure.Telegram;
 using DrakkarVpn.Users.Application.Abstractions;
+using DrakkarVpn.Users.Application.Abstractions.Repositories;
 using DrakkarVpn.Users.Application.Abstractions.Servers;
+using DrakkarVpn.Users.Application.Abstractions.Services;
+using DrakkarVpn.Users.Application.DTOs.Devices;
 using DrakkarVpn.Users.Application.Features.Services;
+using DrakkarVpn.Users.Application.Services;
+using DrakkarVpn.Users.Application.Services.Devices;
 using DrakkarVpn.Users.Infrastructure.Devices;
 using DrakkarVpn.Users.Infrastructure.EF;
 using DrakkarVpn.Users.Infrastructure.EF.Repositories.ReadRepositories;
@@ -35,6 +40,9 @@ public static class Entry
         services.AddScoped<IUserRegistrationService, UserRegistrationService>();
         services.AddScoped<IConnectDeviceService, ConnectDeviceService>();
         services.AddScoped<IUsersQueryService, UsersQueryService>();
+        services.AddScoped<ITelegramSessionValidationService, TelegramSessionValidationService>();
+        services.AddScoped<IDeviceSessionService, DeviceSessionService>();
+        services.AddScoped<IDeviceLifecycleService, DeviceLifecycleService>();
         
         services.AddScoped<IDeviceIdGenerator, DeviceIdGenerator>();
         services.AddScoped<ITelegramInitDataValidator, TelegramInitDataValidator>();

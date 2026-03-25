@@ -30,8 +30,19 @@ public sealed class Device
             Name     = name,
             Platform = platform,
             CreatedAt = nowUtc,
-            Status    = DeviceStatus.Active,
+            Status    = DeviceStatus.Registered,
             StatusUpdatedAtUtc = nowUtc
         };
+    
+    public void Activate(DateTime nowUtc)
+    {
+        if (Status == DeviceStatus.Revoked)
+            throw new InvalidOperationException("Revoked device cannot be activated.");
+
+        if (Status == DeviceStatus.Active)
+            return;
+
+        Status = DeviceStatus.Active;
+    }
     
 }

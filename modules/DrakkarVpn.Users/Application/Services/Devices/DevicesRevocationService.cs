@@ -1,6 +1,7 @@
 using DrakkarVpn.Core.Api.Modules.Users.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Users.Application.DTOs;
 using DrakkarVpn.Users.Application.Abstractions;
+using DrakkarVpn.Users.Application.Abstractions.Repositories;
 
 namespace DrakkarVpn.Users.Application.Features.Services;
 

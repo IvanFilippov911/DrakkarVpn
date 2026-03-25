@@ -1,6 +1,6 @@
 using DrakkarVpn.Users.Application.DTOs;
 
-namespace DrakkarVpn.Users.Application.Abstractions;
+namespace DrakkarVpn.Users.Application.Abstractions.Services;
 
 public interface IConnectDeviceService
 {
