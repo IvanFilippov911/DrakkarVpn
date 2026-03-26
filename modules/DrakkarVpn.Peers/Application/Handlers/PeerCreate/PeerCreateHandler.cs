@@ -178,7 +178,6 @@ public sealed class PeerCreateHandler : IRequestHandler<PeerCreateCommand, Unit>
                 UserId: snap.UserId,
                 ServerId: snap.ServerId,
                 AgentPeerUuid: snap.AgentPeerUuid!.Value,
-                ConfigRaw: snap.ConfigRaw!,
                 DeviceId: snap.DeviceId));
         }
     }
@@ -235,7 +234,6 @@ public sealed class PeerCreateHandler : IRequestHandler<PeerCreateCommand, Unit>
             UserId: j.UserId,
             ServerId: j.ServerId,
             AgentPeerUuid: j.AgentPeerUuid!.Value,
-            ConfigRaw: j.ConfigRaw!,
             DeviceId: j.DeviceId);
 
     private static bool TryNormalizeAgentResult(
@@ -274,6 +272,5 @@ public sealed class PeerCreateHandler : IRequestHandler<PeerCreateCommand, Unit>
     
     private static bool IsValidPayload(PeerProvisionJob j)
         => j.AgentPeerUuid.HasValue
-           && j.AgentPeerUuid.Value != Guid.Empty
-           && !string.IsNullOrWhiteSpace(j.ConfigRaw);
+           && j.AgentPeerUuid.Value != Guid.Empty;
 }

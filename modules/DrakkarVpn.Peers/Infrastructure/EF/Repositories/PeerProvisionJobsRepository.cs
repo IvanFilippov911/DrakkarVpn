@@ -39,7 +39,6 @@ public sealed class PeerProvisionJobsRepository : IPeerProvisionJobsRepository
             deviceId: dto.DeviceId,
             serverId: dto.ServerId,
             agentPeerUuid: dto.AgentPeerUuid,
-            configRaw: dto.ConfigRaw,
             maxAttempts: maxAttempts,
             nowUtc: nowUtc
         );

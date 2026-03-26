@@ -5,7 +5,6 @@ public sealed record GetPeerDto(
     Guid ServerId,
     string DeviceId,
     Guid AgentPeerId,
-    string ConfigRaw,
     int Status,                 
     DateTime CreatedAt
 );

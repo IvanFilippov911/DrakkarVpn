@@ -18,6 +18,7 @@ public interface IPeerRepository
     Task<int> GetActiveCountByServerIdAsync(Guid serverId, CancellationToken ct);
     
     Task<Peer?> GetByAgentUuidAsync(Guid uuid, CancellationToken ct);
+    Task<Peer?> GetPeerForConfigByAgentUuidAsync(Guid agentUuid, CancellationToken ct);
     
     Task<Peer?> GetByDeviceIdAsync(string deviceId, CancellationToken ct);
 

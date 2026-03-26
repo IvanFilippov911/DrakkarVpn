@@ -12,6 +12,10 @@ public sealed class Server : IAggregateRoot
         string name,
         Region region,
         PublicHost host,
+        int publicPort,
+        string realityPublicKey,
+        string realityShortId,
+        string realitySni,
         Uri agentBaseUrl,
         string agentTokenEncrypted,
         int? maxPeers)
@@ -20,6 +24,23 @@ public sealed class Server : IAggregateRoot
         Name = name ?? throw new ArgumentNullException(nameof(name));
         Region = region;
         PublicHost = host;
+
+        if (publicPort <= 0 || publicPort > 65535)
+            throw new ArgumentOutOfRangeException(nameof(publicPort), "Public port must be in range 1..65535.");
+
+        PublicPort = publicPort;
+        RealityPublicKey = string.IsNullOrWhiteSpace(realityPublicKey)
+            ? throw new ArgumentNullException(nameof(realityPublicKey))
+            : realityPublicKey.Trim();
+
+        RealityShortId = string.IsNullOrWhiteSpace(realityShortId)
+            ? throw new ArgumentNullException(nameof(realityShortId))
+            : realityShortId.Trim();
+
+        RealitySni = string.IsNullOrWhiteSpace(realitySni)
+            ? throw new ArgumentNullException(nameof(realitySni))
+            : realitySni.Trim();
+
         AgentBaseUrl = agentBaseUrl ?? throw new ArgumentNullException(nameof(agentBaseUrl));
         AgentTokenEncrypted = string.IsNullOrWhiteSpace(agentTokenEncrypted)
             ? throw new ArgumentNullException(nameof(agentTokenEncrypted))
@@ -37,6 +58,12 @@ public sealed class Server : IAggregateRoot
     public string Name { get; private set; }
     public Region Region { get; private set; }
     public PublicHost PublicHost { get; private set; }
+
+    public int PublicPort { get; private set; }
+    public string RealityPublicKey { get; private set; }
+    public string RealityShortId { get; private set; }
+    public string RealitySni { get; private set; }
+
     public Uri AgentBaseUrl { get; private set; }
     public string AgentTokenEncrypted { get; private set; }
     public ServerStatus Status { get; private set; }
@@ -53,39 +80,23 @@ public sealed class Server : IAggregateRoot
         string name,
         Region region,
         PublicHost host,
+        int publicPort,
+        string realityPublicKey,
+        string realityShortId,
+        string realitySni,
         Uri agentBaseUrl,
         string agentTokenEncrypted,
         int? maxPeers)
-        => new(id, name, region, host, agentBaseUrl, agentTokenEncrypted, maxPeers);
-
-    public void SetStatus(ServerStatus status) => Status = status;
-    
-    public void UpdateHealth(bool reachable, int peersActive)
-    {
-        if (peersActive < 0)
-            peersActive = 0;
-
-        Health = new HealthSnapshot(reachable, peersActive, DateTime.UtcNow);
-    }
-
-    public void UpdateMetrics(
-        long trafficRxBytes,
-        long trafficTxBytes,
-        double vpnSpeedMbps,
-        double infraLatencyMs)
-    {
-        Metrics = new MetricsSnapshot(
-            trafficRxBytes,
-            trafficTxBytes,
-            vpnSpeedMbps,
-            infraLatencyMs,
-            DateTime.UtcNow
-        );
-    }
-
-    public void UpdateBenchmark(double maxSpeedMbps)
-    {
-        Benchmark = new BenchmarkSnapshot(maxSpeedMbps, DateTime.UtcNow);
-    }
-    
+        => new(
+            id,
+            name,
+            region,
+            host,
+            publicPort,
+            realityPublicKey,
+            realityShortId,
+            realitySni,
+            agentBaseUrl,
+            agentTokenEncrypted,
+            maxPeers);
 }

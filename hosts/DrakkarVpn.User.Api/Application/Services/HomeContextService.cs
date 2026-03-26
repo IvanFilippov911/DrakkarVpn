@@ -57,13 +57,6 @@ public sealed class HomeContextService : IHomeContextService
                 PendingProvisionJobId: null,
                 PollUrl: null);
         
-        var peer = await _peers.GetActivePeerForDeviceAsync(deviceId, ct);
-        if (peer is not null)
-            return new HomeContextDto(
-                State: HomeScreenStateDto.Ready,
-                PendingProvisionJobId: null,
-                PollUrl: null);
-
         var jobId = await _jobs.GetActiveJobIdByDeviceIdAsync(deviceId, ct);
         if (jobId is not null)
         {
@@ -73,6 +66,13 @@ public sealed class HomeContextService : IHomeContextService
                 PendingProvisionJobId: jobId,
                 PollUrl: pollUrl);
         }
+        
+        var peer = await _peers.GetActivePeerForDeviceAsync(deviceId, ct);
+        if (peer is not null)
+            return new HomeContextDto(
+                State: HomeScreenStateDto.Ready,
+                PendingProvisionJobId: null,
+                PollUrl: null);
 
         return new HomeContextDto(
             State: HomeScreenStateDto.NotStarted,

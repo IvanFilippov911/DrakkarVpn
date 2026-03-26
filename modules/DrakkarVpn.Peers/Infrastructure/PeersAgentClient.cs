@@ -8,16 +8,15 @@ public sealed class PeersAgentClient : IPeersAgentClient
     private readonly HttpClient _http;
     public PeersAgentClient(HttpClient http) => _http = http;
 
-    public async Task RegisterPeerAsync(string agentBaseUrl, Guid peerUuid, string configRaw, CancellationToken ct)
+    public async Task RegisterPeerAsync(string agentBaseUrl, Guid peerUuid, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(agentBaseUrl)) throw new ArgumentException("agentBaseUrl is required", nameof(agentBaseUrl));
         if (peerUuid == Guid.Empty) throw new ArgumentException("peerUuid is required", nameof(peerUuid));
-        if (string.IsNullOrWhiteSpace(configRaw)) throw new ArgumentException("configRaw is required", nameof(configRaw));
 
         var baseUrl = agentBaseUrl.TrimEnd('/');
         var url = $"{baseUrl}/peers";
 
-        var body = new AgentRegisterPeerRequest { PeerUuid = peerUuid, ConfigRaw = configRaw };
+        var body = new AgentRegisterPeerRequest { PeerUuid = peerUuid};
 
         var resp = await _http.PostAsJsonAsync(url, body, ct);
 

@@ -1,6 +1,8 @@
+
+
 using System.Data;
-using DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
 using System.Linq.Expressions;
+using DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Peers.Domain;
 using DrakkarVpn.Core.Api.Modules.Peers.Infrastructure.EF;
@@ -8,7 +10,7 @@ using DrakkarVpn.Core.Api.Modules.Users.Domain;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
-namespace DrakkarVpn.Core.Api.Modules.Peers.Infrastructure.Repositories;
+namespace DrakkarVpn.Peers.Infrastructure.EF.Repositories;
 
 public sealed class PeerRepository : IPeerRepository
 {
@@ -50,6 +52,12 @@ public sealed class PeerRepository : IPeerRepository
     public async Task<Peer?> GetByAgentUuidAsync(Guid uuid, CancellationToken ct) =>
         await _db.Peers
             .FirstOrDefaultAsync(p => p.AgentPeerUuid == uuid, ct);
+
+    public Task<Peer?> GetPeerForConfigByAgentUuidAsync(
+        Guid agentUuid,
+        CancellationToken ct)
+        => _db.Peers.AsNoTracking()
+            .FirstOrDefaultAsync(p => p.AgentPeerUuid == agentUuid, ct);
     
     public Task<int> SaveChangesAsync(CancellationToken ct) =>
         _db.SaveChangesAsync(ct);
@@ -310,15 +318,13 @@ public sealed class PeerRepository : IPeerRepository
     }
 
     public async Task CreateManyIgnoreConflictsAsync(
-        IReadOnlyCollection<Peer> peers,
-        CancellationToken ct)
+    IReadOnlyCollection<Peer> peers,
+    CancellationToken ct)
     {
-
         var ids          = new Guid[peers.Count];
         var serverIds    = new Guid[peers.Count];
         var agentUuids   = new Guid[peers.Count];
         var deviceIds    = new string[peers.Count];
-        var configRaws   = new string[peers.Count];
         var statuses     = new short[peers.Count];
         var createdAtUtc = new DateTime[peers.Count];
         var statusAtUtc  = new DateTime[peers.Count];
@@ -330,7 +336,6 @@ public sealed class PeerRepository : IPeerRepository
             serverIds[i]  = p.ServerId;
             agentUuids[i] = p.AgentPeerUuid;
             deviceIds[i]  = p.DeviceId;
-            configRaws[i] = p.ConfigRaw;
             statuses[i]   = (short)p.Status;
             createdAtUtc[i] = p.CreatedAt;
             statusAtUtc[i]  = p.StatusUpdatedAtUtc;
@@ -343,7 +348,6 @@ public sealed class PeerRepository : IPeerRepository
                 server_id,
                 agent_peer_uuid,
                 device_id,
-                config_raw,
                 status,
                 created_at,
                 status_updated_at_utc
@@ -354,7 +358,6 @@ public sealed class PeerRepository : IPeerRepository
                 @server_ids::uuid[],
                 @agent_peer_uuids::uuid[],
                 @device_ids::text[],
-                @config_raws::text[],
                 @statuses::smallint[],
                 @created_at::timestamptz[],
                 @status_at::timestamptz[]
@@ -363,7 +366,6 @@ public sealed class PeerRepository : IPeerRepository
                 server_id,
                 agent_peer_uuid,
                 device_id,
-                config_raw,
                 status,
                 created_at,
                 status_updated_at_utc
@@ -381,7 +383,6 @@ public sealed class PeerRepository : IPeerRepository
         cmd.Parameters.AddWithValue("server_ids", serverIds);
         cmd.Parameters.AddWithValue("agent_peer_uuids", agentUuids);
         cmd.Parameters.AddWithValue("device_ids", deviceIds);
-        cmd.Parameters.AddWithValue("config_raws", configRaws);
         cmd.Parameters.AddWithValue("statuses", statuses);
         cmd.Parameters.AddWithValue("created_at", createdAtUtc);
         cmd.Parameters.AddWithValue("status_at", statusAtUtc);

@@ -1,3 +1,5 @@
+using DrakkarVpn.Admin.Api.API.Contracts.Servers;
+using DrakkarVpn.Admin.Api.Application.Features.Commands.Servers.RegisterServer;
 using DrakkarVpn.Core.Api.Modules.Admin.API.Contracts.Servers;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Commands.Servers.RegisterServer;
@@ -120,12 +122,17 @@ public static class AdminServersApiMapping
     public static RegisterServerRequest ToCommand(this RegisterServerApiRequest request)
     {
         return new RegisterServerRequest(
-            Name:               request.Name,
-            Region:             request.Region,
-            PublicHost:         request.PublicHost,
-            AgentBaseUrl:      request.AgentBaseUrl,
+            Name: request.Name,
+            Region: request.Region,
+            PublicHost: request.PublicHost,
+            PublicPort: request.PublicPort,
+            RealityPublicKey: request.RealityPublicKey,
+            RealityShortId: request.RealityShortId,
+            RealitySni: request.RealitySni,
+            AgentBaseUrl: request.AgentBaseUrl,
             AgentTokenEncrypted: request.AgentTokenEncrypted,
-            MaxPeers:          request.MaxPeers);
+            MaxPeers: request.MaxPeers
+        );
     }
 }
 

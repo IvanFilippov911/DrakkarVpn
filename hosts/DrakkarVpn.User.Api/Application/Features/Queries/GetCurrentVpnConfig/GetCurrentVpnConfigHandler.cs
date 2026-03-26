@@ -26,10 +26,6 @@ public sealed class GetCurrentVpnConfigHandler
     {
         var access = await _access.GetVpnAccessContextAsync(req.TelegramId, req.DeviceId, ct);
 
-        var config = await _current.GetCurrentConfigAsync(access, ct);
-        if (config is not null)
-            return StatusVpnConfigDto.Ready(config.ConfigRaw, config.HappLink);
-
         var jobId = await _jobs.GetActiveJobIdByDeviceIdAsync(access.DeviceId, ct);
         if (jobId is not null)
         {
@@ -37,6 +33,10 @@ public sealed class GetCurrentVpnConfigHandler
 
             return StatusVpnConfigDto.Pending(jobId.Value, pollUrl);
         }
+
+        var config = await _current.GetCurrentConfigAsync(access, ct);
+        if (config is not null)
+            return StatusVpnConfigDto.Ready(config.ConfigRaw, config.HappLink);
 
         return StatusVpnConfigDto.NotStarted();
     }

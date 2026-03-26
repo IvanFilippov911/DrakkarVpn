@@ -1,6 +1,6 @@
 using DrakkarVpn.Shared.Servers;
 
-namespace DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
+namespace DrakkarVpn.Servers.Application.Abstractions.Services;
 
 public interface IServerManagementService
 {
@@ -8,6 +8,10 @@ public interface IServerManagementService
         string name,
         string region,
         string publicHost,
+        int publicPort,
+        string realityPublicKey,
+        string realityShortId,
+        string realitySni,
         string agentBaseUrl,
         string agentTokenEncrypted,
         int? maxPeers,

@@ -1,6 +1,7 @@
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Servers.Domain;
 using DrakkarVpn.Core.Api.Modules.Servers.Domain.VO;
+using DrakkarVpn.Servers.Application.Abstractions.Services;
 using DrakkarVpn.Shared.Servers;
 using MediatR;
 
@@ -23,6 +24,10 @@ public sealed class ServerManagementService : IServerManagementService
         string name,
         string region,
         string publicHost,
+        int publicPort,
+        string realityPublicKey,
+        string realityShortId,
+        string realitySni,
         string agentBaseUrl,
         string agentTokenEncrypted,
         int? maxPeers,
@@ -33,6 +38,10 @@ public sealed class ServerManagementService : IServerManagementService
             name,
             new Region(region),
             new PublicHost(publicHost),
+            publicPort,
+            realityPublicKey,
+            realityShortId,
+            realitySni,
             new Uri(agentBaseUrl),
             agentTokenEncrypted,
             maxPeers);

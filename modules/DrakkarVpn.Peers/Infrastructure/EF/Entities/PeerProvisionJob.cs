@@ -24,7 +24,6 @@ public sealed class PeerProvisionJob
     
     public Guid? PeerId { get; private set; }
     public Guid? AgentPeerUuid { get; private set; }
-    public string? ConfigRaw { get; private set; }
 
     public string? LastErrorCode { get; private set; }
     public string? LastErrorMessage { get; private set; }
@@ -60,7 +59,6 @@ public sealed class PeerProvisionJob
         string deviceId,
         Guid serverId,
         Guid agentPeerUuid,
-        string configRaw,
         int maxAttempts,
         DateTime nowUtc)
     {
@@ -79,7 +77,6 @@ public sealed class PeerProvisionJob
         )
         {
             AgentPeerUuid = agentPeerUuid,
-            ConfigRaw     = configRaw
         };
     }
 }

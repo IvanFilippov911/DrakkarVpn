@@ -7,6 +7,7 @@ export type {
   ProvisionStatusResponse,
   PurchaseResponse,
   PurchaseSubscriptionPayload,
+  RegisterPayload,
   RegisterResponse,
   TariffDto,
   VpnConfigResponse,

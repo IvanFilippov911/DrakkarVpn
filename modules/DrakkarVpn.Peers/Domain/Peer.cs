@@ -7,8 +7,6 @@ public sealed class Peer
     public Guid ServerId { get; private set; }
     public Guid AgentPeerUuid { get; private set; }
     public string DeviceId { get; private set; }
-
-    public string ConfigRaw { get; private set; }
     public PeerStatus Status { get; private set; }
 
     public DateTime CreatedAt { get; private set; }
@@ -32,17 +30,12 @@ public sealed class Peer
         Guid id,
         Guid serverId,
         Guid agentPeerUuid,
-        string configRaw,
         string deviceId,
         DateTime createdAtUtc)
     {
         Id          = id;
         ServerId    = serverId;
         AgentPeerUuid = agentPeerUuid;
-
-        ConfigRaw = !string.IsNullOrWhiteSpace(configRaw)
-            ? configRaw
-            : throw new ArgumentNullException(nameof(configRaw));
 
         DeviceId = !string.IsNullOrWhiteSpace(deviceId)
             ? deviceId
@@ -57,10 +50,9 @@ public sealed class Peer
     public static Peer CreateNew(
         Guid serverId,
         Guid agentPeerUuid,
-        string configRaw,
         string deviceId,
         DateTime nowUtc)
-        => new(Guid.NewGuid(), serverId, agentPeerUuid, configRaw, deviceId, nowUtc);
+        => new(Guid.NewGuid(), serverId, agentPeerUuid, deviceId, nowUtc);
 
     public bool IsActive() => Status == PeerStatus.Active;
     

@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Abstractions;
 
-public interface IConfigProvisionService
+public interface IPeerProvisionService
 {
     Task<Guid> StartVpnConfigProvisioningAsync(
         VpnAccessContextDto access,

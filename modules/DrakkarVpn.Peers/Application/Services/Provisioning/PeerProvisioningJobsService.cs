@@ -33,10 +33,7 @@ public sealed class PeerProvisionJobsService : IPeerProvisionJobsService
 
         if (dto.AgentPeerUuid == Guid.Empty)
             throw new ArgumentException("AgentPeerUuid is required", nameof(dto));
-
-        if (string.IsNullOrWhiteSpace(dto.ConfigRaw))
-            throw new ArgumentException("ConfigRaw is required", nameof(dto));
-
+        
         nowUtc = EnsureUtc(nowUtc);
 
         var maxAttempts = dto.MaxAttempts <= 0 ? DefaultMaxAttempts : dto.MaxAttempts;
@@ -47,22 +44,15 @@ public sealed class PeerProvisionJobsService : IPeerProvisionJobsService
             ct);
     }
 
-    public async Task<PeerProvisionJobDto?> GetAsync(Guid jobId, CancellationToken ct)
+    public async Task<PeerProvisionJobStateDto?> GetAsync(Guid jobId, CancellationToken ct)
     {
         if (jobId == Guid.Empty) throw new ArgumentException("jobId is required", nameof(jobId));
 
         var job = await _repo.GetByIdAsync(jobId, ct);
         if (job is null) return null;
 
-        return new PeerProvisionJobDto(
-            JobId: job.JobId,
+        return new PeerProvisionJobStateDto(
             State: job.State,
-            Attempt: job.Attempt,
-            MaxAttempts: job.MaxAttempts,
-            NextAttemptAtUtc: job.NextAttemptAtUtc,
-            PeerId: job.PeerId,
-            AgentPeerUuid: job.AgentPeerUuid,
-            ConfigRaw: job.ConfigRaw,
             ErrorCode: job.LastErrorCode,
             ErrorMessage: job.LastErrorMessage
         );

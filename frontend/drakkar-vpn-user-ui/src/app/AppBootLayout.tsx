@@ -43,7 +43,7 @@ export function AppBootLayout() {
     }
 
     try {
-      await registerAsync(ctx.telegramId)
+      await registerAsync({ telegramId: ctx.telegramId })
       await connectAsync({
         initData: ctx.initData,
         deviceName: typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 120) : undefined,

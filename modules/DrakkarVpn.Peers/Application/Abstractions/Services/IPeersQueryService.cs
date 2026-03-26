@@ -19,7 +19,8 @@ public interface IPeersQueryService
     // 2) Peer reads (lookup)
     // ---------------------------
     Task<ActivePeerForDeviceDto?> GetActivePeerForDeviceAsync(string deviceId, CancellationToken ct);
-    Task<GetPeerDto?> GetPeerByDeviceAsync(string deviceId, CancellationToken ct);
+    Task<PeerDataForConfigDto?> GetDataForConfigByDeviceIdAsync(string deviceId, CancellationToken ct);
+    Task<PeerDataForConfigDto?> GetDataForConfigByAgentUuidAsync(Guid agentUuid, CancellationToken ct);
     Task<PeerResponseDto> GetPeerByIdAsync(Guid peerId, CancellationToken ct);
     Task<IReadOnlyList<PeerForRevokeDto>> GetPeersForRevokeAsync(Guid userId, CancellationToken ct);
 

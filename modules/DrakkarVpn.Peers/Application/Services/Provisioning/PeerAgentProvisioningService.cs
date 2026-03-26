@@ -58,7 +58,7 @@ public sealed class PeerAgentProvisioningService : IPeerAgentProvisioningService
                     return;
                 }
                 
-                await _agent.RegisterPeerAsync(baseUrl, job.AgentPeerUuid!.Value, job.ConfigRaw!, ct);
+                await _agent.RegisterPeerAsync(baseUrl, job.AgentPeerUuid!.Value, ct);
 
                 results.Add(AgentProvisionAttemptResultFactory.Applied(job.JobId, nowUtc));
             }

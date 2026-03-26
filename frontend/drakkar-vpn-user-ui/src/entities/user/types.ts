@@ -16,6 +16,14 @@ export type RegisterResponse = {
   isNewUser: boolean
 }
 
+export type RegisterPayload = {
+  telegramId: number
+  publicPort?: number
+  realityPublicKey?: string
+  realityShortId?: string
+  realitySni?: string
+}
+
 export type ConnectDevicePayload = {
   initData: string
   deviceName?: string

@@ -114,6 +114,23 @@ public sealed class ServersQueryService : IServersQueryService, IServerQueryForP
     
     public Task<ServerForAgentDto?> GetServerForAgentAsync(Guid serverId, CancellationToken ct)
         => _servers.GetForAgentAsync(serverId, ct);
+    
+    public async Task<ServerConfigDataDto?> GetDataForConfigByIdAsync(
+        Guid serverId,
+        CancellationToken ct)
+    {
+        var server = await _servers.GetAsync(serverId, ct);
+        if (server is null)
+            return null;
+
+        // DTO is intentionally minimal: only what is required to build a VLESS config.
+        return new ServerConfigDataDto(
+            server.PublicHost.Value,
+            server.PublicPort,
+            server.RealitySni,
+            server.RealityPublicKey,
+            server.RealityShortId);
+    }
 
     
     public async Task<IReadOnlyList<ServerMetricsHistoryDto>> GetHistoryAsync(

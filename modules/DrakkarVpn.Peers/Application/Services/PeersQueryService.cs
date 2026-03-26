@@ -49,20 +49,34 @@ public sealed class PeersQueryService : IPeersQueryService
     public Task<ActivePeerForDeviceDto?> GetActivePeerForDeviceAsync(string deviceId, CancellationToken ct)
         => _peers.GetActiveForDeviceAsync(deviceId, ct);
 
-    public async Task<GetPeerDto?> GetPeerByDeviceAsync(string deviceId, CancellationToken ct)
+    public async Task<PeerDataForConfigDto?> GetDataForConfigByDeviceIdAsync(string deviceId, CancellationToken ct)
     {
         var peer = await _peers.GetByDeviceIdAsync(deviceId, ct);
         if (peer is null) return null;
 
-        return new GetPeerDto(
-            Id:        peer.Id,
+        return new PeerDataForConfigDto(
             ServerId:   peer.ServerId,
-            DeviceId:   peer.DeviceId,
-            AgentPeerId: peer.AgentPeerUuid,
-            Status:     (int)peer.Status,
-            CreatedAt:  peer.CreatedAt,
-            ConfigRaw:  peer.ConfigRaw
+            AgentUuid: peer.AgentPeerUuid
         );
+    }
+
+    public Task<PeerDataForConfigDto?> GetDataForConfigByAgentUuidAsync(
+        Guid agentUuid,
+        CancellationToken ct)
+        => GetDataForConfigByAgentUuidInternal(agentUuid, ct);
+
+    private async Task<PeerDataForConfigDto?> GetDataForConfigByAgentUuidInternal(
+        Guid agentUuid,
+        CancellationToken ct)
+    {
+        var peer = await _peers.GetPeerForConfigByAgentUuidAsync(agentUuid, ct);
+        if (peer is null)
+            return null;
+
+        // DTO is assembled in the service layer (not in repository).
+        return new PeerDataForConfigDto(
+            ServerId: peer.ServerId,
+            AgentUuid: peer.AgentPeerUuid);
     }
 
     public async Task<PeerResponseDto> GetPeerByIdAsync(Guid peerId, CancellationToken ct)
@@ -77,7 +91,6 @@ public sealed class PeersQueryService : IPeersQueryService
             peer.ServerId,
             peer.AgentPeerUuid,
             peer.Status,
-            peer.ConfigRaw,
             peer.CreatedAt
         );
     }

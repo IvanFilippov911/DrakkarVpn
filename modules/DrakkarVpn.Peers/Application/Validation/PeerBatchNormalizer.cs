@@ -22,14 +22,11 @@ internal static class PeerBatchNormalizer
 
             var deviceId = NormalizeDeviceId(dto.DeviceId);
             if (deviceId.Length == 0) continue;
-
-            var configRaw = NormalizeConfigRaw(dto.ConfigRaw);
-            if (configRaw is null) continue;
+            
 
             map[deviceId] = dto with
             {
                 DeviceId  = deviceId,
-                ConfigRaw = configRaw
             };
         }
 

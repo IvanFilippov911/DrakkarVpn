@@ -1,4 +1,6 @@
 using DrakkarVpn.Core.Api.Application.Features.Commands.PurchaseSubscription;
+using DrakkarVpn.Core.Api.Application.Features.Queries.GetPeerByUuid;
+using DrakkarVpn.Core.Api.Application.Features.Queries.GetPeerProvisionJob;
 using DrakkarVpn.Core.Api.Modules.Orchestrator.API.Contracts.Response;
 using DrakkarVpn.Core.Api.Modules.Orchestrator.API.Contracts.Tariffs;
 using DrakkarVpn.Core.Api.Modules.Orchestrator.API.Mappings;
@@ -107,7 +109,7 @@ public sealed class UserFlowController : ControllerBase
     [ProducesResponseType(typeof(StatusVpnConfigResponse), StatusCodes.Status202Accepted)]
     public async Task<ActionResult<StatusVpnConfigResponse>> ProvisionVpnConfig(CancellationToken ct)
     {
-        var req = new StartVpnConfigProvisioningRequest(
+        var req = new StartPeerProvisioningRequest(
             TelegramId: User.GetTelegramId(),
             DeviceId: User.GetDeviceId()
         );
@@ -132,6 +134,6 @@ public sealed class UserFlowController : ControllerBase
     {
         var result = await _mediator.Send(new GetPeerByUuidQuery(peerUuid), ct);
         if (result is null) return NotFound("Пир не найден");
-        return Content(result.ConfigRaw, "text/plain");
+        return Content(result, "text/plain");
     }
 }

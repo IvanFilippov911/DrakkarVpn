@@ -6,15 +6,14 @@ import type {
   ProvisionStatusResponse,
   PurchaseResponse,
   PurchaseSubscriptionPayload,
+  RegisterPayload,
   RegisterResponse,
   TariffDto,
   VpnConfigResponse,
 } from './types'
 
-export async function register(telegramId: number): Promise<RegisterResponse> {
-  const { data } = await apiClient.post<RegisterResponse>('/api/v1/user/register', {
-    telegramId,
-  })
+export async function register(payload: RegisterPayload): Promise<RegisterResponse> {
+  const { data } = await apiClient.post<RegisterResponse>('/api/v1/user/register', payload)
   return data
 }
 

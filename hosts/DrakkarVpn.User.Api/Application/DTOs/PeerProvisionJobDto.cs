@@ -10,7 +10,5 @@ public sealed record PeerProvisionJobDto(
     DateTime NextAttemptAtUtc,
     Guid? PeerId,
     Guid? AgentPeerUuid,
-    string? ConfigRaw,
-    string? HappLink,
     string? ErrorCode,
     string? ErrorMessage);

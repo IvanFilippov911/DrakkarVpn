@@ -1,6 +1,8 @@
+using DrakkarVpn.Core.Api.Application.Features.Queries.GetPeerProvisionJob;
 using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Options;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
+using DrakkarVpn.Core.Api.Modules.Peers.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Peers.Domain.enums;
 using DrakkarVpn.Shared.Peers;
 using MediatR;
@@ -9,7 +11,7 @@ using Microsoft.Extensions.Options;
 namespace DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Queries.GetPeerProvisionJob;
 
 public sealed class GetPeerProvisionJobHandler
-    : IRequestHandler<GetPeerProvisionJobQuery, PeerProvisionJobDto?>
+    : IRequestHandler<GetPeerProvisionJobQuery, PeerProvisionJobStatusDto?>
 {
     private readonly IPeerProvisionJobsService _svc;
     private readonly VpnLinkOptions _link;
@@ -22,7 +24,7 @@ public sealed class GetPeerProvisionJobHandler
         _link = linkOptions.Value;
     }
 
-    public async Task<PeerProvisionJobDto?> Handle(GetPeerProvisionJobQuery q, CancellationToken ct)
+    public async Task<PeerProvisionJobStatusDto?> Handle(GetPeerProvisionJobQuery q, CancellationToken ct)
     {
         var job = await _svc.GetAsync(q.JobId, ct);
         if (job is null) return null;
@@ -34,22 +36,11 @@ public sealed class GetPeerProvisionJobHandler
             _                         => PeerProvisionStatus.Pending
         };
 
-        string? happ = null;
-        if (status == PeerProvisionStatus.Ready && job.AgentPeerUuid.HasValue)
-            happ = _link.BuildHappLink(job.AgentPeerUuid.Value.ToString());
-
-        return new PeerProvisionJobDto(
-            JobId: job.JobId,
+        return new PeerProvisionJobStatusDto(
             Status: status,
-            Attempt: job.Attempt,
-            MaxAttempts: job.MaxAttempts,
-            NextAttemptAtUtc: job.NextAttemptAtUtc,
-            PeerId: job.PeerId,
-            AgentPeerUuid: job.AgentPeerUuid,
-            ConfigRaw: job.ConfigRaw,
-            HappLink: happ,
             ErrorCode: job.ErrorCode,
             ErrorMessage: job.ErrorMessage
         );
+        
     }
 }

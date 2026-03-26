@@ -34,7 +34,6 @@ public sealed class PeerProvisionJobConfig : IEntityTypeConfiguration<PeerProvis
 
         b.Property(x => x.PeerId).HasColumnName("PeerId");
         b.Property(x => x.AgentPeerUuid).HasColumnName("AgentPeerUuid");
-        b.Property(x => x.ConfigRaw).HasColumnName("ConfigRaw").HasColumnType("text");
 
         b.Property(x => x.LastErrorCode).HasColumnName("LastErrorCode").HasMaxLength(128);
         b.Property(x => x.LastErrorMessage).HasColumnName("LastErrorMessage").HasMaxLength(2048);

@@ -8,6 +8,5 @@ public sealed record PeerResponseDto(
     Guid ServerId,
     Guid AgentPeerId,
     PeerStatus Status,
-    string ConfigRaw,
     DateTime CreatedAt
 );

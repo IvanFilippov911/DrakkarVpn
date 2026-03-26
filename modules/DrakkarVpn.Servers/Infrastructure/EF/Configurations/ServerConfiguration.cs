@@ -3,7 +3,7 @@ using DrakkarVpn.Core.Api.Modules.Servers.Domain.VO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.EF.Configurations;
+namespace DrakkarVpn.Servers.Infrastructure.EF.Configurations;
 
 public sealed class ServerConfiguration : IEntityTypeConfiguration<Server>
 {
@@ -16,15 +16,60 @@ public sealed class ServerConfiguration : IEntityTypeConfiguration<Server>
             .HasColumnName("id")
             .ValueGeneratedNever();
 
-        b.Property(x => x.Name).IsRequired().HasColumnName("name");
-        b.Property(x => x.Region).HasConversion(r => r.Code, v => new Region(v)).IsRequired().HasColumnName("region");
-        b.Property(x => x.PublicHost).HasConversion(h => h.Value, v => new PublicHost(v)).IsRequired().HasColumnName("public_host");
-        b.Property(x => x.AgentBaseUrl).HasConversion(u => u.ToString(), s => new Uri(s)).IsRequired().HasColumnName("agent_base_url");
-        b.Property(x => x.AgentTokenEncrypted).IsRequired().HasColumnName("agent_token_encrypted");
-        b.Property(x => x.Status).HasConversion<int>().IsRequired().HasColumnName("status");
-        b.Property(x => x.MaxPeers).HasColumnName("max_peers");
-        b.Property(x => x.CreatedAt).HasColumnName("created_at").IsRequired();
-        
+        b.Property(x => x.Name)
+            .IsRequired()
+            .HasColumnName("name");
+
+        b.Property(x => x.Region)
+            .HasConversion(r => r.Code, v => new Region(v))
+            .IsRequired()
+            .HasColumnName("region");
+
+        b.Property(x => x.PublicHost)
+            .HasConversion(h => h.Value, v => new PublicHost(v))
+            .IsRequired()
+            .HasColumnName("public_host");
+
+        b.Property(x => x.PublicPort)
+            .IsRequired()
+            .HasColumnName("public_port");
+
+        b.Property(x => x.RealityPublicKey)
+            .IsRequired()
+            .HasMaxLength(256)
+            .HasColumnName("reality_public_key");
+
+        b.Property(x => x.RealityShortId)
+            .IsRequired()
+            .HasMaxLength(64)
+            .HasColumnName("reality_short_id");
+
+        b.Property(x => x.RealitySni)
+            .IsRequired()
+            .HasMaxLength(255)
+            .HasColumnName("reality_sni");
+
+        b.Property(x => x.AgentBaseUrl)
+            .HasConversion(u => u.ToString(), s => new Uri(s))
+            .IsRequired()
+            .HasColumnName("agent_base_url");
+
+        b.Property(x => x.AgentTokenEncrypted)
+            .IsRequired()
+            .HasColumnName("agent_token_encrypted");
+
+        b.Property(x => x.Status)
+            .HasConversion<int>()
+            .IsRequired()
+            .HasColumnName("status");
+
+        b.Property(x => x.MaxPeers)
+            .HasColumnName("max_peers");
+
+        b.Property(x => x.CreatedAt)
+            .HasColumnName("created_at")
+            .IsRequired();
+
         b.OwnsOne(x => x.Health, hb =>
         {
             hb.WithOwner();
@@ -50,7 +95,7 @@ public sealed class ServerConfiguration : IEntityTypeConfiguration<Server>
             bb.Property(bm => bm.MaxSpeedMbps).HasColumnName("benchmark_max_speed_mbps").IsRequired();
             bb.Property(bm => bm.MeasuredAt).HasColumnName("benchmark_measured_at").IsRequired();
         });
-        
+
         b.HasIndex(x => new { x.Region, x.Status })
             .HasDatabaseName("ix_servers_region_status");
     }

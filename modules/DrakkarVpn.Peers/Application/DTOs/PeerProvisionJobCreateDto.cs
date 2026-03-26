@@ -5,6 +5,5 @@ public sealed record PeerProvisionJobCreateDto(
     string DeviceId,
     Guid ServerId,
     int MaxAttempts,
-    Guid AgentPeerUuid,
-    string ConfigRaw
+    Guid AgentPeerUuid
 );

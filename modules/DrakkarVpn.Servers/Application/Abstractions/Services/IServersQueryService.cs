@@ -44,4 +44,8 @@ public interface IServersQueryService
         DateTime fromUtc,
         CancellationToken ct);
     
+    Task<ServerConfigDataDto?> GetDataForConfigByIdAsync(
+        Guid serverId,
+        CancellationToken ct);
+    
 }

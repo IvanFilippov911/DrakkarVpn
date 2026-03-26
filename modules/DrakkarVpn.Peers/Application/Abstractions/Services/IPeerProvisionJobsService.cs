@@ -10,12 +10,8 @@ public interface IPeerProvisionJobsService
         DateTime nowUtc,
         CancellationToken ct);
 
-    Task<PeerProvisionJobDto?> GetAsync(Guid jobId, CancellationToken ct);
-
-    /// <summary>
-    /// Read-only lookup: возвращает активный jobId по deviceId
-    /// (в состояниях не Ready и не Failed).
-    /// </summary>
+    Task<PeerProvisionJobStateDto?> GetAsync(Guid jobId, CancellationToken ct);
+    
     Task<Guid?> GetActiveJobIdByDeviceIdAsync(string deviceId, CancellationToken ct);
 
     Task<IReadOnlyList<PeerProvisionJob>> AcquireBatchAsync(

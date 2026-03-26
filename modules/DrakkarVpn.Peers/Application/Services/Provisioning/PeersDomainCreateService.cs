@@ -47,7 +47,6 @@ public sealed class PeersDomainCreateService : IPeersDomainCreateService
             toInsert.Add(Peer.CreateNew(
                 serverId: dto.ServerId,
                 agentPeerUuid: dto.AgentPeerUuid,
-                configRaw: dto.ConfigRaw!,
                 deviceId: dto.DeviceId,
                 nowUtc: nowUtc));
         }

@@ -22,10 +22,6 @@ public sealed class PeerConfiguration : IEntityTypeConfiguration<Peer>
             .IsRequired()
             .HasColumnName("agent_peer_uuid");
 
-        b.Property(x => x.ConfigRaw)
-            .IsRequired()
-            .HasColumnName("config_raw");
-
         b.Property(x => x.Status)
             .HasConversion<int>()
             .IsRequired()

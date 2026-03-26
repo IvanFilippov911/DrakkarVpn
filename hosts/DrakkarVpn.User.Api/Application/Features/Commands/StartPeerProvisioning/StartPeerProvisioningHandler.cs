@@ -4,17 +4,17 @@ using MediatR;
 
 namespace DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Commands.StartVpnConfigProvisioning;
 
-public sealed class StartVpnConfigProvisioningHandler
-    : IRequestHandler<StartVpnConfigProvisioningRequest, StatusVpnConfigDto>
+public sealed class StartPeerProvisioningHandler
+    : IRequestHandler<StartPeerProvisioningRequest, StatusVpnConfigDto>
 {
     private readonly IVpnAccessContextService _access;
     private readonly ICurrentVpnConfigService _current;
-    private readonly IConfigProvisionService _provision;
+    private readonly IPeerProvisionService _provision;
 
-    public StartVpnConfigProvisioningHandler(
+    public StartPeerProvisioningHandler(
         IVpnAccessContextService access,
         ICurrentVpnConfigService current,
-        IConfigProvisionService provision)
+        IPeerProvisionService provision)
     {
         _access = access;
         _current = current;
@@ -22,7 +22,7 @@ public sealed class StartVpnConfigProvisioningHandler
     }
 
     public async Task<StatusVpnConfigDto> Handle(
-        StartVpnConfigProvisioningRequest req,
+        StartPeerProvisioningRequest req,
         CancellationToken ct)
     {
         var access = await _access.GetVpnAccessContextAsync(req.TelegramId, req.DeviceId, ct);

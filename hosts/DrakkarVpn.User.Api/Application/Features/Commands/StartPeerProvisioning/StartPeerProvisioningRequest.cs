@@ -4,7 +4,7 @@ using MediatR;
 
 namespace DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Commands.StartVpnConfigProvisioning;
 
-public sealed record StartVpnConfigProvisioningRequest(
+public sealed record StartPeerProvisioningRequest(
     long TelegramId,
     string DeviceId
 ) : IUsersCommand<StatusVpnConfigDto>;

@@ -3,24 +3,19 @@ using DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Servers.Domain;
-using DrakkarVpn.Peers.Application.Abstractions.Services;
-using DrakkarVpn.Shared;
 
-namespace DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Services;
+namespace DrakkarVpn.Core.Api.Application.Services;
 
-public sealed class ConfigProvisionService : IConfigProvisionService
+public sealed class PeerProvisionService : IPeerProvisionService
 {
     private readonly IPeerProvisionJobsService _jobs;
-    private readonly IPeerProvisionPayloadFactory _payloadFactory;
     private readonly IServersQueryService _servers;
 
-    public ConfigProvisionService(
+    public PeerProvisionService(
         IPeerProvisionJobsService jobs,
-        IPeerProvisionPayloadFactory payloadFactory,
         IServersQueryService servers)
     {
         _jobs = jobs;
-        _payloadFactory = payloadFactory;
         _servers = servers;
     }
 
@@ -34,7 +29,7 @@ public sealed class ConfigProvisionService : IConfigProvisionService
                          .FirstOrDefault()
                      ?? throw new InvalidOperationException("No enabled servers available");
 
-        var payload = _payloadFactory.CreateNew(server.PublicHost);
+        var agentPeerUuid = Guid.NewGuid();
 
         var jobId = await _jobs.EnqueueAsync(
             new PeerProvisionJobCreateDto(
@@ -42,8 +37,7 @@ public sealed class ConfigProvisionService : IConfigProvisionService
                 DeviceId: access.DeviceId,
                 ServerId: server.Id,
                 MaxAttempts: 10,
-                AgentPeerUuid: payload.AgentPeerUuid,
-                ConfigRaw: payload.ConfigRaw),
+                AgentPeerUuid: agentPeerUuid),
             access.NowUtc,
             ct);
 

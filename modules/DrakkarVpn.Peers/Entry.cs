@@ -3,9 +3,8 @@ using DrakkarVpn.Core.Api.Modules.Peers.Application.Services;
 using DrakkarVpn.Core.Api.Modules.Peers.Infrastructure.BackgroundWorkers;
 using DrakkarVpn.Core.Api.Modules.Peers.Infrastructure.EF;
 using DrakkarVpn.Core.Api.Modules.Peers.Infrastructure.Repositories;
-using DrakkarVpn.Peers.Application.Abstractions.Services;
-using DrakkarVpn.Peers.Application.Services.Provisioning;
 using DrakkarVpn.Peers.Infrastructure.BackgroundWorkers;
+using DrakkarVpn.Peers.Infrastructure.EF.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,8 +27,6 @@ public static class Entry
         services.AddScoped<IPeersQueryService, PeersQueryService>();
         services.AddScoped<IPeerAgentProvisioningService, PeerAgentProvisioningService>();
         services.AddScoped<IPeerProvisionJobsService, PeerProvisionJobsService>();
-        services.AddScoped<IPeerConfigsService, PeerConfigsService>();
-        services.AddScoped<IPeerProvisionPayloadFactory, PeerProvisionPayloadFactory>();
         services.AddScoped<IPeersDomainCreateService, PeersDomainCreateService>();
         
         return services;

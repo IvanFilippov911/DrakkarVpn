@@ -5,6 +5,5 @@ public record PeerBatchCreateDto(
     Guid UserId,           
     Guid ServerId,
     Guid AgentPeerUuid,
-    string ConfigRaw,
     string DeviceId
 );

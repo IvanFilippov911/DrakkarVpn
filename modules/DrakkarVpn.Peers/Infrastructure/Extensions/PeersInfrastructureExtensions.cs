@@ -1,6 +1,7 @@
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Services;
 using DrakkarVpn.Core.Api.Modules.Peers.Infrastructure.Repositories;
+using DrakkarVpn.Peers.Infrastructure.EF.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DrakkarVpn.Core.Api.Modules.Peers.Infrastructure;

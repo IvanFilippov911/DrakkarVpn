@@ -1,13 +1,16 @@
 using DrakkarVpn.Servers.Application.Abstractions;
-using MediatR;
 
-namespace DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Commands.Servers.RegisterServer;
+namespace DrakkarVpn.Admin.Api.Application.Features.Commands.Servers.RegisterServer;
 
 public sealed record RegisterServerRequest(
     string Name,
     string Region,
     string PublicHost,
+    int PublicPort,
+    string RealityPublicKey,
+    string RealityShortId,
+    string RealitySni,
     string AgentBaseUrl,
     string AgentTokenEncrypted,
-    int?   MaxPeers
-) : IRequest<Guid>, IServersCommand<Guid>;
+    int? MaxPeers
+) : IServersCommand<Guid>;
