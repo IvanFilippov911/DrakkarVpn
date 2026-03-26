@@ -1,3 +1,5 @@
+using DrakkarVpn.Core.Api.Modules.Servers.Domain.VO;
+
 namespace DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Queries.GetServers;
 
 public sealed record GetListServerDto(
@@ -9,5 +11,6 @@ public sealed record GetListServerDto(
     int    PeersActive,
     int?    MaxPeers,
     double VpnSpeedMbps,
-    double InfraLatencyMs
+    double InfraLatencyMs,
+    string PublicHost
 );

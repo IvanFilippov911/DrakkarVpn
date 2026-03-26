@@ -1,9 +1,9 @@
 using DrakkarVpn.Core.Api.Modules.Peers.Application.DTOs;
 
-namespace DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
+namespace DrakkarVpn.Peers.Application.Abstractions.Services;
 
 public interface IPeerProvisionPayloadFactory
 {
-    PeerProvisionPayloadDto Create(Guid agentPeerUuid);
-    PeerProvisionPayloadDto CreateNew();
+    PeerProvisionPayloadDto CreateNew(string publicHost);
+    PeerProvisionPayloadDto Create(Guid agentPeerUuid, string publicHost);
 }

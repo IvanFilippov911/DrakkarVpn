@@ -1,6 +1,4 @@
 using DrakkarVpn.Core.Api.Modules.Users.Application.Abstractions;
-using DrakkarVpn.Core.Api.Modules.Users.Domain;
-using DrakkarVpn.Shared.Errors;
 using DrakkarVpn.Users.Application.Abstractions;
 using DrakkarVpn.Users.Application.Abstractions.Services;
 using DrakkarVpn.Users.Application.DTOs;

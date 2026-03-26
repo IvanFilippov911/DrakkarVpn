@@ -44,7 +44,8 @@ public sealed class ServersQueryService : IServersQueryService, IServerQueryForP
                 s.Health.PeersActive,
                 s.MaxPeers,
                 s.Metrics.VpnSpeedMbps,
-                s.Metrics.InfraLatencyMs
+                s.Metrics.InfraLatencyMs,
+                s.PublicHost.ToString()
             ))
             .ToListAsync(ct);
     }

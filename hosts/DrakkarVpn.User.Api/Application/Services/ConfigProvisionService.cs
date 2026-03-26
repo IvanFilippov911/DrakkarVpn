@@ -3,6 +3,7 @@ using DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Servers.Domain;
+using DrakkarVpn.Peers.Application.Abstractions.Services;
 using DrakkarVpn.Shared;
 
 namespace DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Services;
@@ -33,7 +34,7 @@ public sealed class ConfigProvisionService : IConfigProvisionService
                          .FirstOrDefault()
                      ?? throw new InvalidOperationException("No enabled servers available");
 
-        var payload = _payloadFactory.CreateNew();
+        var payload = _payloadFactory.CreateNew(server.PublicHost);
 
         var jobId = await _jobs.EnqueueAsync(
             new PeerProvisionJobCreateDto(
