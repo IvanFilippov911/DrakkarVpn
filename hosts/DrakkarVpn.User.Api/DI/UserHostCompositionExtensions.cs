@@ -11,7 +11,6 @@ using DrakkarVpn.Users;
 using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Services;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
-using DrakkarVpn.Peers.Application.Services;
 using Idempotency;
 
 namespace DrakkarVpn.Core.Api.Extensions;
@@ -52,7 +51,7 @@ public static class UserHostCompositionExtensions
         services.AddScoped<ICurrentVpnConfigService, CurrentVpnConfigService>();
         services.AddScoped<IPeerProvisionService, PeerProvisionService>();
         services.AddScoped<IHomeContextService, HomeContextService>();
-        services.AddScoped<IVpnConfigBuilder, VpnConfigBuilder>();
+        services.AddScoped<IVpnBuildArtifactsService, VpnBuildArtifactsService>();
 
         // pipelines
         services.AddUserHostPipelines();

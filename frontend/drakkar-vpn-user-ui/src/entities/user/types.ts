@@ -82,6 +82,7 @@ export type VpnConfigResponse = {
   statusDto: VpnConfigStatus
   configRaw?: string | null
   happLink?: string | null
+  v2rayLink?: string | null
   jobId?: string | null
   pollUrl?: string | null
 }
@@ -90,15 +91,7 @@ export type VpnConfigResponse = {
  * `PeerProvisionJobResponse` from provision polling.
  */
 export type ProvisionStatusResponse = {
-  jobId: string
   status: PeerProvisionStatus
-  attempt: number
-  maxAttempts: number
-  nextAttemptAtUtc: string
-  peerId?: string | null
-  agentPeerUuid?: string | null
-  configRaw?: string | null
-  happLink?: string | null
   errorCode?: string | null
   errorMessage?: string | null
 }

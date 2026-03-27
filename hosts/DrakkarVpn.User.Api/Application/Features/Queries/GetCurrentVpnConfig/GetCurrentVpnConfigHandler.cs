@@ -36,7 +36,7 @@ public sealed class GetCurrentVpnConfigHandler
 
         var config = await _current.GetCurrentConfigAsync(access, ct);
         if (config is not null)
-            return StatusVpnConfigDto.Ready(config.ConfigRaw, config.HappLink);
+            return StatusVpnConfigDto.Ready(config.ConfigRaw, config.HappLink, config.V2rayLink);
 
         return StatusVpnConfigDto.NotStarted();
     }

@@ -9,8 +9,15 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__Db: Host=${POSTGRES_HOST};Port=${POSTGRES_PORT};Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      ConnectionStrings__Redis: ${REDIS_HOST}:${REDIS_PORT}
       Telegram__BotToken: ${TELEGRAM_BOT_TOKEN}
       Telegram__Token: ${TELEGRAM_BOT_TOKEN}
+      Jwt__SigningKey: ${USER_JWT_SIGNING_KEY}
+      Jwt__Issuer: ${USER_JWT_ISSUER}
+      Jwt__Audience: ${USER_JWT_AUDIENCE}
+      Jwt__DefaultTtlMinutes: ${USER_JWT_DEFAULT_TTL_MINUTES}
+      VpnLinkOptions__PublicBaseUrl: ${VpnLinkOptions__PublicBaseUrl:-${WEBAPP_BASE_URL}}
+      VpnLinkOptions__PeerConfigPath: ${VpnLinkOptions__PeerConfigPath}
     volumes:
       - ../../runtime/logs:/var/log/drakkar
     networks:
@@ -75,7 +82,10 @@ services:
       context: ../../frontend/drakkar-vpn-user-ui
       dockerfile: Dockerfile
       args:
-        VITE_API_BASE: /api
+        VITE_API_BASE: ${VITE_API_BASE:-/api}
+        VITE_HIDDIFY_ANDROID_URL: ${VITE_HIDDIFY_ANDROID_URL}
+        VITE_V2RAYTUN_IOS_URL: ${VITE_V2RAYTUN_IOS_URL}
+        VITE_HIDDIFY_DESKTOP_URL: ${VITE_HIDDIFY_DESKTOP_URL}
     container_name: drakkar-user-ui
     restart: always
     networks:

@@ -123,7 +123,6 @@ public sealed class ServersQueryService : IServersQueryService, IServerQueryForP
         if (server is null)
             return null;
 
-        // DTO is intentionally minimal: only what is required to build a VLESS config.
         return new ServerConfigDataDto(
             server.PublicHost.Value,
             server.PublicPort,

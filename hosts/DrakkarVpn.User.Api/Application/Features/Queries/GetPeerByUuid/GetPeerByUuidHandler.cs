@@ -11,12 +11,12 @@ public sealed class GetPeerByUuidHandler
 {
     private readonly IPeersQueryService _peers;
     private readonly IServersQueryService _servers;
-    private readonly IVpnConfigBuilder _builder;
+    private readonly IVpnBuildArtifactsService _builder;
 
     public GetPeerByUuidHandler(
         IPeersQueryService peers,
         IServersQueryService servers,
-        IVpnConfigBuilder builder)
+        IVpnBuildArtifactsService builder)
     {
         _peers = peers;
         _servers = servers;
@@ -33,6 +33,6 @@ public sealed class GetPeerByUuidHandler
         if (server is null)
             throw new InvalidOperationException($"Server '{peer.ServerId}' not found.");
 
-        return _builder.Build(peer, server);
+        return _builder.BuildConfig(peer, server);
     }
 }

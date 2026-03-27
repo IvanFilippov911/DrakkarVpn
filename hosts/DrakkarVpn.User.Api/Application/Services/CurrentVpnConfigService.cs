@@ -10,19 +10,16 @@ public sealed class CurrentVpnConfigService : ICurrentVpnConfigService
 {
     private readonly IPeersQueryService _peers;
     private readonly IServersQueryService _servers;
-    private readonly IVpnConfigBuilder _builder;
-    private readonly VpnLinkOptions _link;
+    private readonly IVpnBuildArtifactsService _builder;
 
     public CurrentVpnConfigService(
         IPeersQueryService peers,
         IServersQueryService servers,
-        IVpnConfigBuilder builder,
-        IOptions<VpnLinkOptions> linkOptions)
+        IVpnBuildArtifactsService builder)
     {
         _peers = peers;
         _servers = servers;
         _builder = builder;
-        _link = linkOptions.Value;
     }
 
     public async Task<CurrentVpnConfigDto?> GetCurrentConfigAsync(
@@ -37,10 +34,13 @@ public sealed class CurrentVpnConfigService : ICurrentVpnConfigService
         if (server is null)
             throw new InvalidOperationException($"Server '{peer.ServerId}' not found.");
 
-        var configRaw = _builder.Build(peer, server);
+        var configRaw = _builder.BuildConfig(peer, server);
+        var happLink = _builder.BuildHappLink(peer.AgentUuid);
+        var v2RayLink = _builder.BuildV2RayTunDeepLink(peer.AgentUuid);
 
         return new CurrentVpnConfigDto(
             ConfigRaw: configRaw,
-            HappLink: _link.BuildHappLink(peer.AgentUuid.ToString()));
+            HappLink: happLink,
+            v2RayLink);
     }
 }

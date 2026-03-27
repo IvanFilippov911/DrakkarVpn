@@ -10,6 +10,7 @@ public static class StatusVpnConfigApiMapping
             StatusDto: dto.Status,
             ConfigRaw: dto.ConfigRaw,
             HappLink: dto.HappLink,
+            V2rayLink: dto.V2rayLink,
             JobId: dto.JobId,
             PollUrl: dto.PollUrl);
 }
