@@ -42,12 +42,14 @@ public sealed class PeerConfiguration : IEntityTypeConfiguration<Peer>
         b.Property(x => x.TotalRxBytes)
             .IsRequired()
             .HasColumnName("total_rx_bytes")
-            .HasColumnType("bigint");
+            .HasColumnType("bigint")
+            .HasDefaultValue(0L);
 
         b.Property(x => x.TotalTxBytes)
             .IsRequired()
             .HasColumnName("total_tx_bytes")
-            .HasColumnType("bigint");
+            .HasColumnType("bigint")
+            .HasDefaultValue(0L);
 
         b.Property(x => x.VpnLatencyMs)
             .HasColumnName("vpn_latency_ms"); 
@@ -83,7 +85,7 @@ public sealed class PeerConfiguration : IEntityTypeConfiguration<Peer>
         
         b.HasIndex(x => x.DeviceId)
             .IsUnique()
-            .HasFilter("\"status\" = 0")
+            .HasFilter($"\"status\" = {(short)PeerStatus.Active}")
             .HasDatabaseName("ux_peers_device_active");
         
         b.HasIndex(x => new { x.ServerId, x.IsOnline })

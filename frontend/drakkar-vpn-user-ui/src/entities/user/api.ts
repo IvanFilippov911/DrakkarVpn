@@ -27,9 +27,28 @@ export async function connectDevice(
   return data
 }
 
+function normalizeHomeScreenState(raw: string): HomeContextResponse['state'] {
+  const map: Record<string, HomeContextResponse['state']> = {
+    blocked: 'Blocked',
+    deviceLimitExceeded: 'DeviceLimitExceeded',
+    noSubscription: 'NoSubscription',
+    notStarted: 'NotStarted',
+    pending: 'Pending',
+    ready: 'Ready',
+    Blocked: 'Blocked',
+    DeviceLimitExceeded: 'DeviceLimitExceeded',
+    NoSubscription: 'NoSubscription',
+    NotStarted: 'NotStarted',
+    Pending: 'Pending',
+    Ready: 'Ready',
+  }
+  return map[raw] ?? (raw as HomeContextResponse['state'])
+}
+
 export async function getHomeContext(): Promise<HomeContextResponse> {
   const { data } = await apiClient.get<HomeContextResponse>('/api/v1/user/home-context')
-  return data
+  const state = normalizeHomeScreenState(String(data.state))
+  return { ...data, state }
 }
 
 export async function getTariffs(): Promise<TariffDto[]> {

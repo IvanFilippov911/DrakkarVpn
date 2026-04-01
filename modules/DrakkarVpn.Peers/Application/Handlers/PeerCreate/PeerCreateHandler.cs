@@ -190,15 +190,93 @@ public sealed class PeerCreateHandler : IRequestHandler<PeerCreateCommand, Unit>
     {
         if (domainDtos.Count == 0)
             return;
-        
+
         domainDtos = domainDtos
             .GroupBy(x => x.DeviceId, StringComparer.OrdinalIgnoreCase)
             .Select(g => g.Last())
             .ToList();
 
-        var creationResults = await _domain.CreateBatchAsync(domainDtos, nowUtc, ct);
+        IReadOnlyList<PeerCreationResult> creationResults;
+        try
+        {
+            creationResults = await _domain.CreateBatchAsync(domainDtos, nowUtc, ct);
+        }
+        catch (PeerDomainCreateException ex)
+        {
+            _log.LogError(ex,
+                "Domain peer creation failed for {Count} jobs with code {ErrorCode}",
+                domainDtos.Count,
+                ex.ErrorCode);
 
-        foreach (var res in creationResults)
+            foreach (var dto in domainDtos)
+            {
+                if (!jobsById.TryGetValue(dto.JobId, out var snap))
+                    continue;
+
+                if (ex.IsTransient)
+                {
+                    await _jobs.FailOrRescheduleAsync(
+                        jobSnapshot: snap,
+                        errorCode: ex.ErrorCode,
+                        errorMessage: ex.Message,
+                        nowUtc: nowUtc,
+                        backoff: Backoff,
+                        ct: ct);
+                }
+                else
+                {
+                    await _jobs.FailPermanentAsync(
+                        jobSnapshot: snap,
+                        errorCode: ex.ErrorCode,
+                        errorMessage: ex.Message,
+                        nowUtc: nowUtc,
+                        ct: ct);
+                }
+            }
+            return;
+        }
+        catch (Exception ex)
+        {
+            _log.LogError(ex, "Domain peer creation crashed for {Count} jobs", domainDtos.Count);
+
+            foreach (var dto in domainDtos)
+            {
+                if (!jobsById.TryGetValue(dto.JobId, out var snap))
+                    continue;
+
+                await _jobs.FailOrRescheduleAsync(
+                    jobSnapshot: snap,
+                    errorCode: PeerProvisionErrorCodes.DomainPeerCreationFailed,
+                    errorMessage: ex.Message,
+                    nowUtc: nowUtc,
+                    backoff: Backoff,
+                    ct: ct);
+            }
+            return;
+        }
+
+        var resultsByJobId = creationResults
+            .GroupBy(x => x.JobId)
+            .ToDictionary(g => g.Key, g => g.Last());
+
+        foreach (var dto in domainDtos)
+        {
+            if (resultsByJobId.ContainsKey(dto.JobId))
+                continue;
+
+            if (!jobsById.TryGetValue(dto.JobId, out var snap))
+                continue;
+
+            await _jobs.FailOrRescheduleAsync(
+                jobSnapshot: snap,
+                errorCode: PeerProvisionErrorCodes.DomainPeerCreationFailed,
+                errorMessage: "Domain result missing",
+                nowUtc: nowUtc,
+                backoff: Backoff,
+                ct: ct);
+        }
+
+        foreach (var res in resultsByJobId.Values)
         {
             if (!jobsById.TryGetValue(res.JobId, out var snap))
             {
@@ -213,7 +291,7 @@ public sealed class PeerCreateHandler : IRequestHandler<PeerCreateCommand, Unit>
                     peerId: res.PeerId!.Value,
                     nowUtc: nowUtc,
                     ct: ct);
-                
+
                 await _deviceLifecycleService.ActivateAsync(snap.DeviceId, ct);
                 continue;
             }

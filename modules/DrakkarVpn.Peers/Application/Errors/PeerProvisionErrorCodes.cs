@@ -16,6 +16,9 @@ public static class PeerProvisionErrorCodes
     public const string JobCheckpointWriteFailed = "JobCheckpointWriteFailed";
     public const string JobCheckpointInvalid     = "JobCheckpointInvalid";
     public const string DomainPeerCreationFailed = "DomainPeerCreationFailed";
+    public const string DomainDbConflictTargetMismatch = "DomainDbConflictTargetMismatch";
+    public const string DomainDbUniqueViolation = "DomainDbUniqueViolation";
+    public const string DomainDbWriteFailed = "DomainDbWriteFailed";
     
     public const string AgentApplyFailed = "AgentApplyFailed";
     

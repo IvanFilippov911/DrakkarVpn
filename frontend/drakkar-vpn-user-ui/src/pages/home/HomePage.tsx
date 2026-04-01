@@ -1,5 +1,5 @@
 import { isAxiosError } from 'axios'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCurrentConfig, useHomeContext, useProvisionPolling } from '../../entities/user'
 import { useStartProvision } from '../../features/user'
@@ -9,6 +9,10 @@ import { IconBlocked, IconPending } from '../../shared/ui/icons/homeStateIcons'
 import { HOME_PRESENTATION } from './homePresentation'
 
 type ReadyCtaError = 'maintenance' | 'session'
+type ProvisionFailure = {
+  errorCode?: string | null
+  errorMessage?: string | null
+}
 type IosClientFallback = {
   v2rayLink: string | null
   configRaw: string | null
@@ -26,12 +30,27 @@ export function HomePage() {
   const [isLaunchingHapp, setIsLaunchingHapp] = useState(false)
   const [readyCtaError, setReadyCtaError] = useState<ReadyCtaError | null>(null)
   const [iosFallback, setIosFallback] = useState<IosClientFallback | null>(null)
+  const [provisionFailure, setProvisionFailure] = useState<ProvisionFailure | null>(null)
 
   const state = home.data?.state
   const view = state != null ? HOME_PRESENTATION[state] : null
 
   const jobId = home.data?.pendingProvisionJobId
-  useProvisionPolling(state === 'Pending' && jobId ? jobId : null)
+  const provisionPolling = useProvisionPolling(state === 'Pending' && jobId ? jobId : null)
+
+  useEffect(() => {
+    if (provisionPolling.data?.status !== 'Failed') return
+    setProvisionFailure({
+      errorCode: provisionPolling.data.errorCode,
+      errorMessage: provisionPolling.data.errorMessage,
+    })
+  }, [provisionPolling.data])
+
+  useEffect(() => {
+    if (state === 'Ready') {
+      setProvisionFailure(null)
+    }
+  }, [state])
 
   const platform = window.Telegram?.WebApp?.platform?.toLowerCase() ?? ''
   const isIos = platform.includes('ios') || platform.includes('iphone') || platform.includes('ipad')
@@ -181,6 +200,51 @@ export function HomePage() {
 
   if (!view || state == null) {
     return null
+  }
+
+  if (provisionFailure) {
+    const copy = getProvisionFailureCopy(provisionFailure.errorCode, provisionFailure.errorMessage)
+    const handleRetryProvision = () => {
+      setProvisionFailure(null)
+      startProvision.mutate()
+    }
+
+    return (
+      <AppContainer>
+        <header className="px-6 pt-6 pb-4">
+          <StatusIndicator tone="blocked" label="ошибка подготовки" />
+        </header>
+        <main className="flex flex-1 flex-col items-center justify-center px-6 pb-8">
+          <div className="flex flex-1 flex-col items-center justify-center">
+            <BrandBlock />
+            <div className="h-20 shrink-0" aria-hidden />
+            <StateCard
+              variant="error"
+              title={copy.title}
+              subtitle={copy.subtitle}
+              icon={<IconBlocked />}
+            />
+          </div>
+        </main>
+        <footer className="ui-safe-bottom space-y-3 px-6 pt-4">
+          <PrimaryButton
+            type="button"
+            onClick={handleRetryProvision}
+            disabled={startProvision.isPending}
+          >
+            Повторить подключение
+          </PrimaryButton>
+          <PrimaryButton
+            type="button"
+            className="bg-[var(--surface-2)] text-[var(--foreground)] hover:bg-[var(--surface-3)]"
+            onClick={() => setProvisionFailure(null)}
+            disabled={startProvision.isPending}
+          >
+            Назад
+          </PrimaryButton>
+        </footer>
+      </AppContainer>
+    )
   }
 
   if (iosFallback) {
@@ -426,7 +490,7 @@ export function HomePage() {
 function toStatusTone(state: keyof typeof HOME_PRESENTATION) {
   if (state === 'Ready') return 'ready'
   if (state === 'Pending') return 'pending'
-  if (state === 'Blocked') return 'blocked'
+  if (state === 'Blocked' || state === 'DeviceLimitExceeded') return 'blocked'
   return 'inactive'
 }
 
@@ -434,6 +498,35 @@ function toStatusLabel(state: keyof typeof HOME_PRESENTATION) {
   if (state === 'Ready') return 'готово'
   if (state === 'Pending') return 'подготовка'
   if (state === 'Blocked') return 'ограничено'
+  if (state === 'DeviceLimitExceeded') return 'лимит устройств'
   if (state === 'NotStarted') return 'не запущено'
   return 'без подписки'
+}
+
+function getProvisionFailureCopy(errorCode?: string | null, errorMessage?: string | null) {
+  if (errorCode === 'DomainDbConflictTargetMismatch') {
+    return {
+      title: 'Ошибка конфигурации сервера',
+      subtitle: 'Мы уже получили уведомление. Попробуйте снова через несколько минут.',
+    }
+  }
+  if (errorCode === 'DomainDbUniqueViolation') {
+    return {
+      title: 'Конфигурация уже существует',
+      subtitle: 'Повторите попытку: сервер синхронизирует состояние устройства.',
+    }
+  }
+  if (errorCode === 'DomainDbWriteFailed' || errorCode === 'AgentApplyFailed') {
+    return {
+      title: 'Сервер временно недоступен',
+      subtitle: 'Не удалось завершить подготовку конфигурации. Попробуйте снова.',
+    }
+  }
+  return {
+    title: 'Не удалось подготовить VPN',
+    subtitle:
+      errorMessage && errorMessage.trim().length > 0
+        ? errorMessage
+        : 'Попробуйте повторить подключение через несколько секунд.',
+  }
 }

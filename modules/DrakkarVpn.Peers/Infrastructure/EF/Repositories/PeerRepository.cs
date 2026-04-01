@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq.Expressions;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.DTOs;
+using DrakkarVpn.Core.Api.Modules.Peers.Application.Errors;
 using DrakkarVpn.Core.Api.Modules.Peers.Domain;
 using DrakkarVpn.Core.Api.Modules.Peers.Infrastructure.EF;
 using DrakkarVpn.Core.Api.Modules.Users.Domain;
@@ -15,6 +16,7 @@ namespace DrakkarVpn.Peers.Infrastructure.EF.Repositories;
 public sealed class PeerRepository : IPeerRepository
 {
     private readonly PeerDbContext _db;
+    private const short ActiveStatus = (short)PeerStatus.Active;
     public PeerRepository(PeerDbContext db) => _db = db;
 
     public Task<Peer?> GetByIdAsync(Guid id, CancellationToken ct) =>
@@ -328,6 +330,8 @@ public sealed class PeerRepository : IPeerRepository
         var statuses     = new short[peers.Count];
         var createdAtUtc = new DateTime[peers.Count];
         var statusAtUtc  = new DateTime[peers.Count];
+        var totalRxBytes = new long[peers.Count];
+        var totalTxBytes = new long[peers.Count];
 
         var i = 0;
         foreach (var p in peers)
@@ -339,20 +343,33 @@ public sealed class PeerRepository : IPeerRepository
             statuses[i]   = (short)p.Status;
             createdAtUtc[i] = p.CreatedAt;
             statusAtUtc[i]  = p.StatusUpdatedAtUtc;
+            totalRxBytes[i] = p.TotalRxBytes;
+            totalTxBytes[i] = p.TotalTxBytes;
             i++;
         }
-
-        const string sql = """
-            INSERT INTO peers (
+        
+        var sql = $"""
+            INSERT INTO peers.peers (
                 id,
                 server_id,
                 agent_peer_uuid,
                 device_id,
                 status,
                 created_at,
-                status_updated_at_utc
+                status_updated_at_utc,
+                total_rx_bytes,
+                total_tx_bytes
             )
-            SELECT *
+            SELECT
+                t.id,
+                t.server_id,
+                t.agent_peer_uuid,
+                t.device_id,
+                t.status,
+                t.created_at,
+                t.status_updated_at_utc,
+                t.total_rx_bytes,
+                t.total_tx_bytes
             FROM UNNEST(
                 @ids::uuid[],
                 @server_ids::uuid[],
@@ -360,7 +377,9 @@ public sealed class PeerRepository : IPeerRepository
                 @device_ids::text[],
                 @statuses::smallint[],
                 @created_at::timestamptz[],
-                @status_at::timestamptz[]
+                @status_at::timestamptz[],
+                @total_rx_bytes::bigint[],
+                @total_tx_bytes::bigint[]
             ) AS t(
                 id,
                 server_id,
@@ -368,25 +387,70 @@ public sealed class PeerRepository : IPeerRepository
                 device_id,
                 status,
                 created_at,
-                status_updated_at_utc
+                status_updated_at_utc,
+                total_rx_bytes,
+                total_tx_bytes
             )
-            ON CONFLICT (device_id) DO NOTHING;
+            ON CONFLICT (device_id) WHERE status = {ActiveStatus} DO NOTHING;
             """;
 
-        await using var conn = (NpgsqlConnection)_db.Database.GetDbConnection();
-        if (conn.State != ConnectionState.Open)
+        var conn = (NpgsqlConnection)_db.Database.GetDbConnection();
+        var shouldClose = conn.State != ConnectionState.Open;
+        if (shouldClose)
             await conn.OpenAsync(ct);
 
-        await using var cmd = new NpgsqlCommand(sql, conn);
+        try
+        {
+            await using var cmd = new NpgsqlCommand(sql, conn);
 
-        cmd.Parameters.AddWithValue("ids", ids);
-        cmd.Parameters.AddWithValue("server_ids", serverIds);
-        cmd.Parameters.AddWithValue("agent_peer_uuids", agentUuids);
-        cmd.Parameters.AddWithValue("device_ids", deviceIds);
-        cmd.Parameters.AddWithValue("statuses", statuses);
-        cmd.Parameters.AddWithValue("created_at", createdAtUtc);
-        cmd.Parameters.AddWithValue("status_at", statusAtUtc);
+            cmd.Parameters.AddWithValue("ids", ids);
+            cmd.Parameters.AddWithValue("server_ids", serverIds);
+            cmd.Parameters.AddWithValue("agent_peer_uuids", agentUuids);
+            cmd.Parameters.AddWithValue("device_ids", deviceIds);
+            cmd.Parameters.AddWithValue("statuses", statuses);
+            cmd.Parameters.AddWithValue("created_at", createdAtUtc);
+            cmd.Parameters.AddWithValue("status_at", statusAtUtc);
+            cmd.Parameters.AddWithValue("total_rx_bytes", totalRxBytes);
+            cmd.Parameters.AddWithValue("total_tx_bytes", totalTxBytes);
 
-        await cmd.ExecuteNonQueryAsync(ct);
+            await cmd.ExecuteNonQueryAsync(ct);
+        }
+        catch (PostgresException ex) when (ex.SqlState == "42P10")
+        {
+            throw new PeerDomainCreateException(
+                errorCode: PeerProvisionErrorCodes.DomainDbConflictTargetMismatch,
+                message: "Peer bulk insert ON CONFLICT target does not match DB unique index.",
+                isTransient: false,
+                innerException: ex);
+        }
+        catch (PostgresException ex) when (ex.SqlState == "23505")
+        {
+            throw new PeerDomainCreateException(
+                errorCode: PeerProvisionErrorCodes.DomainDbUniqueViolation,
+                message: "Peer bulk insert failed due to unique constraint violation.",
+                isTransient: false,
+                innerException: ex);
+        }
+        catch (PostgresException ex)
+        {
+            throw new PeerDomainCreateException(
+                errorCode: PeerProvisionErrorCodes.DomainDbWriteFailed,
+                message: "Peer bulk insert failed due to a database error.",
+                isTransient: true,
+                innerException: ex);
+        }
+        catch (NpgsqlException ex)
+        {
+            throw new PeerDomainCreateException(
+                errorCode: PeerProvisionErrorCodes.DomainDbWriteFailed,
+                message: "Peer bulk insert failed due to PostgreSQL transport error.",
+                isTransient: true,
+                innerException: ex);
+        }
+        finally
+        {
+            if (shouldClose && conn.State == ConnectionState.Open)
+                await conn.CloseAsync();
+        }
     }
 }

@@ -1,6 +1,7 @@
 /** Matches `HomeScreenStateDto` (JSON string enum). */
 export type HomeScreenState =
   | 'Blocked'
+  | 'DeviceLimitExceeded'
   | 'NoSubscription'
   | 'NotStarted'
   | 'Pending'

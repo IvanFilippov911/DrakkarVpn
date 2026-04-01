@@ -42,8 +42,8 @@ public sealed class XrayPeerGrpcClient : IXrayPeerClient
         var vless = new Account
         {
             Id = peerUuid.ToString(),
-            Flow = "",
-            Encryption = "",
+            Flow = _options.VlessFlow,
+            Encryption = _options.VlessEncryption,
             XorMode = 0,
             Seconds = 0,
             Padding = ""

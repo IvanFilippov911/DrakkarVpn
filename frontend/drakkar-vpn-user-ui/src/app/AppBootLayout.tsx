@@ -1,7 +1,13 @@
-import { useCallback, useEffect, useState } from 'react'
+import { isAxiosError } from 'axios'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { Outlet } from 'react-router-dom'
+import { getHomeContext } from '../entities/user/api'
+import { userQueryKeys } from '../entities/user/queryKeys'
 import { useConnectDevice, useRegister } from '../features/user'
+import { setAccessToken } from '../shared/api/client'
 import { IconBlocked, IconPending } from '../shared/ui/icons/homeStateIcons'
+import { getStoredAccessToken, clearStoredAccessToken } from '../shared/lib/authTokenStorage'
 import { getStoredDeviceId } from '../shared/lib/deviceIdStorage'
 import { initTelegramChrome, readTelegramBootContext } from '../shared/lib/telegramContext'
 import { AppContainer, BrandBlock, PrimaryButton, StateCard, StatusIndicator } from '../shared/ui'
@@ -9,16 +15,30 @@ import { AppContainer, BrandBlock, PrimaryButton, StateCard, StatusIndicator } f
 type BootPhase = 'running' | 'ready' | 'error'
 
 export function AppBootLayout() {
+  const queryClient = useQueryClient()
+  const queryClientRef = useRef(queryClient)
   const [phase, setPhase] = useState<BootPhase>('running')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [bootAttempt, setBootAttempt] = useState(0)
+  const bootGenRef = useRef(0)
 
   const { mutateAsync: registerAsync } = useRegister()
   const { mutateAsync: connectAsync } = useConnectDevice()
 
+  const registerAsyncRef = useRef(registerAsync)
+  const connectAsyncRef = useRef(connectAsync)
+
+  useEffect(() => {
+    registerAsyncRef.current = registerAsync
+    connectAsyncRef.current = connectAsync
+  }, [registerAsync, connectAsync])
+
+  useEffect(() => {
+    queryClientRef.current = queryClient
+  }, [queryClient])
+
   const waitForTelegramWebApp = async (timeoutMs: number): Promise<boolean> => {
     const start = Date.now()
-    // window.Telegram.WebApp иногда появляется чуть позже инициализации React.
     while (Date.now() - start < timeoutMs) {
       if (window.Telegram?.WebApp) return true
       await new Promise((r) => window.setTimeout(r, 50))
@@ -26,47 +46,75 @@ export function AppBootLayout() {
     return Boolean(window.Telegram?.WebApp)
   }
 
-  const runBoot = useCallback(async () => {
-    setPhase('running')
-    setErrorMessage(null)
-    initTelegramChrome()
-
-    await waitForTelegramWebApp(2000)
-    // На всякий случай ещё раз активируем ready/expand.
-    initTelegramChrome()
-
-    const ctx = readTelegramBootContext()
-    if (!ctx.ok) {
-      setErrorMessage(ctx.message)
-      setPhase('error')
-      return
-    }
-
-    try {
-      await registerAsync({ telegramId: ctx.telegramId })
-      await connectAsync({
-        initData: ctx.initData,
-        deviceName: typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 120) : undefined,
-        platform: ctx.platform ?? 'telegram_webapp',
-        existingDeviceId: getStoredDeviceId() ?? undefined,
-      })
-      setPhase('ready')
-    } catch {
-      setErrorMessage('Не удалось подключиться. Проверьте сеть и попробуйте снова.')
-      setPhase('error')
-    }
-  }, [connectAsync, registerAsync])
+  const handleRetry = useCallback(() => {
+    setBootAttempt((n) => n + 1)
+  }, [])
 
   useEffect(() => {
-    const id = window.setTimeout(() => {
-      void runBoot()
-    }, 0)
-    return () => window.clearTimeout(id)
-  }, [runBoot, bootAttempt])
+    const gen = ++bootGenRef.current
 
-  const handleRetry = () => {
-    setBootAttempt((n) => n + 1)
-  }
+    const runBoot = async () => {
+      setPhase('running')
+      setErrorMessage(null)
+
+      const existingToken = getStoredAccessToken()
+      if (existingToken) {
+        setAccessToken(existingToken)
+        try {
+          const home = await getHomeContext()
+          if (gen !== bootGenRef.current) return
+          queryClientRef.current.setQueryData(userQueryKeys.homeContext, home)
+          initTelegramChrome()
+          setPhase('ready')
+          return
+        } catch (err) {
+          if (gen !== bootGenRef.current) return
+          if (
+            isAxiosError(err) &&
+            (err.response?.status === 401 || err.response?.status === 403)
+          ) {
+            clearStoredAccessToken()
+            setAccessToken(null)
+          }
+        }
+      }
+
+      initTelegramChrome()
+
+      let ctx = readTelegramBootContext()
+      if (!ctx.ok) {
+        await waitForTelegramWebApp(2000)
+        initTelegramChrome()
+        ctx = readTelegramBootContext()
+      }
+
+      if (!ctx.ok) {
+        if (gen !== bootGenRef.current) return
+        setErrorMessage(ctx.message)
+        setPhase('error')
+        return
+      }
+
+      try {
+        await registerAsyncRef.current({ telegramId: ctx.telegramId })
+        if (gen !== bootGenRef.current) return
+        await connectAsyncRef.current({
+          initData: ctx.initData,
+          deviceName: typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 120) : undefined,
+          platform: ctx.platform ?? 'telegram_webapp',
+          existingDeviceId: getStoredDeviceId() ?? undefined,
+        })
+        if (gen !== bootGenRef.current) return
+        setPhase('ready')
+      } catch {
+        if (gen !== bootGenRef.current) return
+        setErrorMessage('Не удалось подключиться. Проверьте сеть и попробуйте снова.')
+        setPhase('error')
+      }
+    }
+
+    void runBoot()
+  }, [bootAttempt])
 
   if (phase === 'error' && errorMessage) {
     return (

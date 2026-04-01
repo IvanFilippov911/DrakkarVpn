@@ -20,7 +20,7 @@ public sealed class DeviceRepository : IDeviceRepository
             .FirstOrDefaultAsync(d => d.DeviceId == deviceId, ct);
 
     public Task<bool> OwnsAsync(Guid userId, string deviceId, CancellationToken ct) =>
-        _db.Set<Device>().AnyAsync(d => d.DeviceId == deviceId && d.UserId == userId && d.Status == DeviceStatus.Active, ct);
+        _db.Set<Device>().AnyAsync(d => d.DeviceId == deviceId && d.UserId == userId && d.Status != DeviceStatus.Revoked, ct);
 
     public async Task AddAsync(Device device, CancellationToken ct) =>
         await _db.Set<Device>().AddAsync(device, ct);
@@ -32,7 +32,7 @@ public sealed class DeviceRepository : IDeviceRepository
         var nowUtc = DateTime.UtcNow;
 
         await _db.Set<Device>()
-            .Where(d => d.DeviceId == deviceId && d.Status == DeviceStatus.Active)
+            .Where(d => d.DeviceId == deviceId && d.Status != DeviceStatus.Revoked)
             .ExecuteUpdateAsync(up => up
                     .SetProperty(d => d.LastSeen, nowUtc)
                     .SetProperty(d => d.Name,    d => name    != null ? name    : d.Name)

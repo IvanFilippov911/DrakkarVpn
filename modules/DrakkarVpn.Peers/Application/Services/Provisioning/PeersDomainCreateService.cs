@@ -1,5 +1,6 @@
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.DTOs.ProvisionPeers;
+using DrakkarVpn.Core.Api.Modules.Peers.Application.Errors;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Validation;
 using DrakkarVpn.Core.Api.Modules.Peers.Domain;
 using Microsoft.Extensions.Logging;
@@ -57,9 +58,18 @@ public sealed class PeersDomainCreateService : IPeersDomainCreateService
             {
                 await _peerRepo.CreateManyIgnoreConflictsAsync(toInsert, ct);
             }
+            catch (PeerDomainCreateException ex)
+            {
+                _log.LogError(ex,
+                    "CreateManyIgnoreConflictsAsync failed for {Count} peers with code {ErrorCode}",
+                    toInsert.Count,
+                    ex.ErrorCode);
+                throw;
+            }
             catch (Exception ex)
             {
                 _log.LogError(ex, "CreateManyIgnoreConflictsAsync failed for {Count} peers", toInsert.Count);
+                throw;
             }
         }
         

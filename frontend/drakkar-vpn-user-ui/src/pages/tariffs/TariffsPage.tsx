@@ -29,24 +29,22 @@ export function TariffsPage() {
   const list = tariffsQuery.data ?? []
   const isEmpty = !tariffsQuery.isPending && !tariffsQuery.isError && list.length === 0
 
-  const handlePurchase = () => {
+  const handlePurchase = async () => {
     if (telegramId == null || selectedId == null) return
     const t = list.find((x) => x.id === selectedId)
     if (!t) return
 
-    purchase.mutate(
-      {
+    try {
+      await purchase.mutateAsync({
         telegramId,
         tariffId: selectedId,
         devicesCount: t.defaultMaxDevices,
         requestId: crypto.randomUUID(),
-      },
-      {
-        onSuccess: () => {
-          navigate('/')
-        },
-      },
-    )
+      })
+      navigate('/')
+    } catch {
+      /* см. purchase.isError при необходимости */
+    }
   }
 
   const buyDisabled =

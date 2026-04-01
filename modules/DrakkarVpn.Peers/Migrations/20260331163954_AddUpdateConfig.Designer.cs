@@ -3,17 +3,20 @@ using System;
 using DrakkarVpn.Core.Api.Modules.Peers.Infrastructure.EF;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace DrakkarVpn.Peers.Infrastructure.EF.Migrations
+namespace DrakkarVpn.Peers.Migrations
 {
     [DbContext(typeof(PeerDbContext))]
-    partial class PeerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260331163954_AddUpdateConfig")]
+    partial class AddUpdateConfig
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -294,7 +297,7 @@ namespace DrakkarVpn.Peers.Infrastructure.EF.Migrations
                     b.HasIndex("DeviceId")
                         .IsUnique()
                         .HasDatabaseName("ux_peer_provision_jobs_device_active")
-                        .HasFilter("\"State\" <> 3 AND \"State\" <> 2");
+                        .HasFilter("\"State\" <> 3");
 
                     b.HasIndex("PeerId", "AgentAppliedAtUtc");
 

@@ -26,7 +26,28 @@ export type TelegramBootErr = {
 
 export type TelegramBootResult = TelegramBootOk | TelegramBootErr
 
+function devTelegramBypassEnabled(): boolean {
+  return import.meta.env.DEV && import.meta.env.VITE_TELEGRAM_DEV_BYPASS === 'true'
+}
+
+function devBypassTelegramId(): number {
+  const raw = import.meta.env.VITE_DEV_TELEGRAM_ID
+  const n = raw != null && String(raw).trim() !== '' ? Number(raw) : NaN
+  return Number.isFinite(n) && n > 0 ? Math.trunc(n) : 7
+}
+
 export function readTelegramBootContext(): TelegramBootResult {
+  if (devTelegramBypassEnabled()) {
+    const telegramId = devBypassTelegramId()
+    const initData = `dev=1&auth_date=${Math.floor(Date.now() / 1000)}&user=${encodeURIComponent(JSON.stringify({ id: telegramId }))}`
+    return {
+      ok: true,
+      initData,
+      telegramId,
+      platform: 'telegram_webapp',
+    }
+  }
+
   const tw = window.Telegram?.WebApp
   if (!tw) {
     return { ok: false, message: 'Откройте приложение внутри Telegram.' }
@@ -57,6 +78,9 @@ export function initTelegramChrome(): void {
 
 /** Telegram user id из WebApp (после успешного boot совпадает с контекстом покупки). */
 export function getTelegramUserId(): number | undefined {
+  if (devTelegramBypassEnabled()) {
+    return devBypassTelegramId()
+  }
   const id = window.Telegram?.WebApp?.initDataUnsafe?.user?.id
   if (id == null || id <= 0) return undefined
   return id

@@ -18,6 +18,7 @@ using DrakkarVpn.Users.Infrastructure.EF.Repositories.ReadRepositories;
 using DrakkarVpn.Users.Infrastructure.Extensions;
 using DrakkarVpn.Users.Infrastructure.Repositories;
 using DrakkarVpn.Users.Infrastructure.Repositories.ReadRepositories;
+using DrakkarVpn.Users.Infrastructure.Telegram;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,7 +46,10 @@ public static class Entry
         services.AddScoped<IDeviceLifecycleService, DeviceLifecycleService>();
         
         services.AddScoped<IDeviceIdGenerator, DeviceIdGenerator>();
-        services.AddScoped<ITelegramInitDataValidator, TelegramInitDataValidator>();
+        if (configuration.GetValue("Auth:BypassTelegramInitData", false))
+            services.AddScoped<ITelegramInitDataValidator, DevBypassTelegramValidator>();
+        else
+            services.AddScoped<ITelegramInitDataValidator, TelegramInitDataValidator>();
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddSingleton<IReplayStore, InMemoryReplayStore>();
         services.AddJwtAuth(configuration);

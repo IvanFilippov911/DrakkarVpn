@@ -27,6 +27,14 @@ export const HOME_PRESENTATION: Record<HomeScreenState, HomePresentation> = {
     icon: <IconBlocked />,
     primaryCtaLabel: null,
   },
+  DeviceLimitExceeded: {
+    variant: 'error',
+    title: 'Лимит устройств',
+    subtitle:
+      'Для вашей подписки достигнуто максимальное число устройств. Отключите другое устройство или смените тариф.',
+    icon: <IconBlocked />,
+    primaryCtaLabel: null,
+  },
   NoSubscription: {
     variant: 'default',
     title: 'Нет активной подписки',

@@ -41,7 +41,7 @@ public sealed class PeerProvisionJobConfig : IEntityTypeConfiguration<PeerProvis
         b.HasIndex(x => x.DeviceId)
             .IsUnique()
             .HasDatabaseName("ux_peer_provision_jobs_device_active")
-            .HasFilter($@"""State"" <> {(short)PeerProvisionState.Failed}");
+            .HasFilter($@"""State"" <> {(short)PeerProvisionState.Failed} AND ""State"" <> {(short)PeerProvisionState.Ready}");
 
         b.HasIndex(x => new { x.State, x.NextAttemptAtUtc })
             .HasDatabaseName("ix_peer_provision_jobs_state_next");
