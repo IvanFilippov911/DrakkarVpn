@@ -9,6 +9,8 @@ public static class StatusVpnConfigApiMapping
         new(
             StatusDto: dto.Status,
             ConfigRaw: dto.ConfigRaw,
+            ConfigVless: dto.ConfigVless,
+            ConfigUrl: dto.ConfigUrl,
             HappLink: dto.HappLink,
             V2rayLink: dto.V2rayLink,
             JobId: dto.JobId,

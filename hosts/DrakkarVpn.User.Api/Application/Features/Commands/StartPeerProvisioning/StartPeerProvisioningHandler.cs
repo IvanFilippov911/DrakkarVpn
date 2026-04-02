@@ -29,7 +29,12 @@ public sealed class StartPeerProvisioningHandler
 
         var config = await _current.GetCurrentConfigAsync(access, ct);
         if (config is not null)
-            return StatusVpnConfigDto.Ready(config.ConfigRaw, config.HappLink,  config.V2rayLink);
+            return StatusVpnConfigDto.Ready(
+                config.ConfigRaw,
+                config.ConfigVless,
+                config.ConfigUrl,
+                config.HappLink,
+                config.V2rayLink);
 
         var jobId = await _provision.StartVpnConfigProvisioningAsync(access, ct);
 

@@ -15,7 +15,8 @@ type ProvisionFailure = {
 }
 type IosClientFallback = {
   v2rayLink: string | null
-  configRaw: string | null
+  /** HTTPS link to import full JSON config (preferred for clipboard). */
+  configUrl: string | null
   copied: boolean
 }
 
@@ -63,7 +64,7 @@ export function HomePage() {
         if (isIos) {
           setIosFallback((prev) => ({
             v2rayLink: link,
-            configRaw: prev?.configRaw ?? null,
+            configUrl: prev?.configUrl ?? null,
             copied: prev?.copied ?? false,
           }))
         } else {
@@ -91,20 +92,20 @@ export function HomePage() {
       void fetchCurrentConfig()
         .then((result) => {
           const link = isIos ? result.data?.v2rayLink : result.data?.happLink
-          const configRaw = result.data?.configRaw ?? null
+          const configUrl = result.data?.configUrl ?? null
           if (link) {
             if (isIos) {
               setIosFallback((prev) => ({
                 v2rayLink: link,
-                configRaw,
+                configUrl,
                 copied: prev?.copied ?? false,
               }))
             }
             void launchHapp(link)
             return
           }
-          if (isIos && configRaw) {
-            setIosFallback({ v2rayLink: null, configRaw, copied: false })
+          if (isIos && configUrl) {
+            setIosFallback({ v2rayLink: null, configUrl, copied: false })
             return
           }
           setReadyCtaError('maintenance')
@@ -251,9 +252,9 @@ export function HomePage() {
     const installUrl = getHappInstallUrl(window.Telegram?.WebApp?.platform)
 
     const handleCopy = async () => {
-      if (!iosFallback.configRaw) return
+      if (!iosFallback.configUrl) return
       try {
-        await navigator.clipboard.writeText(iosFallback.configRaw)
+        await navigator.clipboard.writeText(iosFallback.configUrl)
         setIosFallback({ ...iosFallback, copied: true })
       } catch {
         // Clipboard may be unavailable in some webviews.
@@ -274,8 +275,8 @@ export function HomePage() {
               title="Установите v2RayTun"
               subtitle={
                 iosFallback.copied
-                  ? 'Конфиг скопирован. Откройте v2RayTun и добавьте конфигурацию из буфера.'
-                  : 'Если ссылка не открывается, установите v2RayTun и добавьте конфигурацию вручную.'
+                  ? 'Ссылка скопирована. В v2RayTun добавьте конфиг по URL из буфера обмена.'
+                  : 'Если ссылка не открывается, установите v2RayTun и импортируйте конфиг по скопированной HTTPS-ссылке.'
               }
               icon={<IconPending />}
             />
@@ -288,13 +289,13 @@ export function HomePage() {
           >
             Установить v2RayTun
           </PrimaryButton>
-          {iosFallback.configRaw ? (
+          {iosFallback.configUrl ? (
             <PrimaryButton
               type="button"
               className="bg-[var(--surface-2)] text-[var(--foreground)] hover:bg-[var(--surface-3)]"
               onClick={() => void handleCopy()}
             >
-              {iosFallback.copied ? 'Скопировано' : 'Скопировать конфиг'}
+              {iosFallback.copied ? 'Скопировано' : 'Скопировать ссылку на конфиг'}
             </PrimaryButton>
           ) : null}
           {iosFallback.v2rayLink ? (
@@ -335,20 +336,20 @@ export function HomePage() {
       void fetchCurrentConfig()
         .then((result) => {
           const link = isIos ? result.data?.v2rayLink : result.data?.happLink
-          const configRaw = result.data?.configRaw ?? null
+          const configUrl = result.data?.configUrl ?? null
           if (link) {
             if (isIos) {
               setIosFallback((prev) => ({
                 v2rayLink: link,
-                configRaw,
+                configUrl,
                 copied: prev?.copied ?? false,
               }))
             }
             void launchHapp(link)
             return
           }
-          if (isIos && configRaw) {
-            setIosFallback({ v2rayLink: null, configRaw, copied: false })
+          if (isIos && configUrl) {
+            setIosFallback({ v2rayLink: null, configUrl, copied: false })
             return
           }
           setReadyCtaError('maintenance')

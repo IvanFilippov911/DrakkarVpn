@@ -81,7 +81,11 @@ export type PurchaseResponse = {
  */
 export type VpnConfigResponse = {
   statusDto: VpnConfigStatus
+  /** Full Xray client JSON (same as GET configUrl). */
   configRaw?: string | null
+  configVless?: string | null
+  /** HTTPS URL that returns full Xray JSON. */
+  configUrl?: string | null
   happLink?: string | null
   v2rayLink?: string | null
   jobId?: string | null

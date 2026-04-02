@@ -1,8 +1,6 @@
 using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Abstractions;
-using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Options;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
-using Microsoft.Extensions.Options;
 
 namespace DrakkarVpn.Core.Api.Application.Services;
 
@@ -34,13 +32,17 @@ public sealed class CurrentVpnConfigService : ICurrentVpnConfigService
         if (server is null)
             throw new InvalidOperationException($"Server '{peer.ServerId}' not found.");
 
-        var configRaw = _builder.BuildVlessLink(peer, server);
+        var configRaw = _builder.BuildXrayClientConfig(peer, server);
+        var configVless = _builder.BuildVlessLink(peer, server);
+        var configUrl = _builder.BuildPeerConfigAccessUrl(peer.AgentUuid);
         var happLink = _builder.BuildHappLink(peer.AgentUuid);
         var v2RayLink = _builder.BuildV2RayTunDeepLink(peer.AgentUuid);
 
         return new CurrentVpnConfigDto(
             ConfigRaw: configRaw,
+            ConfigVless: configVless,
+            ConfigUrl: configUrl,
             HappLink: happLink,
-            v2RayLink);
+            V2rayLink: v2RayLink);
     }
 }

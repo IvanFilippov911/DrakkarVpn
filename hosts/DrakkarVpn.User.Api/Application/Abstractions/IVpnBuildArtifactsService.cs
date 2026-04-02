@@ -14,7 +14,10 @@ public interface IVpnBuildArtifactsService
     
     string BuildV2RayTunDeepLink(Guid peerUuid);
 
-    public string BuildXrayClientConfig(
+    /// <summary>Absolute HTTPS URL for GET full Xray JSON (peer config endpoint).</summary>
+    string BuildPeerConfigAccessUrl(Guid peerUuid);
+
+    string BuildXrayClientConfig(
         PeerDataForConfigDto peer,
         ServerConfigDataDto server);
 }

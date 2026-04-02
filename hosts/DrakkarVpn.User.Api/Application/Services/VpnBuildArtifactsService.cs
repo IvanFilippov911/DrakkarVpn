@@ -36,6 +36,18 @@ public sealed class VpnBuildArtifactsService : IVpnBuildArtifactsService
     
     public string BuildHappLink(Guid peerUuid)
     {
+        var accessUrl = BuildPeerConfigAccessUrl(peerUuid);
+        return $"happ://add/{accessUrl}";
+    }
+    
+    public string BuildV2RayTunDeepLink(Guid peerUuid)
+    {
+        var accessUrl = BuildPeerConfigAccessUrl(peerUuid);
+        return $"v2raytun://import/{Uri.EscapeDataString(accessUrl)}";
+    }
+
+    public string BuildPeerConfigAccessUrl(Guid peerUuid)
+    {
         if (peerUuid == Guid.Empty)
             throw new ArgumentException("Peer UUID is required.", nameof(peerUuid));
 
@@ -44,24 +56,12 @@ public sealed class VpnBuildArtifactsService : IVpnBuildArtifactsService
 
         if (string.IsNullOrWhiteSpace(_linkOptions.PeerConfigPath))
             throw new InvalidOperationException("VpnLinkOptions.PeerConfigPath is required.");
-        
-        var accessUrl = BuildPeerAccessUrl(peerUuid);
-        return $"happ://add/{accessUrl}";
-    }
-    
-    public string BuildV2RayTunDeepLink(Guid peerUuid)
-    {
-        var accessUrl = BuildPeerAccessUrl(peerUuid);
-        return $"v2raytun://import/{Uri.EscapeDataString(accessUrl)}";
-    }
 
-    private string BuildPeerAccessUrl(Guid peerUuid)
-    {
         return
             $"{_linkOptions.PublicBaseUrl.TrimEnd('/')}/" +
             $"{_linkOptions.PeerConfigPath.TrimStart('/')}/{peerUuid}";
     }
-    
+
     public string BuildXrayClientConfig(
     PeerDataForConfigDto peer,
     ServerConfigDataDto server)
