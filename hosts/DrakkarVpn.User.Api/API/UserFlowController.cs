@@ -132,7 +132,7 @@ public sealed class UserFlowController : ControllerBase
     [HttpGet("access/{peerUuid:guid}")] 
     public async Task<IActionResult> GetPeerConfig([FromRoute] Guid peerUuid, CancellationToken ct)
     {
-        var result = await _mediator.Send(new GetPeerByUuidQuery(peerUuid), ct);
+        var result = await _mediator.Send(new GetConfigVpnByUuidQuery(peerUuid), ct);
         if (result is null) return NotFound("Пир не найден");
         return Content(result, "text/plain");
     }

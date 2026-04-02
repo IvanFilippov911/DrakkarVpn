@@ -1,3 +1,5 @@
+using System.Text.Json;
+using DrakkarVpn.Core.Api.Application.DTOs.XrayClientConfig;
 using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Options;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.DTOs;
@@ -15,7 +17,7 @@ public sealed class VpnBuildArtifactsService : IVpnBuildArtifactsService
         _linkOptions = linkOptions.Value;
     }
     
-    public string BuildConfig(
+    public string BuildVlessLink(
         PeerDataForConfigDto peer,
         ServerConfigDataDto server)
     {
@@ -58,5 +60,102 @@ public sealed class VpnBuildArtifactsService : IVpnBuildArtifactsService
         return
             $"{_linkOptions.PublicBaseUrl.TrimEnd('/')}/" +
             $"{_linkOptions.PeerConfigPath.TrimStart('/')}/{peerUuid}";
+    }
+    
+    public string BuildXrayClientConfig(
+    PeerDataForConfigDto peer,
+    ServerConfigDataDto server)
+    {
+        var config = new XrayClientConfigDto
+        {
+            Dns = new DnsDto
+            {
+                Servers = new[] { "1.1.1.1", "8.8.8.8" }
+            },
+            Inbounds = new[]
+            {
+                new InboundDto
+                {
+                    Listen = "127.0.0.1",
+                    Port = 10808,
+                    Protocol = "socks",
+                    Settings = new { auth = "noauth", udp = true },
+                    Sniffing = new SniffingDto
+                    {
+                        DestOverride = new[] { "http", "tls", "quic" },
+                        Enabled = true,
+                        RouteOnly = true
+                    },
+                    Tag = "socks"
+                },
+                new InboundDto
+                {
+                    Listen = "127.0.0.1",
+                    Port = 10809,
+                    Protocol = "http",
+                    Settings = new { allowTransparent = false },
+                    Sniffing = new SniffingDto
+                    {
+                        DestOverride = new[] { "http", "tls", "quic" },
+                        Enabled = true,
+                        RouteOnly = true
+                    },
+                    Tag = "http"
+                }
+            },
+            Outbounds = new[]
+            {
+                new OutboundDto
+                {
+                    Protocol = "vless",
+                    Settings = new
+                    {
+                        vnext = new[]
+                        {
+                            new
+                            {
+                                address = server.PublicHost,
+                                port = server.PublicPort,
+                                users = new[]
+                                {
+                                    new
+                                    {
+                                        id = peer.AgentUuid,
+                                        encryption = "none",
+                                        flow = "xtls-rprx-vision"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    StreamSettings = new StreamSettingsDto
+                    {
+                        RealitySettings = new RealitySettingsDto
+                        {
+                            Fingerprint = "qq",
+                            PublicKey = server.RealityPublicKey,
+                            ServerName = server.RealitySni,
+                            ShortId = server.RealityShortId,
+                            SpiderX = "/"
+                        },
+                        TcpSettings = new TcpSettingsDto
+                        {
+                            Header = new HeaderDto()
+                        }
+                    },
+                    Tag = "proxy"
+                },
+                new OutboundDto { Protocol = "freedom", Tag = "direct", Settings = new { } },
+                new OutboundDto { Protocol = "blackhole", Tag = "block", Settings = new { } }
+            },
+            Remarks = server.Region,
+            Routing = new RoutingDto()
+        };
+
+        return JsonSerializer.Serialize(config, new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true
+        });
     }
 } 

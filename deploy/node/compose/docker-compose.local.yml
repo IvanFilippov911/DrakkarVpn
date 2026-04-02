@@ -1,0 +1,45 @@
+name: drakkar-node-local
+
+services:
+  xray:
+    dns:
+    - 9.9.9.9    
+    - 149.112.112.112
+    image: ghcr.io/xtls/xray-core:latest
+    container_name: drakkar-xray-local
+    restart: unless-stopped
+    ports:
+      - "1443:1443/tcp"
+      - "127.0.0.1:10086:10086/tcp"
+    volumes:
+      - ../configs/xray/config.local.json:/etc/xray/config.json:ro
+      - xray-logs-local:/var/log/xray
+    command: ["run", "-c", "/etc/xray/config.json"]
+    networks:
+      - drakkar-node-net
+
+  agent:
+    platform: linux/amd64
+    build:
+      context: ../../../
+      dockerfile: hosts/DrakkarVpn.Agent/Dockerfile
+    container_name: drakkar-agent-local
+    restart: unless-stopped
+    depends_on:
+      - xray
+    env_file:
+      - ../env/local.env
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:5046
+    ports:
+      - "127.0.0.1:5046:5046"
+    networks:
+      - drakkar-node-net
+
+networks:
+  drakkar-node-net:
+    driver: bridge
+
+volumes:
+  xray-logs-local:

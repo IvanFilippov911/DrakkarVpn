@@ -6,14 +6,14 @@ using MediatR;
 
 namespace DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Queries.GetPeerByUuid;
 
-public sealed class GetPeerByUuidHandler
-    : IRequestHandler<GetPeerByUuidQuery, string?>
+public sealed class GetConfigVpnByUuidHandler
+    : IRequestHandler<GetConfigVpnByUuidQuery, string?>
 {
     private readonly IPeersQueryService _peers;
     private readonly IServersQueryService _servers;
     private readonly IVpnBuildArtifactsService _builder;
 
-    public GetPeerByUuidHandler(
+    public GetConfigVpnByUuidHandler(
         IPeersQueryService peers,
         IServersQueryService servers,
         IVpnBuildArtifactsService builder)
@@ -23,7 +23,7 @@ public sealed class GetPeerByUuidHandler
         _builder = builder;
     }
 
-    public async Task<string?> Handle(GetPeerByUuidQuery q, CancellationToken ct)
+    public async Task<string?> Handle(GetConfigVpnByUuidQuery q, CancellationToken ct)
     {
         var peer = await _peers.GetDataForConfigByAgentUuidAsync(q.PeerUuid, ct);
         if (peer is null)
@@ -33,6 +33,6 @@ public sealed class GetPeerByUuidHandler
         if (server is null)
             throw new InvalidOperationException($"Server '{peer.ServerId}' not found.");
 
-        return _builder.BuildConfig(peer, server);
+        return _builder.BuildXrayClientConfig(peer, server);
     }
 }

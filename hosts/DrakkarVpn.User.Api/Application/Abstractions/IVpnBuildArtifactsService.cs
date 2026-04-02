@@ -6,11 +6,15 @@ namespace DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
 
 public interface IVpnBuildArtifactsService
 {
-    string BuildConfig(
+    string BuildVlessLink(
         PeerDataForConfigDto peer,
         ServerConfigDataDto server);
 
     string BuildHappLink(Guid peerUuid);
     
     string BuildV2RayTunDeepLink(Guid peerUuid);
+
+    public string BuildXrayClientConfig(
+        PeerDataForConfigDto peer,
+        ServerConfigDataDto server);
 }

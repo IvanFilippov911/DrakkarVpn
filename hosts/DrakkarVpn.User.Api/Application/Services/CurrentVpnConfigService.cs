@@ -34,7 +34,7 @@ public sealed class CurrentVpnConfigService : ICurrentVpnConfigService
         if (server is null)
             throw new InvalidOperationException($"Server '{peer.ServerId}' not found.");
 
-        var configRaw = _builder.BuildConfig(peer, server);
+        var configRaw = _builder.BuildVlessLink(peer, server);
         var happLink = _builder.BuildHappLink(peer.AgentUuid);
         var v2RayLink = _builder.BuildV2RayTunDeepLink(peer.AgentUuid);
 
