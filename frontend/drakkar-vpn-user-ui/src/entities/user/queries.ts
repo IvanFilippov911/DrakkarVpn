@@ -1,7 +1,7 @@
 import { isAxiosError } from 'axios'
 import { useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { getCurrentConfig, getHomeContext, getTariffs, pollProvision } from './api'
+import { getCurrentConfig, getHomeContext, getTariffs, getUserSummary, pollProvision } from './api'
 import { userQueryKeys } from './queryKeys'
 
 const READ_RETRY_COUNT = 3
@@ -37,6 +37,18 @@ export function useTariffs(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: userQueryKeys.tariffs,
     queryFn: getTariffs,
+    enabled,
+    retry: READ_RETRY_COUNT,
+    retryDelay: readRetryDelay,
+  })
+}
+
+export function useUserSummary(options?: { enabled?: boolean }) {
+  const enabled = options?.enabled ?? true
+
+  return useQuery({
+    queryKey: userQueryKeys.summary,
+    queryFn: getUserSummary,
     enabled,
     retry: READ_RETRY_COUNT,
     retryDelay: readRetryDelay,

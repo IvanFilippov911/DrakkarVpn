@@ -9,5 +9,6 @@ public sealed record TariffDto(
     TimeSpan Duration,
     TariffStatus Status,
     DateTime CreatedAt,
-    int DefaultMaxDevices
+    int DefaultMaxDevices,
+    TariffKind Kind
 );

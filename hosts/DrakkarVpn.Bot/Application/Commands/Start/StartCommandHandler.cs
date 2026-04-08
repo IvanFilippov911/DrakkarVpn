@@ -26,27 +26,12 @@ public class StartCommandHandler : IRequestHandler<StartCommand, Unit>
     public async Task<Unit> Handle(StartCommand req, CancellationToken ct)
     {
         var chatId = req.Message.Chat.Id;
-        var firstName = req.Message.From?.FirstName ?? "друг";
         var tgId = req.Message.From?.Id ?? 0;
 
         await _userClient.RegisterAsync(tgId, ct);
-
-        var webAppUrl = _configuration["WebApp:BaseUrl"];
-
-        if (string.IsNullOrWhiteSpace(webAppUrl))
-            throw new InvalidOperationException("Configuration WebApp:BaseUrl is missing");
-
-        var webApp = new WebAppInfo { Url = webAppUrl };
-        var keyboard = new InlineKeyboardMarkup(
-            InlineKeyboardButton.WithWebApp("🚀 Открыть VPN WebApp", webApp)
-        );
-
-        await _bot.SendTextMessageAsync(
+        await _bot.SendMessage(
             chatId: chatId,
-            text: $"Привет, {firstName}! 🚀\n" +
-                  $"Добро пожаловать на Драккар!\n" +
-                  $"Нажми кнопку ниже, чтобы открыть приложение:",
-            replyMarkup: keyboard,
+            text: $"👇 Приватный доступ к сети",
             cancellationToken: ct);
 
         return Unit.Value;

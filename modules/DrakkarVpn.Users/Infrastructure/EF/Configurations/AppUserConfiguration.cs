@@ -46,6 +46,9 @@ public sealed class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
         b.Property(x => x.ModerationUpdatedAtUtc)
             .HasColumnName("moderation_updated_at_utc");
 
+        b.Property(x => x.TrialGrantedAtUtc)
+            .HasColumnName("trial_granted_at_utc");
+
         b.HasIndex(x => x.TelegramId)
             .IsUnique()
             .HasDatabaseName("ux_users_telegram_id");

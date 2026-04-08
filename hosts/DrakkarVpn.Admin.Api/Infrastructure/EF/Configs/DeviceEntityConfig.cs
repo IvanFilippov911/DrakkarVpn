@@ -29,11 +29,11 @@ public sealed class DeviceEntityConfig : IEntityTypeConfiguration<DeviceReadEnti
             .HasMaxLength(32);
 
         b.Property(x => x.CreatedAtUtc)
-            .HasColumnName("created_at_utc")
+            .HasColumnName("created_at")
             .IsRequired();
 
         b.Property(x => x.LastSeenUtc)
-            .HasColumnName("last_seen_utc");
+            .HasColumnName("last_seen");
 
         b.Property(x => x.Status)
             .HasColumnName("status")

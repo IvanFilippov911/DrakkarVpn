@@ -36,6 +36,9 @@ public sealed class TariffsDbContext : DbContext
                 .HasConversion<string>()
                 .HasMaxLength(32);
 
+            e.Property(x => x.Kind)
+                .HasConversion<int>();
+
             e.Property(x => x.CreatedAt);
             e.Property(x => x.UpdatedAt);
         });

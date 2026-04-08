@@ -21,8 +21,8 @@ public sealed class GetAgentMetricsHandler
     {
         var peers = await _mediator.Send(new PeersQuery(), ct);
 
-        var (rx, tx) = await _network.GetTrafficAsync("eth0", ct);
-        var speedMbps = _network.CalculateSpeedMbps("eth0", rx, tx);
+        var (rx, tx) = await _network.GetTrafficAsync("en0", ct);
+        var speedMbps = _network.CalculateSpeedMbps("en0", rx, tx);
         var infraLatency = await _network.MeasureInfraLatencyAsync(ct);
 
         return new AgentMetricsDto(

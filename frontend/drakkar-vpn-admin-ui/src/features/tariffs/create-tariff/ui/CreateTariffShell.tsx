@@ -11,6 +11,7 @@ const schema = z.object({
   durationDays: z.coerce.number().int().positive('Duration must be a positive integer'),
   price: z.coerce.number().positive('Price must be a positive number'),
   defaultMaxDevices: z.coerce.number().int().positive('Devices must be a positive integer'),
+  kind: z.enum(['Standard', 'Trial']),
 })
 
 type FormValues = {
@@ -18,6 +19,7 @@ type FormValues = {
   durationDays: string
   price: string
   defaultMaxDevices: string
+  kind: 'Standard' | 'Trial'
 }
 
 export function CreateTariffShell({
@@ -40,6 +42,7 @@ export function CreateTariffShell({
       durationDays: '30',
       price: '9.99',
       defaultMaxDevices: '5',
+      kind: 'Standard',
     },
   })
 
@@ -138,6 +141,20 @@ export function CreateTariffShell({
             error={errors.price?.message}
             inputProps={register('price')}
           />
+
+          <div>
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Kind</div>
+            <select
+              {...register('kind')}
+              className="h-9 w-full rounded-md border bg-background px-3 text-sm"
+            >
+              <option value="Standard">Standard</option>
+              <option value="Trial">Trial</option>
+            </select>
+            {errors.kind?.message ? (
+              <div className="text-xs text-destructive mt-1">{errors.kind.message}</div>
+            ) : null}
+          </div>
         </div>
 
         <div className="p-4 border-t flex items-center justify-end gap-2">

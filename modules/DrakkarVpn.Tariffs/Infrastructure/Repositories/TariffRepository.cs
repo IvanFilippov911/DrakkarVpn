@@ -14,6 +14,12 @@ public sealed class TariffRepository : ITariffRepository
     public Task<Tariff?> GetByIdAsync(TariffId id, CancellationToken ct = default) =>
         _db.Tariffs.FirstOrDefaultAsync(x => x.Id == id, ct);
 
+    public Task<Tariff?> GetFirstActiveByKindAsync(TariffKind kind, CancellationToken ct = default) =>
+        _db.Tariffs
+            .Where(x => x.Status == TariffStatus.Active && x.Kind == kind)
+            .OrderBy(x => x.CreatedAt)
+            .FirstOrDefaultAsync(ct);
+
     public Task<IReadOnlyList<Tariff>> GetAllActiveAsync(CancellationToken ct = default) =>
         _db.Tariffs.Where(x => x.Status == TariffStatus.Active).ToListAsync(ct)
             .ContinueWith(t => (IReadOnlyList<Tariff>)t.Result, ct);

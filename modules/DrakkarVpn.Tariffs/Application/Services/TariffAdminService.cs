@@ -26,7 +26,7 @@ public sealed class TariffAdminService : ITariffAdminService
     {
         await _createValidator.ValidateAndThrowAsync(dto, ct);
 
-        var tariff = Tariff.CreateNew(dto.Name, dto.Duration, dto.Price, dto.DefaultMaxDevices);
+        var tariff = Tariff.CreateNew(dto.Name, dto.Duration, dto.Price, dto.DefaultMaxDevices, dto.Kind);
         await _repo.AddAsync(tariff, ct);
 
         return tariff.Id.Value;

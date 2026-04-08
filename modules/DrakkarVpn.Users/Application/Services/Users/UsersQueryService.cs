@@ -19,9 +19,9 @@ public sealed class UsersQueryService : IUsersQueryService
         IDeviceRepository devices,
         IAppUserReadStore store)
     {
-        _users = users;
+        _users   = users;
         _devices = devices;
-        _store = store;
+        _store   = store;
     }
 
     public Task<AppUser?> GetByTelegramIdAsync(long telegramId, CancellationToken ct)
@@ -66,9 +66,9 @@ public sealed class UsersQueryService : IUsersQueryService
             );
 
             var subscription = new SubscriptionSummaryDto(
-                IsActive:   r.SubscriptionIsActive,
                 EndAtUtc:   r.SubscriptionEndUtc ?? DateTime.UnixEpoch,
-                MaxDevices: r.SubscriptionMaxDevices
+                MaxDevices: r.SubscriptionMaxDevices,
+                LastSubscriptionStatus: r.LastSubscriptionStatus
             );
 
             return new UserCardDto(

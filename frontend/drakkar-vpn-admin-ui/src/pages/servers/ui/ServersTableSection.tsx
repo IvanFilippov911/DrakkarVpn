@@ -7,7 +7,7 @@ function TableSkeletonRows() {
     <>
       {Array.from({ length: 8 }).map((_, idx) => (
         <tr key={idx} className="border-b">
-          {Array.from({ length: 12 }).map((__, col) => (
+          {Array.from({ length: 13 }).map((__, col) => (
             <td key={col} className="p-2 align-middle">
               <Skeleton className={col === 0 ? 'h-4 w-48' : 'h-4 w-20'} />
             </td>
@@ -20,9 +20,11 @@ function TableSkeletonRows() {
 
 function ServerTableRow({
   row,
+  onPeers,
   onDelete,
 }: {
   row: ServerRow
+  onPeers: () => void
   onDelete: () => void
 }) {
   const [open, setOpen] = useState(false)
@@ -42,6 +44,15 @@ function ServerTableRow({
       <td className="p-2 align-middle text-right tabular-nums">{row.latency}</td>
       <td className="p-2 align-middle text-right tabular-nums">{row.traffic1h}</td>
       <td className="p-2 align-middle text-right tabular-nums">{row.traffic24h}</td>
+      <td className="p-2 align-middle text-right">
+        <button
+          type="button"
+          className="h-8 px-3 rounded-md text-sm border bg-background hover:bg-accent"
+          onClick={onPeers}
+        >
+          Peers
+        </button>
+      </td>
       <td className="p-2 align-middle">
         <div className="relative">
           <button
@@ -82,10 +93,12 @@ function ServerTableRow({
 export function ServersTableSection({
   state,
   rows,
+  onPeers,
   onDelete,
 }: {
   state: UiState
   rows: ServerRow[]
+  onPeers: (id: string) => void
   onDelete: (id: string) => void
 }) {
   return (
@@ -105,6 +118,7 @@ export function ServersTableSection({
               'Latency',
               '1h Traffic',
               '24h Traffic',
+              'Peers',
               'Actions',
             ].map((h) => (
               <th
@@ -112,6 +126,7 @@ export function ServersTableSection({
                 className={[
                   'h-10 px-2 font-medium text-left whitespace-nowrap',
                   h === 'Actions' ? 'w-10' : '',
+                  h === 'Peers' ? 'text-right' : '',
                 ].join(' ')}
               >
                 {h}
@@ -125,13 +140,13 @@ export function ServersTableSection({
             <TableSkeletonRows />
           ) : state === 'error' ? (
             <tr>
-              <td colSpan={12} className="p-4">
+              <td colSpan={13} className="p-4">
                 <InlineAlert message="Failed to load servers list." />
               </td>
             </tr>
           ) : state === 'empty' ? (
             <tr>
-              <td colSpan={12} className="p-6">
+              <td colSpan={13} className="p-6">
                 <EmptyState
                   title="No servers"
                   description="Register your first server to see it here."
@@ -140,7 +155,12 @@ export function ServersTableSection({
             </tr>
           ) : (
             rows.map((row) => (
-              <ServerTableRow key={row.id} row={row} onDelete={() => onDelete(row.id)} />
+              <ServerTableRow
+                key={row.id}
+                row={row}
+                onPeers={() => onPeers(row.id)}
+                onDelete={() => onDelete(row.id)}
+              />
             ))
           )}
         </tbody>

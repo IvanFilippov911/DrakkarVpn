@@ -17,7 +17,8 @@ public static class AdminTariffsApiMapping
             Duration:         dto.Duration,
             Status:           dto.Status.ToString(),
             CreatedAt:        dto.CreatedAt,
-            DefaultMaxDevices: dto.DefaultMaxDevices);
+            DefaultMaxDevices: dto.DefaultMaxDevices,
+            Kind:             dto.Kind.ToString());
     }
 
     public static IReadOnlyList<TariffApiResponse> ToApiResponse(
@@ -32,7 +33,8 @@ public static class AdminTariffsApiMapping
             Name:              body.Name,
             Duration:          TimeSpan.FromDays(body.DurationDays),
             Price:             body.Price,
-            DefaultMaxDevices: body.DefaultMaxDevices);
+            DefaultMaxDevices: body.DefaultMaxDevices,
+            Kind:              body.Kind);
     }
 
     public static AdminUpdateTariffCommand ToCommand(this UpdateTariffApiRequest body, Guid id)

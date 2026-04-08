@@ -1,4 +1,4 @@
-import type { TariffStatus } from '../../../entities/tariffs'
+import type { TariffKind, TariffStatus } from '../../../entities/tariffs'
 
 export type UiState = 'loading' | 'empty' | 'error' | 'success'
 
@@ -10,6 +10,7 @@ export type TariffRow = {
   duration: string
   devices: number
   status: TariffStatus
+  kind: TariffKind
   createdAt: string
 }
 

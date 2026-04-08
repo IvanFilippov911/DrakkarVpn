@@ -13,6 +13,7 @@ public static class TariffMapper
             tariff.Duration,
             tariff.Status,
             tariff.CreatedAt,
-            tariff.DefaultMaxDevices
+            tariff.DefaultMaxDevices,
+            tariff.Kind
         );
 }

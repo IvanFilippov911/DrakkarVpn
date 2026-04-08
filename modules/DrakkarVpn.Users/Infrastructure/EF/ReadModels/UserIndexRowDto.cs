@@ -1,4 +1,5 @@
 using DrakkarVpn.Core.Api.Modules.Users.Domain;
+using DrakkarVpn.Shared.Subscriptions;
 
 namespace DrakkarVpn.Core.Api.Modules.Users.Infrastructure.Repositories.rowDTOs;
 
@@ -10,8 +11,8 @@ public sealed record UserIndexRowDto(
     bool       IsOnline,
     int        DeviceCount,
     DateTime?  LastSeenUtc,
-    
-    bool       SubscriptionIsActive,
+
+    SubscriptionStatus? LastSubscriptionStatus,
     DateTime?  SubscriptionEndUtc,
     int        SubscriptionMaxDevices,
 

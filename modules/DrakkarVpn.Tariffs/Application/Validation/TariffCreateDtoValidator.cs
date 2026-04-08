@@ -1,4 +1,5 @@
 using DrakkarVpn.Core.Api.Modules.Tariffs.Application.DTOs;
+using DrakkarVpn.Core.Api.Modules.Tariffs.Domain;
 using FluentValidation;
 
 namespace DrakkarVpn.Core.Api.Modules.Tariffs.Application.Validation;
@@ -7,6 +8,9 @@ public sealed class TariffCreateDtoValidator : AbstractValidator<TariffCreateDto
 {
     public TariffCreateDtoValidator()
     {
+        RuleFor(x => x.Kind)
+            .IsInEnum();
+
         RuleFor(x => x.Name)
             .NotEmpty()
             .MaximumLength(128);

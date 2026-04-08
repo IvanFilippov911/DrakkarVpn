@@ -27,7 +27,8 @@ public static class Entry
     {
         services.AddScoped<ISubscriptionActivationCore, SubscriptionActivationCore>();
         services.AddScoped<ISubscriptionPurchaseService, SubscriptionPurchaseService>();
-        
+        services.AddScoped<ISubscriptionGrantService, SubscriptionGrantService>();
+
         services.AddScoped<ISubscriptionQueryService, SubscriptionQueryService>();
 
         return services;

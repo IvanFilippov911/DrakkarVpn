@@ -113,7 +113,8 @@ public sealed class UserRealtimeStatsUpdater : IUserRealtimeStatsUpdater
                 SubscriptionEndUtc      = sub?.EndAt,
                 SubscriptionMaxDevices  = sub?.MaxDevices ?? 0,
                 LastSubscriptionStatus  = sub?.Status,
-                IsSubscriptionActive    = sub.Status == SubscriptionStatus.Active
+                IsSubscriptionActive    = sub != null
+                                          && sub.Status == SubscriptionStatus.Active
                                           && sub.EndAt > nowUtc,
 
                 UpdatedAtUtc            = nowUtc

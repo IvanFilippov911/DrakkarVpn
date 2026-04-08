@@ -1,50 +1,50 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import type { TariffDto } from '../../entities/user'
 import { useTariffs } from '../../entities/user'
 import { usePurchase } from '../../features/user'
 import { getTelegramUserId } from '../../shared/lib/telegramContext'
-import {
-  AppContainer,
-  Header,
-  PrimaryButton,
-  StateCard,
-  TariffCard,
-  TariffList,
-} from '../../shared/ui'
-import {
-  IconBlocked,
-  IconNoSubscription,
-  IconPending,
-} from '../../shared/ui/icons/homeStateIcons'
-import { tariffToCardProps } from './tariffFormat'
+import { AppContainer, Header, PrimaryButton, TariffCard, TariffList } from '../../shared/ui'
+import { formatTariffPriceShort, tariffToCardProps } from './tariffFormat'
+
+function sortForChoice(items: TariffDto[]) {
+  if (items.length <= 1) return { ordered: items, recommendedId: null as string | null }
+
+  const byPrice = [...items].sort((a, b) => a.price - b.price)
+  const recommended = byPrice[Math.floor((byPrice.length - 1) / 2)]
+  const cheap = byPrice[0]
+  const expensive = byPrice[byPrice.length - 1]
+
+  const seen = new Set<string>()
+  const ordered: TariffDto[] = []
+  for (const t of [recommended, cheap, expensive, ...byPrice]) {
+    if (!t) continue
+    if (seen.has(t.id)) continue
+    seen.add(t.id)
+    ordered.push(t)
+  }
+
+  return { ordered, recommendedId: recommended?.id ?? null }
+}
 
 export function TariffsPage() {
   const navigate = useNavigate()
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [freeNotice, setFreeNotice] = useState(false)
   const tariffsQuery = useTariffs()
   const purchase = usePurchase()
 
   const telegramId = getTelegramUserId()
 
   const list = tariffsQuery.data ?? []
+  const { ordered: orderedList, recommendedId } = sortForChoice(list)
   const isEmpty = !tariffsQuery.isPending && !tariffsQuery.isError && list.length === 0
+  const selectedTariff = selectedId ? list.find((x) => x.id === selectedId) : null
 
-  const handlePurchase = async () => {
-    if (telegramId == null || selectedId == null) return
-    const t = list.find((x) => x.id === selectedId)
-    if (!t) return
-
-    try {
-      await purchase.mutateAsync({
-        telegramId,
-        tariffId: selectedId,
-        devicesCount: t.defaultMaxDevices,
-        requestId: crypto.randomUUID(),
-      })
-      navigate('/')
-    } catch {
-      /* см. purchase.isError при необходимости */
-    }
+  const handlePurchase = () => {
+    if (selectedId == null) return
+    setFreeNotice(true)
+    window.setTimeout(() => setFreeNotice(false), 2500)
   }
 
   const buyDisabled =
@@ -57,52 +57,22 @@ export function TariffsPage() {
 
   return (
     <AppContainer>
-      <Header title="Тарифы" onBack={() => navigate('/')} />
-      <div className="flex flex-1 flex-col px-6 pb-4">
-        {tariffsQuery.isPending ? (
-          <div className="flex flex-1 flex-col items-center justify-center">
-            <div className="flex w-full flex-col items-center">
-              <StateCard
-                variant="default"
-                title="Загрузка"
-                subtitle="Получаем список тарифов…"
-                icon={<IconPending />}
-              />
-            </div>
-          </div>
-        ) : tariffsQuery.isError ? (
-          <div className="flex flex-1 flex-col items-center justify-center">
-            <div className="flex w-full flex-col items-center">
-              <StateCard
-                variant="error"
-                title="Не удалось загрузить"
-                subtitle="Проверьте подключение и попробуйте снова."
-                icon={<IconBlocked />}
-              />
-            </div>
-          </div>
-        ) : isEmpty ? (
-          <div className="flex flex-1 flex-col items-center justify-center">
-            <div className="flex w-full flex-col items-center">
-              <StateCard
-                variant="default"
-                title="Нет доступных тарифов"
-                subtitle="Попробуйте зайти позже или вернитесь на главный экран."
-                icon={<IconNoSubscription />}
-              />
-            </div>
-          </div>
+      <Header title="Выберите тариф" onBack={() => navigate('/')} />
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-6 pb-2">
+        {tariffsQuery.isPending || tariffsQuery.isError || isEmpty ? (
+          <div className="min-h-0 flex-1" aria-hidden />
         ) : (
           <TariffList>
-            {list.map((t) => {
+            {orderedList.map((t) => {
               const card = tariffToCardProps(t)
               return (
                 <TariffCard
                   key={card.id}
                   name={card.name}
                   price={card.price}
-                  period={card.period}
+                  durationLabel={card.durationLabel}
                   features={card.features}
+                  recommended={recommendedId === card.id}
                   selected={selectedId === card.id}
                   onSelect={() => setSelectedId(card.id)}
                 />
@@ -111,19 +81,22 @@ export function TariffsPage() {
           </TariffList>
         )}
       </div>
-      <footer className="ui-safe-bottom px-6 pt-4">
+      <footer className="mx-auto w-full max-w-sm shrink-0 px-6 pb-1 pt-3">
         {tariffsQuery.isError ? (
           <PrimaryButton type="button" onClick={() => void tariffsQuery.refetch()}>
             Повторить
           </PrimaryButton>
         ) : (
-          <PrimaryButton
-            type="button"
-            disabled={buyDisabled}
-            onClick={handlePurchase}
-          >
-            Купить
-          </PrimaryButton>
+          <div className="space-y-2">
+            <PrimaryButton type="button" disabled={buyDisabled} onClick={handlePurchase}>
+              {selectedTariff ? `Подключить за ${formatTariffPriceShort(selectedTariff.price)} ₽` : 'Подключить'}
+            </PrimaryButton>
+            {freeNotice ? (
+              <p className="text-center text-[13px] font-normal text-[#8b8f94]">
+                На данный момент сервис бесплатный
+              </p>
+            ) : null}
+          </div>
         )}
       </footer>
     </AppContainer>

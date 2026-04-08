@@ -99,7 +99,7 @@ public static class UsersQueryableExtensions
                 x.Stats != null && x.Stats.IsOnline,
                 x.Stats != null ? x.Stats.DeviceCount : 0,
                 x.Stats != null ? x.Stats.LastSeenUtc : null,
-                x.Stats != null && x.Stats.IsSubscriptionActive,
+                x.Stats != null ? x.Stats.LastSubscriptionStatus : null,
                 x.Stats != null ? x.Stats.SubscriptionEndUtc : null,
                 x.Stats != null ? x.Stats.SubscriptionMaxDevices : 0,
                 x.Stats != null ? x.Stats.Traffic24hBytes : 0L

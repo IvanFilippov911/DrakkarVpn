@@ -1,5 +1,7 @@
 export type TariffStatus = 'Active' | 'Disabled'
 
+export type TariffKind = 'Standard' | 'Trial'
+
 // DTO (API response)
 export type TariffApiResponse = {
   id: string
@@ -10,6 +12,7 @@ export type TariffApiResponse = {
   status: TariffStatus
   createdAt: string
   defaultMaxDevices: number
+  kind: TariffKind
 }
 
 export type CreateTariffApiRequest = {
@@ -17,6 +20,7 @@ export type CreateTariffApiRequest = {
   durationDays: number
   price: number
   defaultMaxDevices: number
+  kind: TariffKind
 }
 
 export type UpdateTariffApiRequest = {

@@ -21,11 +21,11 @@ public sealed class UserRegistrationService : IUserRegistrationService
 
         var existing = await _repo.GetByTelegramIdAsync(telegramId, ct);
         if (existing is not null)
-            return new RegisterOrGetResultDto(IsNew: false);
+            return new RegisterOrGetResultDto(IsNew: false, UserId: existing.Id);
 
         var created = AppUser.CreateNew(telegramId, nowUtc);
         await _repo.AddAsync(created, ct);
 
-        return new RegisterOrGetResultDto(IsNew: true);
+        return new RegisterOrGetResultDto(IsNew: true, UserId: created.Id);
     }
 }

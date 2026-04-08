@@ -37,6 +37,9 @@ namespace DrakkarVpn.Tariffs.Infrastructure.EF.Migrations
                     b.Property<long>("Duration")
                         .HasColumnType("bigint");
 
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)

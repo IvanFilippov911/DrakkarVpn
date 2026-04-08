@@ -11,5 +11,6 @@ public sealed record TariffApiResponse(
     TimeSpan Duration,
     string Status,
     DateTime CreatedAt,
-    int DefaultMaxDevices);
+    int DefaultMaxDevices,
+    string Kind);
 

@@ -11,6 +11,13 @@ public sealed class SubscriptionRowConfig : IEntityTypeConfiguration<Subscriptio
         b.ToTable("subscriptions", schema: "subscriptions");
 
         b.HasKey(x => x.Id);
+        b.Property(x => x.Id)
+            .ValueGeneratedNever()
+            .HasColumnName("id");
+
+        b.Property(x => x.UserId)
+            .HasColumnName("user_id")
+            .IsRequired();
 
         b.HasIndex(x => x.UserId);
         b.HasIndex(x => new { x.UserId, x.EndAtUtc });

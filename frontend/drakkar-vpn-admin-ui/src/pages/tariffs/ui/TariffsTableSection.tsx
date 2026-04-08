@@ -32,7 +32,7 @@ function TariffStatusBadge({ status }: { status: TariffStatus }) {
 }
 
 function TableSkeletonRows({ rowsCount = 8 }: { rowsCount?: number }) {
-  const columnsCount = 7
+  const columnsCount = 8
 
   return (
     <>
@@ -45,16 +45,18 @@ function TableSkeletonRows({ rowsCount = 8 }: { rowsCount?: number }) {
                   col === 0
                     ? 'h-4 w-48'
                     : col === 1
-                      ? 'h-4 w-28'
+                      ? 'h-4 w-20'
                       : col === 2
-                        ? 'h-4 w-32'
+                        ? 'h-4 w-28'
                         : col === 3
-                          ? 'h-4 w-24'
+                          ? 'h-4 w-32'
                           : col === 4
-                            ? 'h-4 w-20'
+                            ? 'h-4 w-24'
                             : col === 5
-                              ? 'h-4 w-28'
-                              : 'h-4 w-10',
+                              ? 'h-4 w-20'
+                              : col === 6
+                                ? 'h-4 w-28'
+                                : 'h-4 w-10',
                 ].join(' ')}
               />
             </td>
@@ -90,6 +92,7 @@ function TariffTableRow({
   return (
     <tr className="border-b hover:bg-muted/50">
       <td className="p-2 align-middle">{row.name}</td>
+      <td className="p-2 align-middle text-muted-foreground">{row.kind}</td>
       <td className="p-2 align-middle text-right tabular-nums">{formatPrice(row.price)}</td>
       <td className="p-2 align-middle">{row.duration}</td>
       <td className="p-2 align-middle text-right tabular-nums">{row.devices}</td>
@@ -201,7 +204,7 @@ export function TariffsTableSection({
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b">
-            {['Name', 'Price', 'Duration', 'Devices', 'Status', 'Created', 'Actions'].map((h) => (
+            {['Name', 'Kind', 'Price', 'Duration', 'Devices', 'Status', 'Created', 'Actions'].map((h) => (
               <th
                 key={h}
                 className={[
@@ -220,13 +223,13 @@ export function TariffsTableSection({
             <TableSkeletonRows />
           ) : state === 'error' ? (
             <tr>
-              <td colSpan={7} className="p-4">
+              <td colSpan={8} className="p-4">
                 <InlineAlert message="Failed to load tariffs." />
               </td>
             </tr>
           ) : state === 'empty' ? (
             <tr>
-              <td colSpan={7} className="p-6">
+              <td colSpan={8} className="p-6">
                 <div className="space-y-4">
                   <EmptyState title="No tariffs yet" description="Create your first tariff to get started." />
                   <button

@@ -52,6 +52,7 @@ public static class UserHostCompositionExtensions
         services.AddScoped<IPeerProvisionService, PeerProvisionService>();
         services.AddScoped<IHomeContextService, HomeContextService>();
         services.AddScoped<IVpnBuildArtifactsService, VpnBuildArtifactsService>();
+        services.AddScoped<IGrantTrialSubscriptionService, GrantTrialSubscriptionService>();
 
         // pipelines
         services.AddUserHostPipelines();

@@ -1,24 +1,42 @@
 import { isAxiosError } from 'axios'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Outlet } from 'react-router-dom'
 import { getHomeContext } from '../entities/user/api'
 import { userQueryKeys } from '../entities/user/queryKeys'
 import { useConnectDevice, useRegister } from '../features/user'
 import { setAccessToken } from '../shared/api/client'
-import { IconBlocked, IconPending } from '../shared/ui/icons/homeStateIcons'
 import { getStoredAccessToken, clearStoredAccessToken } from '../shared/lib/authTokenStorage'
 import { getStoredDeviceId } from '../shared/lib/deviceIdStorage'
 import { initTelegramChrome, readTelegramBootContext } from '../shared/lib/telegramContext'
-import { AppContainer, BrandBlock, PrimaryButton, StateCard, StatusIndicator } from '../shared/ui'
+import { BottomNavProvider } from '../context/bottomNavContext'
+import { AppContainer, BrandBlock, PrimaryButton } from '../shared/ui'
 
 type BootPhase = 'running' | 'ready' | 'error'
+
+function BootShell({ footer }: { footer: ReactNode }) {
+  return (
+    <div className="flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden">
+      <AppContainer>
+        <main className="flex min-h-0 flex-1 flex-col items-center justify-center px-6 pb-4 pt-[max(1.5rem,env(safe-area-inset-top))]">
+          <div className="flex w-full min-h-0 flex-1 flex-col items-center justify-center">
+            <BrandBlock />
+            <div className="h-8 shrink-0" aria-hidden />
+          </div>
+        </main>
+        <footer className="w-full shrink-0 px-6 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
+          {footer}
+        </footer>
+      </AppContainer>
+    </div>
+  )
+}
 
 export function AppBootLayout() {
   const queryClient = useQueryClient()
   const queryClientRef = useRef(queryClient)
   const [phase, setPhase] = useState<BootPhase>('running')
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [bootAttempt, setBootAttempt] = useState(0)
   const bootGenRef = useRef(0)
 
@@ -55,7 +73,6 @@ export function AppBootLayout() {
 
     const runBoot = async () => {
       setPhase('running')
-      setErrorMessage(null)
 
       const existingToken = getStoredAccessToken()
       if (existingToken) {
@@ -90,7 +107,6 @@ export function AppBootLayout() {
 
       if (!ctx.ok) {
         if (gen !== bootGenRef.current) return
-        setErrorMessage(ctx.message)
         setPhase('error')
         return
       }
@@ -108,7 +124,6 @@ export function AppBootLayout() {
         setPhase('ready')
       } catch {
         if (gen !== bootGenRef.current) return
-        setErrorMessage('Не удалось подключиться. Проверьте сеть и попробуйте снова.')
         setPhase('error')
       }
     }
@@ -116,57 +131,25 @@ export function AppBootLayout() {
     void runBoot()
   }, [bootAttempt])
 
-  if (phase === 'error' && errorMessage) {
+  if (phase === 'error') {
     return (
-      <AppContainer>
-        <header className="px-6 pt-6 pb-4">
-          <StatusIndicator tone="blocked" label="ошибка запуска" />
-        </header>
-        <main className="flex flex-1 flex-col items-center justify-center px-6 pb-8">
-          <div className="flex flex-1 flex-col items-center justify-center">
-            <BrandBlock />
-            <div className="h-20 shrink-0" aria-hidden />
-            <StateCard
-              variant="error"
-              title="Ошибка запуска"
-              subtitle={errorMessage}
-              icon={<IconBlocked />}
-            />
-          </div>
-        </main>
-        <footer className="ui-safe-bottom px-6 pt-4">
-          <PrimaryButton type="button" onClick={handleRetry}>
-            Повторить
-          </PrimaryButton>
-        </footer>
-      </AppContainer>
+      <BootShell
+        footer={<PrimaryButton type="button" onClick={handleRetry}>Повторить</PrimaryButton>}
+      />
     )
   }
 
   if (phase !== 'ready') {
     return (
-      <AppContainer>
-        <header className="px-6 pt-6 pb-4">
-          <StatusIndicator tone="pending" label="инициализация" />
-        </header>
-        <main className="flex flex-1 flex-col items-center justify-center px-6 pb-8">
-          <div className="flex flex-1 flex-col items-center justify-center">
-            <BrandBlock />
-            <div className="h-20 shrink-0" aria-hidden />
-            <StateCard
-              variant="default"
-              title="Загрузка"
-              subtitle="Подключаемся к серверу…"
-              icon={<IconPending />}
-            />
-          </div>
-        </main>
-        <footer className="ui-safe-bottom px-6 pt-4">
-          <div className="h-14" aria-hidden />
-        </footer>
-      </AppContainer>
+      <BootShell
+        footer={<div className="h-14" aria-hidden />}
+      />
     )
   }
 
-  return <Outlet />
+  return (
+    <BottomNavProvider>
+      <Outlet />
+    </BottomNavProvider>
+  )
 }

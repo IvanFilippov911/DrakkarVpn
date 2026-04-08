@@ -11,8 +11,6 @@ public static class UserTariffsApiMapping
             Name: dto.Name,
             Price: dto.Price,
             Duration: dto.Duration,
-            Status: dto.Status.ToString(),
-            CreatedAt: dto.CreatedAt,
             DefaultMaxDevices: dto.DefaultMaxDevices);
 
     public static IReadOnlyList<UserTariffResponse> ToUserApiResponse(this IReadOnlyList<TariffDto> items) =>

@@ -10,6 +10,7 @@ export type {
   RegisterPayload,
   RegisterResponse,
   TariffDto,
+  UserSummaryResponse,
   VpnConfigResponse,
   VpnConfigStatus,
 } from './types'
@@ -19,6 +20,7 @@ export {
   getCurrentConfig,
   getHomeContext,
   getTariffs,
+  getUserSummary,
   pollProvision,
   purchaseSubscription,
   register,
@@ -31,4 +33,5 @@ export {
   useHomeContext,
   useProvisionPolling,
   useTariffs,
+  useUserSummary,
 } from './queries'

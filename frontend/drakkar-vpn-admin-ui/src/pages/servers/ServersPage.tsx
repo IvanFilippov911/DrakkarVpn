@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { PageHeader } from '../../shared/ui'
 import { AddServerShell } from '../../features/servers/register-server/ui/AddServerShell'
 import { ConfirmDialogShell } from '../../features/servers/delete-server/ui/ConfirmDialogShell'
@@ -14,6 +15,7 @@ import { useServersListQueryState } from './hooks/useServersListQueryState'
 import { mapServersListToRows, mapServersOverviewToSummaryData } from './ui/serversUiMappers'
 
 export function ServersPage() {
+  const navigate = useNavigate()
   const overviewQuery = useServersOverviewQuery()
   const listState = useServersListQueryState()
   const listQuery = useServersListQuery(listState.query)
@@ -83,6 +85,7 @@ export function ServersPage() {
       <ServersTableSection
         state={tableState}
         rows={rows}
+        onPeers={(id) => navigate(`/servers/${id}/peers`)}
         onDelete={(id) => setDeleteConfirmForId(id)}
       />
 

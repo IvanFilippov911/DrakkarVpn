@@ -12,9 +12,11 @@ public sealed class Tariff
         string name,
         TimeSpan duration,
         decimal price,
-        int defaultMaxDevices)
+        int defaultMaxDevices,
+        TariffKind kind)
     {
         Id = id;
+        Kind = kind;
         Apply(name, duration, price, defaultMaxDevices);
         CreatedAt = DateTime.UtcNow;
         Status    = TariffStatus.Active;
@@ -25,6 +27,7 @@ public sealed class Tariff
     public TimeSpan Duration { get; private set; }
     public decimal Price { get; private set; }
     public int DefaultMaxDevices { get; private set; }
+    public TariffKind Kind { get; private set; }
 
     public TariffStatus Status { get; private set; }
     public DateTime CreatedAt { get; }
@@ -34,13 +37,15 @@ public sealed class Tariff
         string name,
         TimeSpan duration,
         decimal price,
-        int defaultMaxDevices) =>
+        int defaultMaxDevices,
+        TariffKind kind = TariffKind.Standard) =>
         new(
             TariffId.New(),
             name,
             duration,
             price,
-            defaultMaxDevices
+            defaultMaxDevices,
+            kind
         );
 
     public void Update(

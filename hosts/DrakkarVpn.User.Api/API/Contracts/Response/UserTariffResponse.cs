@@ -8,6 +8,4 @@ public sealed record UserTariffResponse(
     string Name,
     decimal Price,
     TimeSpan Duration,
-    string Status,
-    DateTime CreatedAt,
     int DefaultMaxDevices);

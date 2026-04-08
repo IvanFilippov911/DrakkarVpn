@@ -44,6 +44,16 @@ export type HomeContextResponse = {
 }
 
 /**
+ * User summary from `GET /api/v1/user/summary`.
+ * (dates are ISO strings, serialized from backend `DateTime?`).
+ */
+export type UserSummaryResponse = {
+  subscriptionEndAtUtc: string | null
+  connectedDevices: number
+  maxDevices: number | null
+}
+
+/**
  * Active tariff row from `GET /api/v1/user/tariffs`
  * (backend `UserTariffResponse`; `duration` is serialized `TimeSpan` string).
  */
@@ -52,8 +62,6 @@ export type TariffDto = {
   name: string
   price: number
   duration: string
-  status: string
-  createdAt: string
   defaultMaxDevices: number
 }
 

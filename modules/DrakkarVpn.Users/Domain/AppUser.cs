@@ -10,7 +10,8 @@ public sealed class AppUser
     public bool IsInternal { get; private set; }
     public string? BanReason { get; private set; }
     public DateTime? BannedAtUtc { get; private set; }
-    public DateTime? ModerationUpdatedAtUtc { get; private set; } 
+    public DateTime? ModerationUpdatedAtUtc { get; private set; }
+    public DateTime? TrialGrantedAtUtc { get; private set; }
     
     private AppUser() { }
 
@@ -34,5 +35,12 @@ public sealed class AppUser
         IsInternal = isInternal;
         ModerationUpdatedAtUtc = nowUtc;
     }
-    
+
+    public void MarkTrialGranted(DateTime grantedAtUtc)
+    {
+        if (TrialGrantedAtUtc is not null)
+            return;
+
+        TrialGrantedAtUtc = grantedAtUtc;
+    }
 }

@@ -50,19 +50,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 Servers
               </NavLink>
               <NavLink
-                to="/peers"
-                className={({ isActive }) =>
-                  [
-                    'flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md',
-                    isActive
-                      ? 'bg-secondary text-foreground font-medium'
-                      : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground',
-                  ].join(' ')
-                }
-              >
-                Peers
-              </NavLink>
-              <NavLink
                 to="/users"
                 className={({ isActive }) =>
                   [

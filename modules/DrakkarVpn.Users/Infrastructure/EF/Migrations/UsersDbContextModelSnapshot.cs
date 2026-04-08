@@ -59,6 +59,10 @@ namespace DrakkarVpn.Users.Infrastructure.EF.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("telegram_id");
 
+                    b.Property<DateTime?>("TrialGrantedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("trial_granted_at_utc");
+
                     b.Property<string>("Username")
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)")

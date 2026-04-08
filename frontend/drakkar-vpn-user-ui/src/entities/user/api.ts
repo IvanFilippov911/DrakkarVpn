@@ -9,6 +9,7 @@ import type {
   RegisterPayload,
   RegisterResponse,
   TariffDto,
+  UserSummaryResponse,
   VpnConfigResponse,
 } from './types'
 
@@ -53,6 +54,11 @@ export async function getHomeContext(): Promise<HomeContextResponse> {
 
 export async function getTariffs(): Promise<TariffDto[]> {
   const { data } = await apiClient.get<TariffDto[]>('/api/v1/user/tariffs')
+  return data
+}
+
+export async function getUserSummary(): Promise<UserSummaryResponse> {
+  const { data } = await apiClient.get<UserSummaryResponse>('/api/v1/user/summary')
   return data
 }
 

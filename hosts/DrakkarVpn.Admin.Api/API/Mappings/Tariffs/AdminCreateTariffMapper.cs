@@ -10,6 +10,7 @@ public static class AdminCreateTariffMapper
             Name: c.Name,
             Duration: c.Duration,
             Price: c.Price,
-            DefaultMaxDevices: c.DefaultMaxDevices
+            DefaultMaxDevices: c.DefaultMaxDevices,
+            Kind: c.Kind
         );
 }

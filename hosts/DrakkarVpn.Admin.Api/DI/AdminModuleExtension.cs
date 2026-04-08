@@ -6,6 +6,7 @@ using DrakkarVpn.Core.Api.Modules.Admin.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Services;
 using DrakkarVpn.Core.Api.Modules.Admin.Infrastructure.EF;
 using DrakkarVpn.Users.Application.Abstractions;
+using DrakkarVpn.Users.Infrastructure.BackgroundWorker;
 using Microsoft.EntityFrameworkCore;
 
 namespace DrakkarVpn.Admin.Api.DI;
@@ -28,6 +29,8 @@ public static class AdminModuleExtension
         services.AddScoped<IServerRealtimeStatsUpdater, ServerRealtimeStatsUpdater>();
         services.AddScoped<IUserRealtimeStatsUpdater, UserRealtimeStatsUpdater>();
         services.AddScoped<IUserDevicesReadStore, UserDevicesReadStore>();
+
+        services.AddHostedService<UserRealtimeStatsWorker>();
 
         return services;
     }

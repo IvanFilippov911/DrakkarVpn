@@ -1,3 +1,3 @@
 namespace DrakkarVpn.Users.Application.DTOs;
 
-public sealed record RegisterOrGetResultDto(bool IsNew);
+public sealed record RegisterOrGetResultDto(bool IsNew, Guid UserId);

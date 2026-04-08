@@ -1,4 +1,4 @@
-using DrakkarVpn.Admin.Api.Application.Features.Services;
+using DrakkarVpn.Admin.Api.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Admin.Infrastructure.EF;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -26,7 +26,7 @@ public sealed class UserRealtimeStatsWorker : BackgroundService
             try
             {
                 using var scope = _scopeFactory.CreateScope();
-                var updater = scope.ServiceProvider.GetRequiredService<UserRealtimeStatsUpdater>();
+                var updater = scope.ServiceProvider.GetRequiredService<IUserRealtimeStatsUpdater>();
                 var db = scope.ServiceProvider.GetRequiredService<AdminReadDbContext>();
 
                 await updater.UpdateAllUsersAsync(stoppingToken);

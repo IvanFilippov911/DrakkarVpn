@@ -18,7 +18,9 @@ const queryClient = new QueryClient({
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <App />
+      <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+        <App />
+      </div>
     </QueryClientProvider>
   </StrictMode>,
 )

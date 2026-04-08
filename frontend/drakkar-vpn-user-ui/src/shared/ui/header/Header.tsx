@@ -20,11 +20,11 @@ export function Header({
         <button
           type="button"
           onClick={() => onBack?.()}
-          className="min-w-12 text-left text-sm font-medium tracking-[0.02em] text-[var(--muted-strong)] transition-colors hover:text-[var(--foreground)]"
+          className="min-w-12 text-left text-sm font-normal text-[var(--text-sub)] transition-colors hover:text-[var(--foreground)]"
         >
           {backLabel}
         </button>
-        <h1 className="min-w-0 flex-1 text-center font-brand text-xl font-semibold tracking-[0.02em] text-[var(--foreground)]">
+        <h1 className="min-w-0 flex-1 text-center font-sans text-xl font-bold tracking-[-0.02em] text-[var(--foreground)]">
           {title}
         </h1>
         <div className="flex min-w-12 justify-end">{trailing}</div>

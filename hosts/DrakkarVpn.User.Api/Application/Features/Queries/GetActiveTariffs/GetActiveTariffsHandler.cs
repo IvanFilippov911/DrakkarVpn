@@ -12,5 +12,5 @@ public sealed class GetActiveTariffsHandler
     public GetActiveTariffsHandler(ITariffQueryService tariffs) => _tariffs = tariffs;
 
     public Task<IReadOnlyList<TariffDto>> Handle(GetActiveTariffsQuery _, CancellationToken ct) =>
-        _tariffs.GetActiveAsync(ct);
+        _tariffs.GetActiveNonTrialAsync(ct);
 }

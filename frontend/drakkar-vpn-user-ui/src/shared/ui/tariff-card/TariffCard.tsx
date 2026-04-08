@@ -1,9 +1,9 @@
 export type TariffCardProps = {
   name: string
   price: string
-  period: string
+  durationLabel: string
   features: string[]
-  popular?: boolean
+  recommended?: boolean
   selected?: boolean
   onSelect?: () => void
 }
@@ -11,9 +11,9 @@ export type TariffCardProps = {
 export function TariffCard({
   name,
   price,
-  period,
+  durationLabel,
   features,
-  popular,
+  recommended,
   selected = false,
   onSelect,
 }: TariffCardProps) {
@@ -25,11 +25,11 @@ export function TariffCard({
       disabled={!interactive}
       onClick={onSelect}
       className={[
-        'flex w-full flex-col rounded-xl border p-5 text-left transition-colors',
+        'flex w-full flex-col rounded-2xl border border-[var(--btn-primary-border)] bg-transparent p-6 text-left transition-colors',
         selected
-          ? 'border-[oklch(0.55_0.15_240_/_0.3)] bg-[var(--surface-3)]'
-          : 'border-[rgba(35,33,30,0.8)] bg-[var(--surface-2)] hover:border-[var(--border)]',
-        interactive ? 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--arctic)] focus-visible:ring-offset-0' : '',
+          ? 'border-[var(--btn-primary-bg)] bg-[rgba(255,255,255,0.03)]'
+          : 'hover:border-[rgba(255,255,255,0.1)]',
+        interactive ? 'cursor-pointer focus-visible:outline-none' : '',
       ]
         .filter(Boolean)
         .join(' ')}
@@ -37,20 +37,22 @@ export function TariffCard({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="font-brand text-lg font-semibold text-[var(--foreground)]">{name}</h2>
-            {popular ? <PopularBadge /> : null}
+            <h2 className="truncate font-sans text-lg font-semibold text-[var(--foreground)]">{name}</h2>
+            {recommended ? <RecommendedBadge /> : null}
           </div>
         </div>
-        <SelectionDot selected={selected} />
+        <Radio selected={selected} />
       </div>
+
       <div className="mt-4">
-        <p className="font-brand text-3xl font-semibold tracking-[0.02em] text-[var(--foreground)]">{price}</p>
-        <p className="mt-1 text-sm text-[var(--muted-soft)]">{period}</p>
+        <p className="font-sans text-3xl font-bold tracking-[-0.03em] text-[var(--foreground)]">{durationLabel}</p>
+        <p className="mt-1 text-base font-semibold text-[var(--muted-soft)]">{price}</p>
       </div>
+
       {features.length > 0 ? (
         <ul className="mt-4 flex flex-col gap-2">
           {features.map((f) => (
-            <li key={f} className="text-[11px] tracking-wide text-[var(--muted-strong)]">
+            <li key={f} className="text-[12px] leading-snug text-[var(--muted-strong)]">
               {f}
             </li>
           ))}
@@ -60,22 +62,22 @@ export function TariffCard({
   )
 }
 
-function PopularBadge() {
+function RecommendedBadge() {
   return (
-    <span className="rounded px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.12em] text-[var(--muted-strong)]">
-      Popular
+    <span className="rounded-full border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] px-2 py-0.5 text-[10px] font-semibold tracking-[-0.01em] text-[var(--foreground)]/80">
+      Лучший выбор
     </span>
   )
 }
 
-function SelectionDot({ selected }: { selected: boolean }) {
+function Radio({ selected }: { selected: boolean }) {
   return (
     <div
       className={[
         'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors',
         selected
-          ? 'border-[var(--arctic)] bg-[var(--arctic)]'
-          : 'border-[var(--steel)] bg-transparent',
+          ? 'border-[var(--btn-primary-bg)] bg-[var(--btn-primary-bg)]'
+          : 'border-[rgba(255,255,255,0.18)] bg-transparent',
       ].join(' ')}
       aria-hidden
     >

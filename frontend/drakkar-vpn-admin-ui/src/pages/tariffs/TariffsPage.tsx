@@ -56,6 +56,7 @@ export function TariffsPage() {
         duration: formatDurationInDays(t.duration),
         devices: t.defaultMaxDevices,
         status: t.status,
+        kind: t.kind,
         createdAt: t.createdAt,
       })),
     [query.data],

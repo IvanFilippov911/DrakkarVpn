@@ -67,7 +67,7 @@ export function AppRouter() {
         <Route element={<ProtectedLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/servers" element={<ServersPage />} />
-          <Route path="/peers" element={<PeersPage />} />
+          <Route path="/servers/:serverId/peers" element={<PeersPage />} />
           <Route path="/users" element={<UsersPage />} />
           <Route path="/tariffs" element={<TariffsPage />} />
           <Route path="/errors" element={<ErrorsPage />} />

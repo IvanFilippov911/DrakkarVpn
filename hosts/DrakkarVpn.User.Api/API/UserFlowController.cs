@@ -13,6 +13,7 @@ using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Queries.GetC
 using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Queries.GetHomeContext;
 using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Queries.GetPeerByUuid;
 using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Queries.GetPeerProvisionJob;
+using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Queries.GetUserSummary;
 using DrakkarVpn.Core.Api.Modules.Peers.API.Contracts.Response;
 using DrakkarVpn.Core.Api.Modules.Users.Infrastructure;
 using DrakkarVpn.Shared.Users;
@@ -73,8 +74,17 @@ public sealed class UserFlowController : ControllerBase
         var items = await _mediator.Send(new GetActiveTariffsQuery(), ct);
         return Ok(items.ToUserApiResponse());
     }
-    
-    
+
+    [Authorize]
+    [HttpGet("summary")]
+    [ProducesResponseType(typeof(UserSummaryResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<UserSummaryResponse>> GetSummary(CancellationToken ct)
+    {
+        var dto = await _mediator.Send(new GetUserSummaryRequest(User.GetTelegramId()), ct);
+        return Ok(dto.ToApiResponse());
+    }
+
+
     [Authorize]
     [HttpPost("subscriptions/purchase")]
     public async Task<ActionResult<Guid>> PurchaseSubscription([FromBody] PurchaseSubscriptionRequest body, CancellationToken ct)

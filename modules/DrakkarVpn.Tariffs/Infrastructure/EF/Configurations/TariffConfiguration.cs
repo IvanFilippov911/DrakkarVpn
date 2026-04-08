@@ -41,6 +41,10 @@ internal sealed class TariffConfiguration : IEntityTypeConfiguration<Tariff>
             .HasConversion<string>()
             .HasMaxLength(32);
 
+        builder.Property(x => x.Kind)
+            .IsRequired()
+            .HasConversion<int>();
+
         builder.Property(x => x.CreatedAt)
             .IsRequired();
 

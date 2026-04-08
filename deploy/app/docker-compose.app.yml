@@ -83,9 +83,9 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_BASE: ${VITE_API_BASE:-/api}
-        VITE_HIDDIFY_ANDROID_URL: ${VITE_HIDDIFY_ANDROID_URL}
-        VITE_V2RAYTUN_IOS_URL: ${VITE_V2RAYTUN_IOS_URL}
-        VITE_HIDDIFY_DESKTOP_URL: ${VITE_HIDDIFY_DESKTOP_URL}
+        VITE_HAPP_ANDROID_URL: ${VITE_HAPP_ANDROID_URL}
+        VITE_HAPP_IOS_URL: ${VITE_HAPP_IOS_URL}
+        VITE_HAPP_MACOS_URL: ${VITE_HAPP_MACOS_URL}
     container_name: drakkar-user-ui
     restart: always
     networks:
