@@ -1,34 +1,57 @@
 import type { ReactNode } from 'react'
+import drakkarMark from '../../../assets/drakkar-mark.png'
 
 type BrandBlockProps = {
   title?: string
   subtitle?: string
   icon?: ReactNode
+  logoOnly?: boolean
 }
 
 export function BrandBlock({
   title = 'Drakkar Network',
   subtitle = 'Приватный доступ к сети',
   icon,
+  logoOnly = false,
 }: BrandBlockProps) {
+  const textHidden = logoOnly ? 'invisible select-none' : ''
+  const titleEl = (
+    <h1
+      className={[
+        'w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap font-sans text-[clamp(2.25rem,5vw,2.5rem)] font-bold leading-none tracking-[-0.02em] text-[#e8e2d6]',
+        textHidden,
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      aria-hidden={logoOnly || undefined}
+    >
+      {title}
+    </h1>
+  )
+  const subtitleEl =
+    subtitle != null && subtitle !== '' ? (
+      <p
+        className={['mt-2 max-w-sm text-base font-normal leading-normal text-[#8b8f94]', textHidden].filter(Boolean).join(' ')}
+        aria-hidden={logoOnly || undefined}
+      >
+        {subtitle}
+      </p>
+    ) : null
+
   return (
     <div className="flex w-full min-w-0 flex-col items-center text-center">
       <div className="mb-3 flex w-full min-h-[8.5rem] items-center justify-center sm:min-h-[10rem] md:min-h-[11rem]" aria-hidden>
         {icon ?? (
           <img
-            src="/drakkar-mark.png"
+            src={drakkarMark}
             alt=""
             className="h-[8.5rem] w-auto max-h-[min(32vh,11.5rem)] max-w-[min(96vw,14rem)] object-contain select-none sm:h-[10.5rem] sm:max-w-[17rem] md:h-[11.5rem] md:max-w-[19rem]"
             draggable={false}
           />
         )}
       </div>
-      <h1 className="w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap font-sans text-[clamp(2.25rem,5vw,2.5rem)] font-bold leading-none tracking-[-0.02em] text-[#e8e2d6]">
-        {title}
-      </h1>
-      {subtitle ? (
-        <p className="mt-2 max-w-sm text-base font-normal leading-normal text-[#8b8f94]">{subtitle}</p>
-      ) : null}
+      {titleEl}
+      {subtitleEl}
     </div>
   )
 }

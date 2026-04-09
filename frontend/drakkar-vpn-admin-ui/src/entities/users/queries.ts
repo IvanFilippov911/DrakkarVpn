@@ -36,7 +36,10 @@ export function useUserDetailsQuery(userId: string | undefined) {
   return useQuery({
     queryKey: userId ? userDetailsQueryKey(userId) : (['users', 'details'] as const),
     queryFn: () => {
-      return getUserDetails(userId as string)
+      if (userId === undefined) {
+        throw new Error('useUserDetailsQuery: userId is required')
+      }
+      return getUserDetails(userId)
     },
     enabled: !!userId,
   })

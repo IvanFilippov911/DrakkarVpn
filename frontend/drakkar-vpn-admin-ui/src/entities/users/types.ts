@@ -42,27 +42,65 @@ export type AdminUserCardDto = {
   trafficLast24hBytes: number | null
 }
 
-export type UserSummaryDto = {
-  id: Guid
-  telegram: number | null
+/** Matches backend `UserStatus` (JsonStringEnumConverter). */
+export type AdminUserSummaryUserStatus = 'Active' | 'Banned'
+
+/** Matches backend `DeviceStatus` (JsonStringEnumConverter). */
+export type UserDeviceShortStatus = 'Active' | 'Revoked' | 'Registered'
+
+export type AdminUserSummaryDetailDto = {
+  userId: Guid
+  telegramId: number
+  username: string | null
   createdAtUtc: UtcDateTimeString
-  status: UserStatus
+  status: AdminUserSummaryUserStatus
+  isInternal: boolean
+  banReason: string | null
+  bannedAtUtc: UtcDateTimeString | null
+}
+
+export type AdminUserRealtimeDto = {
   isOnline: boolean
   deviceCount: number
+  subscriptionMaxDevices: number
+  isSubscriptionActive: boolean
+  subscriptionEndUtc: UtcDateTimeString | null
+  traffic24hBytes: number
+  updatedAtUtc: UtcDateTimeString
   lastSeenUtc: UtcDateTimeString | null
 }
 
-export type SubscriptionSummaryDto = {
-  endAtUtc: UtcDateTimeString
-  maxDevices: number
-  lastSubscriptionStatus: SubscriptionStatus | null
+export type AdminUserPeerShortDto = {
+  peerId: Guid
+  serverId: Guid
+  agentPeerUuid: Guid
+  isOnline: boolean
+  traffic24hBytes: number
+}
+
+export type UserDeviceShortDto = {
+  deviceId: string
+  name: string | null
+  platform: string | null
+  createdAtUtc: UtcDateTimeString
+  lastSeenUtc: UtcDateTimeString | null
+  status: UserDeviceShortStatus
+  peer: AdminUserPeerShortDto | null
+}
+
+export type AdminUserAlertDto = {
+  alertId: Guid
+  createdAtUtc: UtcDateTimeString
+  isResolved: boolean
+  severity: string
+  title: string
+  message: string
 }
 
 export type AdminUserDetailsDto = {
-  user: UserSummaryDto
-  subscription?: SubscriptionSummaryDto
-  realtime: unknown
-  devices: unknown[]
-  alerts: unknown[]
+  user: AdminUserSummaryDetailDto
+  realtime: AdminUserRealtimeDto
+  devices: UserDeviceShortDto[]
+  alerts: AdminUserAlertDto[]
 }
 

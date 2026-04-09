@@ -6,7 +6,7 @@ type AppContainerProps = {
 
 export function AppContainer({ children }: AppContainerProps) {
   return (
-    <div className="ui-screen bg-[var(--background)] font-sans text-[var(--foreground)] antialiased">
+    <div className="ui-screen bg-transparent font-sans text-[var(--foreground)] antialiased">
       <div className="ui-content-layer">{children}</div>
     </div>
   )

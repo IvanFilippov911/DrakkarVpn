@@ -1,19 +1,29 @@
-import { isAxiosError } from 'axios'
 import { differenceInCalendarDays } from 'date-fns'
 import type { ReactNode } from 'react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { useBottomNavControl } from '../../context/bottomNavContext'
 import type { HomeScreenState, VpnConfigResponse } from '../../entities/user'
-import { useCurrentConfig, useHomeContext, useProvisionPolling, useUserSummary } from '../../entities/user'
+import {
+  userQueryKeys,
+  useCurrentConfig,
+  useHomeContext,
+  useProvisionPolling,
+  useUserSummary,
+} from '../../entities/user'
 import { useStartProvision } from '../../features/user'
 import {
+  beginVpnDeeplinkAttempt,
   getHappInstallUrl,
+  getV2RayTunInstallUrl,
   hasOpenedHappSuccessfullyInSession,
   markHappOpenedSuccessfully,
-  openHappLinkWithFallback,
+  openVpnClientDeeplinkSync,
+  pickPrimaryVpnDeeplink,
 } from '../../shared/lib/happLauncher'
-import { AppContainer, BrandBlock, PrimaryButton } from '../../shared/ui'
+import drakkarMark from '../../assets/drakkar-mark.png'
+import { AppContainer, BrandBlock, HomeBrandShell, PrimaryButton } from '../../shared/ui'
 import { HOME_PRESENTATION } from './homePresentation'
 
 type ReadyCtaError = 'maintenance' | 'session'
@@ -23,8 +33,8 @@ type ProvisionFailure = {
 }
 
 type ConnectOverlay =
-  | { kind: 'addSubscription'; deepLink: string; copyTarget: string }
-  | { kind: 'needInstallClient'; deepLink: string; copyTarget: string }
+  | { kind: 'addSubscription'; happLink: string; v2rayLink: string; copyTarget: string }
+  | { kind: 'needInstallClient'; happLink: string; v2rayLink: string; copyTarget: string }
 
 function MiniSpinner({ className = 'h-4 w-4' }: { className?: string }) {
   return (
@@ -39,41 +49,300 @@ function MiniSpinner({ className = 'h-4 w-4' }: { className?: string }) {
   )
 }
 
+type InstallClientSelection = 'happ' | 'v2ray'
+
+const flowPrimaryLargeClass =
+  '!px-10 !py-[1.35rem] !text-[1.0625rem] !font-semibold transition-[transform,box-shadow] duration-300 sm:!py-6 sm:!text-[1.1875rem]'
+
+const flowSecondaryCompactClass =
+  'w-full rounded-full bg-[rgba(255,255,255,0.07)] px-8 py-3.5 font-sans text-[15px] font-semibold text-[#9ca0a5] shadow-none transition-[transform,background-color,color] duration-300 hover:bg-[rgba(255,255,255,0.11)] hover:text-[#c5c9ce] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(255,255,255,0.12)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#040608] active:scale-[0.99] disabled:pointer-events-none disabled:opacity-40 sm:text-[0.97rem]'
+
+type NeedInstallClientContextValue = {
+  copyTarget: string
+  onClientInstalled: () => void
+  selected: InstallClientSelection | null
+  setSelected: (v: InstallClientSelection | null) => void
+  storeOpened: boolean
+  copyState: 'idle' | 'copied'
+  openSelectedStore: () => void
+  handleCopyConfig: () => Promise<void>
+}
+
+const NeedInstallClientContext = createContext<NeedInstallClientContextValue | null>(null)
+
+function useNeedInstallClientContext() {
+  const ctx = useContext(NeedInstallClientContext)
+  if (!ctx) {
+    throw new Error('Need install client UI must be used within NeedInstallClientProvider')
+  }
+  return ctx
+}
+
+function NeedInstallClientProvider({
+  happInstallUrl,
+  v2rayTunInstallUrl,
+  copyTarget,
+  onClientInstalled,
+  children,
+}: {
+  happInstallUrl: string
+  v2rayTunInstallUrl: string
+  copyTarget: string
+  onClientInstalled: () => void
+  children: ReactNode
+}) {
+  const [selected, setSelected] = useState<InstallClientSelection | null>(null)
+  const [storeOpened, setStoreOpened] = useState(false)
+  const [copyState, setCopyState] = useState<'idle' | 'copied'>('idle')
+
+  const openSelectedStore = useCallback(() => {
+    if (selected == null) return
+    const url = selected === 'happ' ? happInstallUrl : v2rayTunInstallUrl
+    window.location.href = url
+    setStoreOpened(true)
+  }, [happInstallUrl, selected, v2rayTunInstallUrl])
+
+  const handleCopyConfig = useCallback(async () => {
+    const ok = await copyText(copyTarget)
+    if (ok) {
+      setCopyState('copied')
+      window.setTimeout(() => setCopyState('idle'), 2000)
+    }
+  }, [copyTarget])
+
+  const value = useMemo(
+    () => ({
+      copyTarget,
+      onClientInstalled,
+      selected,
+      setSelected,
+      storeOpened,
+      copyState,
+      openSelectedStore,
+      handleCopyConfig,
+    }),
+    [
+      copyState,
+      copyTarget,
+      handleCopyConfig,
+      onClientInstalled,
+      openSelectedStore,
+      selected,
+      storeOpened,
+    ],
+  )
+
+  return <NeedInstallClientContext.Provider value={value}>{children}</NeedInstallClientContext.Provider>
+}
+
+function NeedInstallClientCards() {
+  const { selected, setSelected } = useNeedInstallClientContext()
+
+  const cardBase =
+    'flex min-h-[102px] min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[14px] px-2 py-3.5 text-center transition-[background-color,border-color,box-shadow,transform] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(0,122,255,0.35)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#040608] disabled:pointer-events-none disabled:opacity-40'
+  const cardIdle =
+    'border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.04)] hover:border-[rgba(255,255,255,0.14)] hover:bg-[rgba(255,255,255,0.07)] active:scale-[0.98]'
+  const cardActive =
+    'border border-[rgba(0,122,255,0.5)] bg-[rgba(0,122,255,0.15)] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]'
+
+  return (
+    <div className="flex gap-3" role="radiogroup" aria-label="Клиент для установки">
+      <button
+        type="button"
+        role="radio"
+        aria-checked={selected === 'happ'}
+        onClick={() => setSelected('happ')}
+        className={`${cardBase} ${selected === 'happ' ? cardActive : cardIdle}`}
+      >
+        <span className="font-sans text-[15px] font-semibold tracking-[-0.02em] text-[var(--foreground)]">
+          Happ
+        </span>
+        <span className="max-w-[9rem] text-[11px] font-medium leading-snug text-[#9ea3a8]">
+          Рекомендуется
+        </span>
+      </button>
+      <button
+        type="button"
+        role="radio"
+        aria-checked={selected === 'v2ray'}
+        onClick={() => setSelected('v2ray')}
+        className={`${cardBase} ${selected === 'v2ray' ? cardActive : cardIdle}`}
+      >
+        <span className="font-sans text-[15px] font-semibold tracking-[-0.02em] text-[var(--foreground)]">
+          v2RayTun
+        </span>
+        <span className="max-w-[9rem] text-[11px] font-medium leading-snug text-[#9ea3a8]">
+          Если первый недоступен
+        </span>
+      </button>
+    </div>
+  )
+}
+
+function NeedInstallClientPanel() {
+  const {
+    selected,
+    storeOpened,
+    copyTarget,
+    copyState,
+    onClientInstalled,
+    openSelectedStore,
+    handleCopyConfig,
+  } = useNeedInstallClientContext()
+
+  return (
+    <div className="rounded-[14px] bg-[rgba(255,255,255,0.03)] px-4 py-4">
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2.5">
+          {!storeOpened ? (
+            <>
+              <PrimaryButton
+                type="button"
+                disabled={selected == null}
+                onClick={openSelectedStore}
+                className={flowPrimaryLargeClass}
+              >
+                Скачать
+              </PrimaryButton>
+              <button
+                type="button"
+                onClick={onClientInstalled}
+                className={flowSecondaryCompactClass}
+              >
+                Продолжить подключение
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                disabled={selected == null}
+                onClick={openSelectedStore}
+                className={flowSecondaryCompactClass}
+              >
+                Скачать
+              </button>
+              <PrimaryButton
+                type="button"
+                onClick={onClientInstalled}
+                className={flowPrimaryLargeClass}
+              >
+                Продолжить подключение
+              </PrimaryButton>
+            </>
+          )}
+        </div>
+
+        <div className="h-px w-full bg-[rgba(255,255,255,0.06)]" aria-hidden />
+
+        <div className="flex flex-col items-center gap-3 text-center">
+          <p className="font-sans text-[14px] font-semibold tracking-[-0.01em] text-[var(--foreground)]">
+            Ручное подключение
+          </p>
+          <button
+            type="button"
+            disabled={!copyTarget}
+            onClick={() => void handleCopyConfig()}
+            className="inline-flex h-11 w-full max-w-[20rem] items-center justify-center gap-2.5 whitespace-nowrap rounded-full bg-[rgba(255,255,255,0.07)] px-5 py-2.5 text-[14px] font-semibold text-[#d8d4cc] transition-[background-color,transform] hover:bg-[rgba(255,255,255,0.11)] active:scale-[0.99] disabled:pointer-events-none disabled:opacity-40"
+          >
+            <svg
+              className="h-[18px] w-[18px] shrink-0 opacity-90"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
+            >
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            </svg>
+            <span className="min-w-[10.5rem] text-center">
+              {copyState === 'copied' ? 'Скопировано' : 'Скопировать конфиг'}
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function ConnectStepShell({
   title,
   subtitle,
   primary,
   secondary,
   tertiary,
+  topBarLeading,
+  /**
+   * Hero сверху, действия снизу; свободная высота между ними, без скролла.
+   */
+  stackActionsBelowHero = false,
+  /** Три зоны: hero — primary — secondary (равномерные промежутки по высоте). */
+  stackActionsSplit = false,
 }: {
   title: string
   subtitle: string
   primary: ReactNode
-  secondary: ReactNode
+  secondary?: ReactNode
   tertiary?: ReactNode
+  /** Слабый контроль «назад» над контентом (не трогает лого/заголовки в hero). */
+  topBarLeading?: ReactNode
+  stackActionsBelowHero?: boolean
+  stackActionsSplit?: boolean
 }) {
+  const heroBlock = (
+    <div className="mx-auto w-full max-w-sm text-center">
+      <div className="mb-4 flex justify-center" aria-hidden>
+        <img
+          src={drakkarMark}
+          alt=""
+          className="h-[5.5rem] w-auto max-w-[12rem] object-contain select-none"
+          draggable={false}
+        />
+      </div>
+      <h2 className="font-sans text-xl font-bold leading-tight tracking-[-0.02em] text-[#e8e2d6]">{title}</h2>
+      <p className="mt-2 text-base font-normal leading-normal text-[#8b8f94]">{subtitle}</p>
+    </div>
+  )
+
+  const footerBlock = (
+    <div className="mx-auto w-full max-w-sm shrink-0 space-y-3">
+      {primary}
+      {secondary}
+      {tertiary}
+    </div>
+  )
+
   return (
     <AppContainer>
-      <div className="flex h-full min-h-0 flex-col overflow-hidden px-6 pb-3 pt-[max(1.25rem,env(safe-area-inset-top))]">
-        <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden text-center">
-          <div className="w-full max-w-sm">
-            <div className="mb-4 flex justify-center" aria-hidden>
-              <img
-                src="/drakkar-mark.png"
-                alt=""
-                className="h-20 w-auto max-w-[12rem] object-contain select-none"
-                draggable={false}
-              />
+      <div className="relative flex min-h-0 w-full flex-1 flex-col overflow-hidden px-6 pb-[max(3rem,env(safe-area-inset-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))]">
+        {topBarLeading ? <div className="mb-2 shrink-0">{topBarLeading}</div> : null}
+        {stackActionsBelowHero ? (
+          stackActionsSplit ? (
+            <div className="flex min-h-0 flex-1 flex-col justify-evenly overflow-hidden">
+              <div className="shrink-0">{heroBlock}</div>
+              <div className="mx-auto w-full max-w-sm shrink-0">{primary}</div>
+              <div className="mx-auto w-full max-w-sm shrink-0">
+                {secondary}
+                {tertiary ? <div className="mt-3">{tertiary}</div> : null}
+              </div>
             </div>
-            <h2 className="font-sans text-xl font-bold leading-tight tracking-[-0.02em] text-[#e8e2d6]">{title}</h2>
-            <p className="mt-2 text-base font-normal leading-normal text-[#8b8f94]">{subtitle}</p>
-          </div>
-        </div>
-        <div className="mx-auto w-full max-w-sm shrink-0 space-y-3 pb-2">
-          {primary}
-          {secondary}
-          {tertiary}
-        </div>
+          ) : (
+            <div className="flex min-h-0 flex-1 flex-col justify-evenly overflow-hidden">
+              <div className="shrink-0">{heroBlock}</div>
+              <div className="shrink-0">{footerBlock}</div>
+            </div>
+          )
+        ) : (
+          <>
+            <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden text-center">
+              {heroBlock}
+            </div>
+            <div className="mt-2">{footerBlock}</div>
+          </>
+        )}
       </div>
     </AppContainer>
   )
@@ -106,16 +375,40 @@ function SummaryCard({
       : null
 
   return (
-    <div className="mx-auto w-full max-w-sm rounded-2xl bg-[rgba(255,255,255,0.04)] p-4">
+    <div className="mx-auto w-full max-w-sm rounded-2xl bg-[rgba(255,255,255,0.04)] p-4 shadow-[0_10px_40px_rgba(37,99,235,0.08)]">
       <div className="flex items-center gap-3">
-        <span
-          className={[
-            'shrink-0 text-xl leading-none',
-            hasSubscription ? 'text-green-500' : 'text-red-500',
-          ].join(' ')}
-          aria-hidden
-        >
-          {hasSubscription ? '✔' : '✖'}
+        <span className="shrink-0 leading-none" aria-hidden>
+          {hasSubscription ? (
+            <svg
+              className="block h-5 w-5 text-[#22c55e]"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 6L9 17l-5-5"
+                stroke="currentColor"
+                strokeWidth="2.25"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          ) : (
+            <svg
+              className="block h-5 w-5 text-[#ef4444]"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M18 6L6 18M6 6l12 12"
+                stroke="currentColor"
+                strokeWidth="2.25"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          )}
         </span>
         <div className="min-w-0">
           {hasSubscription ? (
@@ -144,34 +437,6 @@ function SummaryCard({
   )
 }
 
-function HomeShell({
-  statusText,
-  statusCard,
-  footer,
-}: {
-  statusText?: string | null
-  statusCard?: ReactNode
-  footer: ReactNode
-}) {
-  return (
-    <AppContainer>
-      <main className="flex min-h-0 flex-1 flex-col items-center justify-center px-6 pb-3 pt-[max(1.25rem,env(safe-area-inset-top))]">
-        <div className="flex w-full min-w-0 min-h-0 flex-1 flex-col items-center justify-center overflow-hidden">
-          <BrandBlock />
-          <div className="h-6 shrink-0" aria-hidden />
-        </div>
-      </main>
-      <footer className="w-full shrink-0 px-6 pt-2">
-        {statusCard ? <div className="mb-3">{statusCard}</div> : null}
-        {statusText ? (
-          <p className="mb-2 w-full text-center text-[14px] font-normal leading-normal text-[#a1a6aa]">{statusText}</p>
-        ) : null}
-        {footer}
-      </footer>
-    </AppContainer>
-  )
-}
-
 async function copyText(text: string): Promise<boolean> {
   if (!text) return false
   try {
@@ -182,12 +447,10 @@ async function copyText(text: string): Promise<boolean> {
   }
 }
 
-function pickDeepLink(data: VpnConfigResponse | undefined, isIos: boolean): string | null {
-  if (!data) return null
-  if (isIos) {
-    return data.v2rayLink ?? data.happLink ?? null
-  }
-  return data.happLink ?? data.v2rayLink ?? null
+function launchLinksFromConfig(data: VpnConfigResponse | undefined): { happ: string; v2ray: string } {
+  const happ = (data?.happLink ?? '').trim()
+  const v2ray = (data?.v2rayLink ?? '').trim()
+  return { happ, v2ray }
 }
 
 function pickCopyTarget(data: VpnConfigResponse | undefined): string {
@@ -197,13 +460,20 @@ function pickCopyTarget(data: VpnConfigResponse | undefined): string {
 
 export function HomePage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const home = useHomeContext()
   const summary = useUserSummary()
   const startProvision = useStartProvision()
-  const { refetch: fetchCurrentConfig, isFetching: isFetchingConfig } = useCurrentConfig({
-    enabled: false,
+
+  const state = home.data?.state
+  const {
+    data: vpnConfig,
+    isPending: isVpnConfigPending,
+    isFetching: isFetchingConfig,
+  } = useCurrentConfig({
+    enabled: state === 'Ready',
   })
-  const [isLaunchingHapp, setIsLaunchingHapp] = useState(false)
+
   const [readyCtaError, setReadyCtaError] = useState<ReadyCtaError | null>(null)
   const [provisionFailure, setProvisionFailure] = useState<ProvisionFailure | null>(null)
   const [userConnectIntent, setUserConnectIntent] = useState(false)
@@ -215,7 +485,6 @@ export function HomePage() {
   const launchLockRef = useRef(false)
   const prevStateRef = useRef<HomeScreenState | undefined>(undefined)
 
-  const state = home.data?.state
   const view = state != null ? HOME_PRESENTATION[state] : null
 
   const jobId = home.data?.pendingProvisionJobId
@@ -243,59 +512,62 @@ export function HomePage() {
   const platform = window.Telegram?.WebApp?.platform?.toLowerCase() ?? ''
   const isIos = platform.includes('ios') || platform.includes('iphone') || platform.includes('ipad')
 
-  const runConnectLaunch = useCallback(async () => {
+  const runConnectLaunch = useCallback(() => {
     if (launchLockRef.current) return
-    launchLockRef.current = true
-    try {
-      const result = await fetchCurrentConfig()
-      const data = result.data
 
-      const deepLink = pickDeepLink(data, isIos)
-      const configUrl = data?.configUrl ?? null
-      const copyTarget = pickCopyTarget(data) || configUrl || ''
+    const data =
+      queryClient.getQueryData<VpnConfigResponse>(userQueryKeys.currentConfig) ?? vpnConfig ?? undefined
 
-      if (!deepLink) {
-        if (isIos && configUrl) {
-          setOverlay({
-            kind: 'addSubscription',
-            deepLink: '',
-            copyTarget,
-          })
-          return
-        }
-        setReadyCtaError('maintenance')
+    const { happ, v2ray } = launchLinksFromConfig(data)
+    const configUrl = data?.configUrl ?? null
+    const copyTarget = pickCopyTarget(data) || configUrl || ''
+
+    if (!happ && !v2ray) {
+      if (isVpnConfigPending && !data) {
         return
       }
-
-      setIsLaunchingHapp(true)
-      try {
-        const opened = await openHappLinkWithFallback(deepLink)
-        if (opened) {
-          markHappOpenedSuccessfully()
-          setUserConnectIntent(false)
-          setOverlay(null)
-          void home.refetch()
-          return
-        }
-        setUserConnectIntent(false)
-        if (hasOpenedHappSuccessfullyInSession()) {
-          setOverlay(null)
-          return
-        }
-        setOverlay({ kind: 'needInstallClient', deepLink, copyTarget })
-      } finally {
-        setIsLaunchingHapp(false)
-      }
-    } catch (e: unknown) {
-      if (isAxiosError(e) && e.response?.status === 401) {
-        setReadyCtaError('session')
+      if (isIos && configUrl) {
+        setOverlay({
+          kind: 'addSubscription',
+          happLink: '',
+          v2rayLink: '',
+          copyTarget,
+        })
         return
       }
       setReadyCtaError('maintenance')
-    } finally {
-      launchLockRef.current = false
+      return
     }
-  }, [fetchCurrentConfig, home, isIos])
+
+    const url = pickPrimaryVpnDeeplink(happ, v2ray)
+    if (!url) {
+      setReadyCtaError('maintenance')
+      return
+    }
+
+    launchLockRef.current = true
+
+    beginVpnDeeplinkAttempt({
+      onLikelyOpened: () => {
+        markHappOpenedSuccessfully()
+        setUserConnectIntent(false)
+        setOverlay(null)
+        void home.refetch()
+        launchLockRef.current = false
+      },
+      onStillVisible: () => {
+        setUserConnectIntent(false)
+        if (hasOpenedHappSuccessfullyInSession()) {
+          setOverlay(null)
+        } else {
+          setOverlay({ kind: 'needInstallClient', happLink: happ, v2rayLink: v2ray, copyTarget })
+        }
+        launchLockRef.current = false
+      },
+    })
+
+    openVpnClientDeeplinkSync(happ, v2ray)
+  }, [home, isIos, isVpnConfigPending, queryClient, vpnConfig])
 
   useEffect(() => {
     const prev = prevStateRef.current
@@ -306,7 +578,7 @@ export function HomePage() {
       userConnectIntent &&
       !overlay
     ) {
-      void runConnectLaunch()
+      runConnectLaunch()
     }
     prevStateRef.current = state
   }, [state, userConnectIntent, overlay, runConnectLaunch])
@@ -323,7 +595,7 @@ export function HomePage() {
     }
     if (state === 'Ready') {
       setUserConnectIntent(true)
-      void runConnectLaunch()
+      runConnectLaunch()
     }
   }
 
@@ -334,25 +606,37 @@ export function HomePage() {
   const ctaDisabled =
     showConnectLoading ||
     (state === 'Ready' &&
-      userConnectIntent &&
       !overlay &&
-      (isFetchingConfig || isLaunchingHapp))
+      isVpnConfigPending &&
+      !vpnConfig &&
+      !queryClient.getQueryData<VpnConfigResponse>(userQueryKeys.currentConfig)) ||
+    (state === 'Ready' && userConnectIntent && !overlay && isFetchingConfig)
 
-  const installUrl = getHappInstallUrl(window.Telegram?.WebApp?.platform)
+  const tgPlatform = window.Telegram?.WebApp?.platform
+  const happInstallUrl = getHappInstallUrl(tgPlatform)
+  const v2rayTunInstallUrl = getV2RayTunInstallUrl(tgPlatform)
 
   if (home.isPending) {
     return (
-      <HomeShell
-        footer={
-          <div className="h-14" aria-hidden />
+      <HomeBrandShell
+        brand={<BrandBlock />}
+        statusCard={
+          <div
+            className="mx-auto w-full max-w-sm rounded-2xl bg-[rgba(255,255,255,0.04)] p-4 shadow-[0_10px_40px_rgba(37,99,235,0.08)]"
+            aria-hidden
+          >
+            <div className="h-5 w-[72%] max-w-[16rem] rounded bg-[rgba(255,255,255,0.07)]" />
+            <div className="mt-2.5 h-4 w-[48%] max-w-[10rem] rounded bg-[rgba(255,255,255,0.05)]" />
+          </div>
         }
+        footer={<div className="mx-auto h-14 w-full max-w-sm rounded-full bg-[rgba(255,255,255,0.06)]" aria-hidden />}
       />
     )
   }
 
   if (home.isError) {
     return (
-      <HomeShell
+      <HomeBrandShell
         footer={
           <PrimaryButton type="button" onClick={() => void home.refetch()}>
             Повторить
@@ -364,7 +648,7 @@ export function HomePage() {
 
   if (home.isSuccess && home.data != null && view == null) {
     return (
-      <HomeShell
+      <HomeBrandShell
         footer={
           <PrimaryButton type="button" onClick={() => void home.refetch()}>
             Повторить
@@ -386,7 +670,7 @@ export function HomePage() {
     }
 
     return (
-      <HomeShell
+      <HomeBrandShell
         statusText={view.subscriptionStatusLabel}
         footer={
           <div className="space-y-3">
@@ -412,107 +696,85 @@ export function HomePage() {
   }
 
   if (overlay?.kind === 'needInstallClient') {
-    const { deepLink, copyTarget } = overlay
-    const storeUrl = installUrl
+    const { happLink, v2rayLink, copyTarget } = overlay
 
-    const handleInstalled = async () => {
-      setIsLaunchingHapp(true)
-      try {
-        const opened = await openHappLinkWithFallback(deepLink)
-        if (opened) {
+    const handleInstalled = () => {
+      beginVpnDeeplinkAttempt({
+        onLikelyOpened: () => {
           markHappOpenedSuccessfully()
           setOverlay(null)
           setUserConnectIntent(false)
           void home.refetch()
-        }
-      } finally {
-        setIsLaunchingHapp(false)
-      }
+        },
+      })
+      openVpnClientDeeplinkSync(happLink, v2rayLink)
     }
 
     return (
-      <ConnectStepShell
-        title="Нужно установить приложение"
-        subtitle="Установите HApp, затем вернитесь сюда и продолжите подключение."
-        primary={
-          <div className="space-y-2">
-            <div className="flex justify-center">
-              <button
-                type="button"
-                className="text-center text-[12px] font-medium text-[#a1a6aa] underline underline-offset-4 hover:text-[var(--foreground)] disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={!copyTarget}
-                onClick={async () => {
-                  const ok = await copyText(copyTarget)
-                  if (ok) {
-                    setCopyToast('copied')
-                    window.setTimeout(() => setCopyToast('idle'), 2000)
-                  }
-                }}
-              >
-                {copyToast === 'copied'
-                  ? 'Скопировано'
-                  : 'Скопировать конфиг и вставить в клиент вручную'}
-              </button>
-            </div>
-            <PrimaryButton
+      <NeedInstallClientProvider
+        happInstallUrl={happInstallUrl}
+        v2rayTunInstallUrl={v2rayTunInstallUrl}
+        copyTarget={copyTarget}
+        onClientInstalled={handleInstalled}
+      >
+        <ConnectStepShell
+          title="Установите VPN-клиент"
+          subtitle='Установите один из клиентов, затем нажмите «Продолжить подключение»'
+          stackActionsBelowHero
+          stackActionsSplit
+          topBarLeading={
+            <button
               type="button"
-              onClick={() => window.open(storeUrl, '_blank', 'noopener,noreferrer')}
+              onClick={() => setOverlay(null)}
+              className="-ml-1 flex items-center gap-1.5 py-1.5 pr-3 text-left text-[14px] font-medium text-[#8b8f94] transition-colors hover:text-[#d8d4cc] disabled:pointer-events-none disabled:opacity-45"
             >
-              Установить клиент
-            </PrimaryButton>
-          </div>
-        }
-        secondary={
-          <PrimaryButton
-            type="button"
-            className="border border-[var(--btn-primary-border)] bg-transparent text-[var(--foreground)] hover:bg-[var(--surface-2)]"
-            onClick={() => void handleInstalled()}
-            disabled={isLaunchingHapp}
-          >
-            Я установил
-          </PrimaryButton>
-        }
-        tertiary={
-          <PrimaryButton
-            type="button"
-            className="border border-[var(--btn-primary-border)] bg-transparent text-[var(--foreground)] hover:bg-[var(--surface-2)]"
-            onClick={() => setOverlay(null)}
-            disabled={isLaunchingHapp}
-          >
-            Назад
-          </PrimaryButton>
-        }
-      />
+              <svg
+                className="h-[18px] w-[18px] shrink-0 opacity-90"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+              >
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+              Назад
+            </button>
+          }
+          primary={<NeedInstallClientCards />}
+          secondary={<NeedInstallClientPanel />}
+        />
+      </NeedInstallClientProvider>
     )
   }
 
   if (overlay?.kind === 'addSubscription') {
-    const { deepLink, copyTarget } = overlay
+    const { happLink, v2rayLink, copyTarget } = overlay
 
-    const openHapp = async () => {
-      if (deepLink) {
-        setIsLaunchingHapp(true)
-        try {
-          const opened = await openHappLinkWithFallback(deepLink)
-          if (opened) {
+    const openHapp = () => {
+      if (happLink || v2rayLink) {
+        beginVpnDeeplinkAttempt({
+          onLikelyOpened: () => {
             markHappOpenedSuccessfully()
             setOverlay(null)
             setUserConnectIntent(false)
             void home.refetch()
-            return
-          }
-          setUserConnectIntent(false)
-          if (hasOpenedHappSuccessfullyInSession()) {
-            setOverlay(null)
-            return
-          }
-          setOverlay({ kind: 'needInstallClient', deepLink, copyTarget })
-        } finally {
-          setIsLaunchingHapp(false)
-        }
+          },
+          onStillVisible: () => {
+            setUserConnectIntent(false)
+            if (hasOpenedHappSuccessfullyInSession()) {
+              setOverlay(null)
+              return
+            }
+            setOverlay({ kind: 'needInstallClient', happLink, v2rayLink, copyTarget })
+          },
+        })
+        openVpnClientDeeplinkSync(happLink, v2rayLink)
         return
       }
-      window.open(installUrl, '_blank', 'noopener,noreferrer')
+      window.location.href = happInstallUrl
     }
 
     const handleCopy = async () => {
@@ -528,7 +790,7 @@ export function HomePage() {
         title="Добавьте подписку"
         subtitle="Откроем HApp и передадим конфигурацию."
         primary={
-          <PrimaryButton type="button" onClick={() => void openHapp()} disabled={isLaunchingHapp}>
+          <PrimaryButton type="button" onClick={openHapp}>
             Открыть HApp
           </PrimaryButton>
         }
@@ -553,14 +815,14 @@ export function HomePage() {
     }
 
     return (
-      <HomeShell
+      <HomeBrandShell
         statusText={view.subscriptionStatusLabel}
         footer={
           <div className="space-y-3">
             <PrimaryButton
               type="button"
               onClick={handleRetry}
-              disabled={isFetchingConfig || isLaunchingHapp}
+              disabled={isFetchingConfig}
             >
               Повторить
             </PrimaryButton>
@@ -568,7 +830,7 @@ export function HomePage() {
               type="button"
               className="border border-[var(--btn-primary-border)] bg-transparent text-[var(--foreground)] hover:bg-[var(--surface-2)]"
               onClick={() => setReadyCtaError(null)}
-              disabled={isFetchingConfig || isLaunchingHapp}
+              disabled={isFetchingConfig}
             >
               Назад
             </PrimaryButton>
@@ -579,7 +841,7 @@ export function HomePage() {
   }
 
   return (
-    <HomeShell
+    <HomeBrandShell
       statusText={null}
       statusCard={
         summary.data ? (
@@ -592,7 +854,12 @@ export function HomePage() {
       }
       footer={
         view.primaryCtaLabel ? (
-          <PrimaryButton type="button" disabled={ctaDisabled} onClick={handlePrimary}>
+          <PrimaryButton
+            type="button"
+            disabled={ctaDisabled}
+            onClick={handlePrimary}
+            className="shadow-[0_8px_30px_rgba(37,99,235,0.35)]"
+          >
             {showConnectLoading ? (
               <span className="inline-flex items-center justify-center gap-2">
                 <MiniSpinner />

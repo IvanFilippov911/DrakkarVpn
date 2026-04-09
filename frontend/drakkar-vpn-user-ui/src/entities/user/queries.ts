@@ -1,10 +1,16 @@
 import { isAxiosError } from 'axios'
 import { useEffect } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getCurrentConfig, getHomeContext, getTariffs, getUserSummary, pollProvision } from './api'
 import { userQueryKeys } from './queryKeys'
 
 const READ_RETRY_COUNT = 3
+
+/** Меньше «мигания» при возврате на экран: данные не считаются мгновенно устаревшими. */
+const STALE_HOME_MS = 20_000
+const STALE_SUMMARY_MS = 120_000
+const STALE_TARIFFS_MS = 300_000
+const STALE_CURRENT_CONFIG_MS = 30_000
 
 function readRetryDelay(attemptIndex: number): number {
   return Math.min(1000 * 2 ** attemptIndex, 30_000)
@@ -26,6 +32,7 @@ export function useHomeContext(options?: UseHomeContextOptions) {
     queryKey: userQueryKeys.homeContext,
     queryFn: getHomeContext,
     enabled,
+    staleTime: STALE_HOME_MS,
     retry: READ_RETRY_COUNT,
     retryDelay: readRetryDelay,
   })
@@ -38,6 +45,8 @@ export function useTariffs(options?: { enabled?: boolean }) {
     queryKey: userQueryKeys.tariffs,
     queryFn: getTariffs,
     enabled,
+    staleTime: STALE_TARIFFS_MS,
+    placeholderData: keepPreviousData,
     retry: READ_RETRY_COUNT,
     retryDelay: readRetryDelay,
   })
@@ -50,6 +59,7 @@ export function useUserSummary(options?: { enabled?: boolean }) {
     queryKey: userQueryKeys.summary,
     queryFn: getUserSummary,
     enabled,
+    staleTime: STALE_SUMMARY_MS,
     retry: READ_RETRY_COUNT,
     retryDelay: readRetryDelay,
   })
@@ -65,6 +75,7 @@ export function useCurrentConfig(options?: { enabled?: boolean }) {
     queryKey: userQueryKeys.currentConfig,
     queryFn: getCurrentConfig,
     enabled,
+    staleTime: STALE_CURRENT_CONFIG_MS,
     retry: READ_RETRY_COUNT,
     retryDelay: readRetryDelay,
   })

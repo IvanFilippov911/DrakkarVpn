@@ -6,6 +6,7 @@ import { LoginPage } from '../../pages/auth/LoginPage'
 import { DashboardPage } from '../../pages/dashboard/DashboardPage'
 import { ServersPage } from '../../pages/servers/ServersPage'
 import { PeersPage } from '../../pages/peers/PeersPage'
+import { UserDetailPage } from '../../pages/users/UserDetailPage'
 import { UsersPage } from '../../pages/users/UsersPage'
 import { TariffsPage } from '../../pages/tariffs/TariffsPage'
 import { ErrorsPage } from '../../pages/errors/ErrorsPage'
@@ -69,6 +70,7 @@ export function AppRouter() {
           <Route path="/servers" element={<ServersPage />} />
           <Route path="/servers/:serverId/peers" element={<PeersPage />} />
           <Route path="/users" element={<UsersPage />} />
+          <Route path="/users/:userId" element={<UserDetailPage />} />
           <Route path="/tariffs" element={<TariffsPage />} />
           <Route path="/errors" element={<ErrorsPage />} />
         </Route>

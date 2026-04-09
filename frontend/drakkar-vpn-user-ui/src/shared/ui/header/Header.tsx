@@ -17,13 +17,17 @@ export function Header({
   return (
     <header className="shrink-0 px-6 pt-6 pb-4">
       <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={() => onBack?.()}
-          className="min-w-12 text-left text-sm font-normal text-[var(--text-sub)] transition-colors hover:text-[var(--foreground)]"
-        >
-          {backLabel}
-        </button>
+        {onBack ? (
+          <button
+            type="button"
+            onClick={() => onBack()}
+            className="min-w-12 shrink-0 text-left text-sm font-normal text-[var(--text-sub)] transition-colors hover:text-[var(--foreground)]"
+          >
+            {backLabel}
+          </button>
+        ) : (
+          <div className="min-w-12 shrink-0" aria-hidden />
+        )}
         <h1 className="min-w-0 flex-1 text-center font-sans text-xl font-bold tracking-[-0.02em] text-[var(--foreground)]">
           {title}
         </h1>

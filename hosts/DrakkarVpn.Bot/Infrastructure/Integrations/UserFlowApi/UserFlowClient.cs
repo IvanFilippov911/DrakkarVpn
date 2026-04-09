@@ -16,11 +16,12 @@ public sealed class UserFlowClient : IUserFlowClient
         _logger = logger;
     }
 
-    public async Task RegisterAsync(long telegramId, CancellationToken ct)
+    public async Task RegisterAsync(long telegramId, string? username, CancellationToken ct)
     {
         var request = new
         {
-            TelegramId = telegramId
+            TelegramId = telegramId,
+            Username = username,
         };
 
         var response = await _http.PostAsJsonAsync(

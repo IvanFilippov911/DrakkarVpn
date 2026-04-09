@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { EmptyState, InlineAlert, Skeleton, StatusDot } from '../../../shared/ui'
 import type { UiState, UserRow } from './types'
 
@@ -190,13 +191,12 @@ function UsersTableRow({
         </div>
       </td>
       <td className="p-2 align-middle text-right">
-        <button
-          type="button"
-          className="h-8 px-3 rounded-md text-sm border border-border/60 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled
+        <Link
+          to={`/users/${row.id}`}
+          className="inline-flex h-8 items-center justify-center px-3 rounded-md text-sm border border-border/60 text-muted-foreground hover:bg-accent hover:text-foreground"
         >
           Detail
-        </button>
+        </Link>
       </td>
     </tr>
   )

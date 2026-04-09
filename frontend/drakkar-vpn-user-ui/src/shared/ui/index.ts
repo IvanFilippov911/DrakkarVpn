@@ -1,6 +1,8 @@
 export { BottomNav } from './bottom-nav/BottomNav'
 export { AppContainer } from './app-container/AppContainer'
 export { BrandBlock } from './brand-block/BrandBlock'
+export { HomeBrandShell, HomeFooterStatusCardSpace } from './home-brand-shell/HomeBrandShell'
+export type { HomeBrandShellProps } from './home-brand-shell/HomeBrandShell'
 export { Header } from './header/Header'
 export { PrimaryButton } from './primary-button/PrimaryButton'
 export { TariffCard } from './tariff-card/TariffCard'

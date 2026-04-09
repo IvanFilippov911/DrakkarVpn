@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import type { TariffDto } from '../../entities/user'
 import { useTariffs } from '../../entities/user'
 import { usePurchase } from '../../features/user'
@@ -28,7 +27,6 @@ function sortForChoice(items: TariffDto[]) {
 }
 
 export function TariffsPage() {
-  const navigate = useNavigate()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [freeNotice, setFreeNotice] = useState(false)
   const tariffsQuery = useTariffs()
@@ -57,9 +55,23 @@ export function TariffsPage() {
 
   return (
     <AppContainer>
-      <Header title="Выберите тариф" onBack={() => navigate('/')} />
+      <Header title="Выберите тариф" />
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-6 pb-2">
-        {tariffsQuery.isPending || tariffsQuery.isError || isEmpty ? (
+        {tariffsQuery.isPending && list.length === 0 ? (
+          <TariffList>
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="w-full rounded-2xl border border-[var(--btn-primary-border)] bg-[rgba(255,255,255,0.02)] p-6"
+                aria-hidden
+              >
+                <div className="h-5 w-40 max-w-[70%] rounded bg-[rgba(255,255,255,0.06)]" />
+                <div className="mt-4 h-9 w-28 rounded bg-[rgba(255,255,255,0.05)]" />
+                <div className="mt-2 h-5 w-36 rounded bg-[rgba(255,255,255,0.04)]" />
+              </div>
+            ))}
+          </TariffList>
+        ) : tariffsQuery.isError || isEmpty ? (
           <div className="min-h-0 flex-1" aria-hidden />
         ) : (
           <TariffList>
@@ -81,7 +93,7 @@ export function TariffsPage() {
           </TariffList>
         )}
       </div>
-      <footer className="mx-auto w-full max-w-sm shrink-0 px-6 pb-1 pt-3">
+      <footer className="mx-auto w-full max-w-sm shrink-0 px-6 pb-0 pt-2">
         {tariffsQuery.isError ? (
           <PrimaryButton type="button" onClick={() => void tariffsQuery.refetch()}>
             Повторить

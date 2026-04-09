@@ -1,4 +1,5 @@
 using DrakkarVpn.Core.Api.Modules.Admin.Infrastructure.EF;
+using DrakkarVpn.Core.Api.Modules.Peers.Domain;
 using DrakkarVpn.Admin.Api.Infrastructure.EF.ReadEntities;
 using DrakkarVpn.Users.Application.Abstractions;
 using DrakkarVpn.Users.Application.DTOs;
@@ -18,7 +19,8 @@ public sealed class UserDevicesReadStore : IUserDevicesReadStore
         var rows = await (
             from d in _db.Devices
             where d.UserId == userId
-            join p in _db.Peers on d.DeviceId equals p.DeviceId into peerJoin
+            join p in _db.Peers.Where(p => p.Status == (int)PeerStatus.Active)
+                on d.DeviceId equals p.DeviceId into peerJoin
             from p in peerJoin.DefaultIfEmpty()
             join agg in _db.AdminPeerTrafficAggs on p.Id equals agg.PeerId into aggJoin
             from agg in aggJoin.DefaultIfEmpty()

@@ -26,6 +26,7 @@ public sealed class RegisterOrGetByTelegramHandler
 
         var dto = await _reg.RegisterOrGetAsync(
             telegramId: tgId,
+            telegramUsername: req.regCommand.Username,
             nowUtc: nowUtc,
             ct: ct);
 

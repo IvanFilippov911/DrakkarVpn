@@ -19,13 +19,13 @@ function BootShell({ footer }: { footer: ReactNode }) {
   return (
     <div className="flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden">
       <AppContainer>
-        <main className="flex min-h-0 flex-1 flex-col items-center justify-center px-6 pb-4 pt-[max(1.5rem,env(safe-area-inset-top))]">
+        <main className="flex min-h-0 flex-1 flex-col items-center justify-center px-6 pb-3 pt-[max(1.5rem,env(safe-area-inset-top))]">
           <div className="flex w-full min-h-0 flex-1 flex-col items-center justify-center">
             <BrandBlock />
             <div className="h-8 shrink-0" aria-hidden />
           </div>
         </main>
-        <footer className="w-full shrink-0 px-6 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
+        <footer className="w-full shrink-0 px-6 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-1">
           {footer}
         </footer>
       </AppContainer>

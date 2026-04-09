@@ -10,9 +10,13 @@ body {
   overflow: hidden;
 }
 
+html {
+  background-color: #020617;
+}
+
 body {
   margin: 0;
-  background: #040608;
+  background-color: #020617;
   color: #e8e2d6;
   font-family: var(--font-sans);
   font-weight: 400;
@@ -32,7 +36,7 @@ body {
 }
 
 :root {
-  --background: #040608;
+  --background: transparent;
   --surface-0: #040303;
   --surface-1: #080706;
   --surface-2: #0e0d0b;
@@ -43,9 +47,11 @@ body {
   --text-sub: #8b8f94;
   --text-status: #a1a6aa;
   --primary-foreground: #e8e2d6;
-  --btn-primary-bg: #244066;
-  --btn-primary-hover: #2f5280;
+  /* Primary CTA: iOS system blue */
+  --btn-primary-bg: #007aff;
+  --btn-primary-hover: #0062df;
   --btn-primary-border: rgba(255, 255, 255, 0.06);
+  --btn-primary-text: #ffffff;
   --muted-strong: #8b8f94;
   --muted-soft: #a1a6aa;
   --steel: #58554e;
@@ -101,4 +107,18 @@ body {
 
 @utility animate-underwater-pulse {
   animation: underwater-pulse 1300ms ease-out infinite;
+}
+
+/*
+ * Premium-минимал: почти чёрная база + два едва заметных radial (без линейных градиентов, без анимации).
+ */
+.app-atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: #020617;
+  background-image:
+    radial-gradient(circle at 50% 20%, rgba(37, 99, 235, 0.06), transparent 60%),
+    radial-gradient(circle at 50% 100%, rgba(37, 99, 235, 0.03), transparent 70%);
 }

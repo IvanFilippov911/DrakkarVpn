@@ -27,8 +27,9 @@ public class StartCommandHandler : IRequestHandler<StartCommand, Unit>
     {
         var chatId = req.Message.Chat.Id;
         var tgId = req.Message.From?.Id ?? 0;
+        var username = req.Message.From?.Username;
 
-        await _userClient.RegisterAsync(tgId, ct);
+        await _userClient.RegisterAsync(tgId, username, ct);
         await _bot.SendMessage(
             chatId: chatId,
             text: $"👇 Приватный доступ к сети",

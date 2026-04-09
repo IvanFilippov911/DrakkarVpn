@@ -23,10 +23,33 @@ public sealed class AppUser
         Status = UserStatus.Active;
     }
 
-    public static AppUser CreateNew(long telegramId, DateTime nowUtc) =>
-        new(Guid.NewGuid(), telegramId, nowUtc);
+    public static AppUser CreateNew(long telegramId, DateTime nowUtc, string? telegramUsername = null)
+    {
+        var user = new AppUser(Guid.NewGuid(), telegramId, nowUtc);
+        user.SetTelegramUsername(telegramUsername);
+        return user;
+    }
     
-    
+    public void SetTelegramUsername(string? rawUsername)
+    {
+        Username = NormalizeTelegramUsername(rawUsername);
+    }
+
+    private static string? NormalizeTelegramUsername(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+            return null;
+
+        var s = raw.Trim();
+        if (s.StartsWith("@", StringComparison.Ordinal))
+            s = s[1..].TrimStart();
+
+        if (s.Length == 0)
+            return null;
+
+        return s.Length > 64 ? s[..64] : s;
+    }
+
     public void SetInternal(bool isInternal, DateTime nowUtc)
     {
         if (IsInternal == isInternal)

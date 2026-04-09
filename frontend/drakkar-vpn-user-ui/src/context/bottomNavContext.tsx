@@ -29,7 +29,7 @@ export function BottomNavProvider({ children }: { children: ReactNode }) {
           className={
             hidden
               ? 'box-border flex min-h-0 flex-1 flex-col overflow-hidden'
-              : 'box-border flex min-h-0 flex-1 flex-col overflow-hidden pb-[calc(5.25rem+env(safe-area-inset-bottom))]'
+              : 'box-border flex min-h-0 flex-1 flex-col overflow-hidden pb-[calc(4.25rem+1rem+max(0.5rem,env(safe-area-inset-bottom)))]'
           }
         >
           {children}

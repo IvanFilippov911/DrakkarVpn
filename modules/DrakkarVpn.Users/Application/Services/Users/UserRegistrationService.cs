@@ -13,6 +13,7 @@ public sealed class UserRegistrationService : IUserRegistrationService
 
     public async Task<RegisterOrGetResultDto> RegisterOrGetAsync(
         long telegramId,
+        string? telegramUsername,
         DateTime nowUtc,
         CancellationToken ct)
     {
@@ -21,9 +22,12 @@ public sealed class UserRegistrationService : IUserRegistrationService
 
         var existing = await _repo.GetByTelegramIdAsync(telegramId, ct);
         if (existing is not null)
+        {
+            existing.SetTelegramUsername(telegramUsername);
             return new RegisterOrGetResultDto(IsNew: false, UserId: existing.Id);
+        }
 
-        var created = AppUser.CreateNew(telegramId, nowUtc);
+        var created = AppUser.CreateNew(telegramId, nowUtc, telegramUsername);
         await _repo.AddAsync(created, ct);
 
         return new RegisterOrGetResultDto(IsNew: true, UserId: created.Id);
