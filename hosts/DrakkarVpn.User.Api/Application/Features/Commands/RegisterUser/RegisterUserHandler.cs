@@ -31,7 +31,7 @@ public sealed class RegisterOrGetByTelegramHandler
             ct: ct);
 
         if (dto.IsNew)
-            await _trial.TryGrantForNewUserAsync(dto.UserId, nowUtc, ct);
+            await _trial.TryGrantForNewUserAsync(dto.User, nowUtc, ct);
 
         return new RegisterUserResultDto(IsNewUser: dto.IsNew);
     }

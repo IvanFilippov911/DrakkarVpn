@@ -24,12 +24,12 @@ public sealed class UserRegistrationService : IUserRegistrationService
         if (existing is not null)
         {
             existing.SetTelegramUsername(telegramUsername);
-            return new RegisterOrGetResultDto(IsNew: false, UserId: existing.Id);
+            return new RegisterOrGetResultDto(IsNew: false, User: existing);
         }
 
         var created = AppUser.CreateNew(telegramId, nowUtc, telegramUsername);
         await _repo.AddAsync(created, ct);
 
-        return new RegisterOrGetResultDto(IsNew: true, UserId: created.Id);
+        return new RegisterOrGetResultDto(IsNew: true, User: created);
     }
 }

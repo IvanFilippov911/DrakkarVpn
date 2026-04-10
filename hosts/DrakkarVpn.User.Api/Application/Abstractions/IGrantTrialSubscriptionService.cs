@@ -1,3 +1,5 @@
+using DrakkarVpn.Core.Api.Modules.Users.Domain;
+
 namespace DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Abstractions;
 
 /// <summary>
@@ -5,5 +7,5 @@ namespace DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Abstractions;
 /// </summary>
 public interface IGrantTrialSubscriptionService
 {
-    Task TryGrantForNewUserAsync(Guid userId, DateTime nowUtc, CancellationToken ct);
+    Task TryGrantForNewUserAsync(AppUser user, DateTime nowUtc, CancellationToken ct);
 }

@@ -3,6 +3,7 @@ using DrakkarVpn.Core.Api.Modules.Subscriptions.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Tariffs.Application.Abstracts;
 using DrakkarVpn.Core.Api.Modules.Tariffs.Domain;
 using DrakkarVpn.Core.Api.Modules.Users.Application.Abstractions;
+using DrakkarVpn.Core.Api.Modules.Users.Domain;
 
 namespace DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Services;
 
@@ -25,12 +26,8 @@ public sealed class GrantTrialSubscriptionService : IGrantTrialSubscriptionServi
         _subscriptionsUow = subscriptionsUow;
     }
 
-    public async Task TryGrantForNewUserAsync(Guid userId, DateTime nowUtc, CancellationToken ct)
+    public async Task TryGrantForNewUserAsync(AppUser user, DateTime nowUtc, CancellationToken ct)
     {
-        var user = await _users.GetForUpdateAsync(userId, ct);
-        if (user is null)
-            return;
-
         if (user.TrialGrantedAtUtc is not null)
             return;
 
@@ -38,7 +35,7 @@ public sealed class GrantTrialSubscriptionService : IGrantTrialSubscriptionServi
         if (trialTariff is null)
             return;
 
-        await _grant.GrantAsync(userId, trialTariff.Id, null, nowUtc, ct);
+        await _grant.GrantAsync(user.Id, trialTariff.Id, null, nowUtc, ct);
         await _subscriptionsUow.SaveChangesAsync(ct);
 
         user.MarkTrialGranted(nowUtc);

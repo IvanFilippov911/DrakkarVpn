@@ -6,4 +6,4 @@ using MediatR;
 namespace DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Commands.RegisterUser;
 
 public sealed record RegisterRequest(RegisterUserRequest regCommand)
-    : IRequest<RegisterUserResultDto>, IUsersCommand<RegisterUserResultDto>;
+    :  IUsersCommand<RegisterUserResultDto>;
