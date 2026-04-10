@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"/>
+<title>Drakkar VPN</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:#000;color:#e8e2d6;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+body{display:flex;flex-direction:column;min-height:100dvh;overflow-x:hidden}
+
+/* ── layout shell (1:1 ConnectStepShell) ── */
+.shell{display:flex;flex:1;flex-direction:column;overflow:hidden;padding:max(1.25rem,env(safe-area-inset-top)) 1.5rem max(3rem,env(safe-area-inset-bottom))}
+.split{display:flex;flex:1;min-height:0;flex-direction:column;justify-content:center;gap:20px;overflow:hidden}
+
+/* ── hero block ── */
+.hero{flex-shrink:0;text-align:center;width:100%;max-width:24rem;margin:0 auto}
+.hero-logo{display:flex;justify-content:center;margin-bottom:1rem}
+.hero-logo img{height:5.5rem;width:auto;max-width:12rem;object-fit:contain;-webkit-user-select:none;user-select:none}
+.hero h2{font-size:1.25rem;font-weight:700;line-height:1.25;letter-spacing:-0.02em;color:#e8e2d6}
+.hero p{margin-top:.5rem;font-size:1rem;font-weight:400;line-height:1.5;color:#8b8f94}
+
+/* ── client cards (1:1 NeedInstallClientCards) ── */
+.cards{display:flex;gap:12px;margin:0 auto;width:100%;max-width:24rem}
+.card{
+  flex:1;display:flex;min-height:102px;min-width:0;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  border-radius:14px;padding:14px 8px;text-align:center;cursor:pointer;
+  border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);
+  transition:background .2s,border-color .2s,box-shadow .2s,transform .2s;
+  -webkit-tap-highlight-color:transparent;outline:none;font-family:inherit
+}
+.card:active{transform:scale(.98)}
+.card[aria-checked="true"]{border-color:rgba(0,122,255,.5);background:rgba(0,122,255,.15);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.card-title{font-size:15px;font-weight:600;letter-spacing:-0.02em;color:#e8e2d6}
+.card-sub{font-size:11px;font-weight:500;line-height:1.35;color:#9ea3a8;max-width:9rem}
+
+/* ── action panel (1:1 NeedInstallClientPanel) ── */
+.panel{border-radius:14px;background:rgba(255,255,255,.03);padding:1rem;width:100%;max-width:24rem;margin:0 auto}
+.panel-btns{display:flex;flex-direction:column;gap:10px}
+
+/* primary CTA */
+.btn-flow{
+  display:flex;align-items:center;justify-content:center;width:100%;border:none;border-radius:9999px;
+  background:#2563eb;color:#fff;font-size:1.0625rem;font-weight:600;padding:1.35rem 2.5rem;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;font-family:inherit;
+  text-decoration:none;
+  transition:transform .3s,box-shadow .3s,background .15s
+}
+.btn-flow:active{background:#1d4ed8;transform:scale(.99)}
+.btn-flow:disabled{opacity:.4;pointer-events:none}
+.btn-flow.shadow-glow{box-shadow:0 8px 30px rgba(37,99,235,.35)}
+
+/* secondary CTA */
+.btn-sec{
+  display:flex;align-items:center;justify-content:center;width:100%;border:none;border-radius:9999px;
+  background:rgba(255,255,255,.07);color:#9ca0a5;font-size:15px;font-weight:600;padding:14px 32px;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;font-family:inherit;
+  text-decoration:none;
+  transition:background .3s,color .3s,transform .3s
+}
+.btn-sec:hover{background:rgba(255,255,255,.11);color:#c5c9ce}
+.btn-sec:active{transform:scale(.99)}
+
+/* divider */
+.divider{height:1px;width:100%;background:rgba(255,255,255,.06);margin:12px 0}
+
+/* manual section */
+.manual{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.manual-title{font-size:14px;font-weight:600;letter-spacing:-0.01em;color:#e8e2d6}
+.btn-copy{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;white-space:nowrap;
+  height:44px;width:100%;max-width:20rem;border:none;border-radius:9999px;
+  background:rgba(255,255,255,.07);padding:10px 20px;
+  font-size:14px;font-weight:600;color:#d8d4cc;cursor:pointer;font-family:inherit;
+  transition:background .15s,transform .15s;-webkit-tap-highlight-color:transparent
+}
+.btn-copy:hover{background:rgba(255,255,255,.11)}
+.btn-copy:active{transform:scale(.99)}
+.btn-copy:disabled{opacity:.4;pointer-events:none}
+.btn-copy svg{flex-shrink:0;width:18px;height:18px;opacity:.9}
+.btn-copy span{min-width:10.5rem;text-align:center}
+
+/* entrance animation */
+.fade-in{opacity:0;transform:translateY(6px);animation:fadeUp .22s cubic-bezier(.33,1,.68,1) forwards}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<!-- Phase 1: blank while trying deeplink -->
+<div id="phase-launch" class="shell">
+  <div style="flex:1"></div>
+</div>
+
+<!-- Phase 2: full fallback (matches webapp NeedInstallClient) -->
+<div id="phase-install" class="shell hidden">
+  <div class="split">
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-logo" aria-hidden>
+        <img src="/drakkar-mark.png" alt="" draggable="false"/>
+      </div>
+      <h2>Установите VPN-клиент</h2>
+      <p>Установите один из клиентов, затем нажмите «Продолжить подключение»</p>
+    </div>
+
+    <!-- Cards -->
+    <div class="cards" role="radiogroup" aria-label="Клиент для установки">
+      <button type="button" role="radio" aria-checked="true" class="card" id="card-happ" onclick="selectClient('happ')">
+        <span class="card-title">Happ</span>
+        <span class="card-sub">Рекомендуется</span>
+      </button>
+      <button type="button" role="radio" aria-checked="false" class="card" id="card-v2ray" onclick="selectClient('v2ray')">
+        <span class="card-title">v2RayTun</span>
+        <span class="card-sub">Если первый недоступен</span>
+      </button>
+    </div>
+
+    <!-- Panel -->
+    <div class="panel">
+      <div class="panel-btns" id="panel-btns">
+        <!-- initial: Скачать primary, Продолжить secondary -->
+        <a id="store-btn" class="btn-flow shadow-glow" href="#" target="_blank" rel="noopener noreferrer">Скачать</a>
+        <button type="button" class="btn-sec" id="continue-btn" onclick="retryDeeplink()">Продолжить подключение</button>
+      </div>
+
+      <div class="divider" aria-hidden></div>
+
+      <div class="manual">
+        <p class="manual-title">Ручное подключение</p>
+        <button type="button" class="btn-copy" id="copy-btn" onclick="copyConfig()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden>
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          <span id="copy-label">Скопировать конфиг</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  var ALLOWED = ['happ:', 'v2raytun:'];
+  var HAPP_ADD = 'happ://add/';
+  var V2RAY_IMPORT = 'v2raytun://import/';
+
+  var HAPP_STORE = 'https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973';
+  var V2RAY_STORE = 'https://apps.apple.com/us/app/v2raytun/id6476628951?l=ru';
+
+  var deeplink = new URLSearchParams(window.location.search).get('url') || '';
+
+  var ok = false;
+  for (var i = 0; i < ALLOWED.length; i++) {
+    if (deeplink.toLowerCase().indexOf(ALLOWED[i] + '//') === 0) { ok = true; break; }
+  }
+  if (!ok) return;
+
+  /* Extract subscription/config URL from deeplink */
+  var configUrl = '';
+  if (deeplink.indexOf(HAPP_ADD) === 0) {
+    configUrl = deeplink.slice(HAPP_ADD.length);
+  } else if (deeplink.toLowerCase().indexOf(V2RAY_IMPORT.toLowerCase()) === 0) {
+    try { configUrl = decodeURIComponent(deeplink.slice(V2RAY_IMPORT.length)); }
+    catch(e) { configUrl = deeplink.slice(V2RAY_IMPORT.length); }
+  }
+
+  var selectedClient = 'happ';
+  var storeOpened = false;
+
+  function updateStoreLink() {
+    document.getElementById('store-btn').href = selectedClient === 'happ' ? HAPP_STORE : V2RAY_STORE;
+  }
+
+  /* After store visit: invert buttons — «Продолжить» becomes primary, «Скачать» becomes secondary */
+  function swapButtons() {
+    if (!storeOpened) return;
+    var container = document.getElementById('panel-btns');
+    var storeBtn = document.getElementById('store-btn');
+    var continueBtn = document.getElementById('continue-btn');
+
+    /* «Продолжить подключение» → primary big blue */
+    continueBtn.className = 'btn-flow shadow-glow';
+
+    /* «Скачать» → secondary small gray */
+    storeBtn.className = 'btn-sec';
+
+    /* Swap order: continue first, store second */
+    container.insertBefore(continueBtn, storeBtn);
+  }
+
+  window.selectClient = function(which) {
+    selectedClient = which;
+    document.getElementById('card-happ').setAttribute('aria-checked', which === 'happ' ? 'true' : 'false');
+    document.getElementById('card-v2ray').setAttribute('aria-checked', which === 'v2ray' ? 'true' : 'false');
+    updateStoreLink();
+  };
+
+  document.getElementById('store-btn').addEventListener('click', function() {
+    storeOpened = true;
+    setTimeout(swapButtons, 300);
+  });
+
+  window.retryDeeplink = function() {
+    window.location.href = deeplink;
+  };
+
+  window.copyConfig = function() {
+    if (!configUrl) return;
+    var label = document.getElementById('copy-label');
+    function done(text) {
+      label.textContent = text;
+      setTimeout(function(){ label.textContent = 'Скопировать конфиг'; }, 2000);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(configUrl).then(function(){ done('Скопировано'); }).catch(function(){ fallback(); });
+    } else { fallback(); }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = configUrl;
+      ta.style.cssText = 'position:fixed;left:-9999px;opacity:0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); done('Скопировано'); }
+      catch(e) { done('Не удалось'); }
+      document.body.removeChild(ta);
+    }
+  };
+
+  if (!configUrl) document.getElementById('copy-btn').disabled = true;
+  updateStoreLink();
+
+  /* 1) Try opening the deeplink */
+  window.location.href = deeplink;
+
+  /* 2) If still on this page after 1.5s — show fallback */
+  setTimeout(function(){
+    document.getElementById('phase-launch').classList.add('hidden');
+    var el = document.getElementById('phase-install');
+    el.classList.remove('hidden');
+    el.classList.add('fade-in');
+  }, 1500);
+
+})();
+</script>
+</body>
+</html>

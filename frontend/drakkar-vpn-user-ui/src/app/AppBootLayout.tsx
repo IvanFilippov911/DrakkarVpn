@@ -1,10 +1,11 @@
 import { isAxiosError } from 'axios'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { RoutedPageOutlet } from './RoutedPageOutlet'
-import { getHomeContext } from '../entities/user/api'
+import { getCurrentConfig, getHomeContext, getUserSummary } from '../entities/user/api'
 import { userQueryKeys } from '../entities/user/queryKeys'
+import type { HomeContextResponse } from '../entities/user/types'
 import { useConnectDevice, useRegister } from '../features/user'
 import { setAccessToken } from '../shared/api/client'
 import { getStoredAccessToken, clearStoredAccessToken } from '../shared/lib/authTokenStorage'
@@ -14,6 +15,42 @@ import { BottomNavProvider } from '../context/bottomNavContext'
 import { AppContainer, BrandBlock, PrimaryButton } from '../shared/ui'
 
 type BootPhase = 'running' | 'ready' | 'error'
+
+/**
+ * Warm cache for the home tab before first paint so brand, summary card, and CTA
+ * resolve together (same pattern as navigating back from other tabs).
+ */
+async function prefetchHomeRouteData(qc: QueryClient): Promise<void> {
+  try {
+    await qc.prefetchQuery({
+      queryKey: userQueryKeys.homeContext,
+      queryFn: getHomeContext,
+    })
+  } catch {
+    return
+  }
+
+  try {
+    await qc.prefetchQuery({
+      queryKey: userQueryKeys.summary,
+      queryFn: getUserSummary,
+    })
+  } catch {
+    /* non-fatal: HomePage will refetch */
+  }
+
+  const home = qc.getQueryData<HomeContextResponse>(userQueryKeys.homeContext)
+  if (home?.state === 'Ready') {
+    try {
+      await qc.prefetchQuery({
+        queryKey: userQueryKeys.currentConfig,
+        queryFn: getCurrentConfig,
+      })
+    } catch {
+      /* non-fatal */
+    }
+  }
+}
 
 function BootShell({ footer }: { footer: ReactNode }) {
   return (
@@ -82,6 +119,8 @@ export function AppBootLayout() {
           if (gen !== bootGenRef.current) return
           queryClientRef.current.setQueryData(userQueryKeys.homeContext, home)
           initTelegramChrome()
+          await prefetchHomeRouteData(queryClientRef.current)
+          if (gen !== bootGenRef.current) return
           setPhase('ready')
           return
         } catch (err) {
@@ -120,6 +159,8 @@ export function AppBootLayout() {
           platform: ctx.platform ?? 'telegram_webapp',
           existingDeviceId: getStoredDeviceId() ?? undefined,
         })
+        if (gen !== bootGenRef.current) return
+        await prefetchHomeRouteData(queryClientRef.current)
         if (gen !== bootGenRef.current) return
         setPhase('ready')
       } catch {

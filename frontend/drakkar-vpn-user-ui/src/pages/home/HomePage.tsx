@@ -696,6 +696,8 @@ export function HomePage() {
   const v2rayTunInstallUrl = getV2RayTunInstallUrl(tgPlatform)
 
   const mainStateReady = home.isSuccess && state != null && view != null
+  const summaryStillLoading = home.isSuccess && summary.isPending
+  const deferHomeFooterForSyncPaint = home.isPending || summaryStillLoading
 
   if (home.isError) {
     return (
@@ -907,9 +909,11 @@ export function HomePage() {
       {connectClientProbeOpen ? <ConnectClientProbePortal /> : null}
       <HomeBrandShell
       statusText={null}
-      statusCard={<HomeSummaryCardSlot homeContextReady={!home.isPending} summary={summary} />}
+      statusCard={
+        <HomeSummaryCardSlot homeContextReady={home.isSuccess && !summary.isPending} summary={summary} />
+      }
       footer={
-        home.isPending ? (
+        deferHomeFooterForSyncPaint ? (
           <HomePrimaryCtaPlaceholder />
         ) : view!.primaryCtaLabel ? (
           <PrimaryButton

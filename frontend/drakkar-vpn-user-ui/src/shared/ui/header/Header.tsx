@@ -15,7 +15,7 @@ export function Header({
   trailing,
 }: HeaderProps) {
   return (
-    <header className="shrink-0 px-6 pt-6 pb-4">
+    <header className="shrink-0 px-6 pb-4 pt-[max(2.75rem,calc(env(safe-area-inset-top,0px)+14px))]">
       <div className="flex items-center gap-3">
         {onBack ? (
           <button

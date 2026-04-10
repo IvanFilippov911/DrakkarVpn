@@ -62,7 +62,8 @@ function isLikelyMacOsFromNavigator(): boolean {
 }
 
 /**
- * Бэкенд отдаёт `happ://add/{accessUrl}` без encode; для iOS путь с `https://...` должен быть одним сегментом.
+ * Happ ожидает RAW URL после `happ://add/` — БЕЗ encodeURIComponent.
+ * См. https://github.com/MHSanaei/3x-ui/commit/ccd223a (Fix DeepLink for Happ, remove encoding URL).
  */
 export function normalizeHappDeeplink(raw: string): string {
   const s = raw.trim()
@@ -76,9 +77,9 @@ export function normalizeHappDeeplink(raw: string): string {
   try {
     payload = decodeURIComponent(rest)
   } catch {
-    // оставляем rest
+    /* already raw */
   }
-  return HAPP_ADD_PREFIX + encodeURIComponent(payload.replace(/\s+/g, ''))
+  return HAPP_ADD_PREFIX + payload.replace(/\s+/g, '')
 }
 
 /**
@@ -114,16 +115,31 @@ export function pickPrimaryVpnDeeplink(
 }
 
 /**
+ * Построить HTTPS-URL промежуточной страницы /open-app.html?url=<deeplink>.
+ * Safari откроет эту страницу и выполнит `location.href = deeplink` —
+ * из Safari кастомные схемы (happ://, v2raytun://) работают на iOS.
+ */
+function buildRedirectPageUrl(deeplink: string): string {
+  return `${window.location.origin}/open-app.html?url=${encodeURIComponent(deeplink)}`
+}
+
+/**
  * Открытие кастомной схемы (happ://, v2raytun://).
- * В Telegram **iOS** WKWebView часто не отрабатывает `window.location` для внешних приложений;
- * Mini App API `openLink` документирован для ссылок в другие приложения.
- * Дальше — запасной `<a click>` и `location.assign`.
+ *
+ * Telegram WebView (WKWebView на iOS) **не пробрасывает** кастомные схемы напрямую.
+ * `openLink` с `happ://` даёт «Url protocol is not supported».
+ *
+ * Решение: через `openLink` открываем **HTTPS**-страницу /open-app.html в **Safari**
+ * (try_instant_view: false), а она уже делает `location.href = deeplink`.
+ * Из Safari кастомные схемы работают.
+ *
+ * Вне Telegram — пробуем напрямую через `<a>` / `location.assign`.
  */
 export function openDeeplinkUrlSync(url: string): void {
   if (!url.trim()) return
 
   if (import.meta.env.DEV) {
-    console.info('[drakkar-vpn] deeplink open', url.slice(0, 96))
+    console.info('[drakkar-vpn] deeplink open', url.slice(0, 120))
   } else {
     console.info('[drakkar-vpn] deeplink open')
   }
@@ -131,10 +147,11 @@ export function openDeeplinkUrlSync(url: string): void {
   const tw = window.Telegram?.WebApp
   if (typeof tw?.openLink === 'function') {
     try {
-      tw.openLink(url, { try_instant_view: false })
+      const httpsRedirect = buildRedirectPageUrl(url)
+      tw.openLink(httpsRedirect, { try_instant_view: false })
       return
     } catch {
-      // fallback
+      // fallback ниже
     }
   }
 
