@@ -19,7 +19,10 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <div className="relative flex h-full min-h-0 flex-1 flex-col overflow-hidden">
-        <div className="app-atmosphere" aria-hidden />
+        <div className="app-atmosphere" aria-hidden>
+          <span className="app-atmosphere-glow app-atmosphere-glow--top" />
+          <span className="app-atmosphere-glow app-atmosphere-glow--bottom" />
+        </div>
         <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
           <App />
         </div>

@@ -11,12 +11,12 @@ body {
 }
 
 html {
-  background-color: #020617;
+  background-color: #000;
 }
 
 body {
   margin: 0;
-  background-color: #020617;
+  background-color: #000;
   color: #e8e2d6;
   font-family: var(--font-sans);
   font-weight: 400;
@@ -109,16 +109,113 @@ body {
   animation: underwater-pulse 1300ms ease-out infinite;
 }
 
+@keyframes atmosphere-glow-top {
+  0%,
+  100% {
+    opacity: 0.68;
+    transform: translate3d(0, 0, 0);
+  }
+  35% {
+    opacity: 1;
+    transform: translate3d(0.55%, -0.42%, 0);
+  }
+  70% {
+    opacity: 0.82;
+    transform: translate3d(-0.45%, 0.38%, 0);
+  }
+}
+
+@keyframes atmosphere-glow-bottom {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: translate3d(0, 0, 0);
+  }
+  40% {
+    opacity: 1;
+    transform: translate3d(-0.48%, -0.32%, 0);
+  }
+  75% {
+    opacity: 0.78;
+    transform: translate3d(0.4%, 0.22%, 0);
+  }
+}
+
 /*
- * Premium-минимал: почти чёрная база + два едва заметных radial (без линейных градиентов, без анимации).
+ * Premium black: #000 base; two ambient radials (logo + CTA) — muted cool tint, not a blue screen.
  */
 .app-atmosphere {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background-color: #020617;
-  background-image:
-    radial-gradient(circle at 50% 20%, rgba(37, 99, 235, 0.06), transparent 60%),
-    radial-gradient(circle at 50% 100%, rgba(37, 99, 235, 0.03), transparent 70%);
+  background-color: #000;
+  overflow: hidden;
+}
+
+.app-atmosphere-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.app-atmosphere-glow--top {
+  transform-origin: 50% 11%;
+  background: radial-gradient(
+    ellipse 92% 62% at 50% 10%,
+    rgba(48, 72, 138, 0.32) 0%,
+    rgba(22, 32, 62, 0.14) 38%,
+    rgba(8, 10, 20, 0.04) 58%,
+    transparent 72%
+  );
+  animation: atmosphere-glow-top 12s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+.app-atmosphere-glow--bottom {
+  transform-origin: 50% 100%;
+  background: radial-gradient(
+    ellipse 135% 58% at 50% 102%,
+    rgba(36, 56, 108, 0.22) 0%,
+    rgba(16, 22, 48, 0.09) 46%,
+    transparent 70%
+  );
+  animation: atmosphere-glow-bottom 14s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  animation-delay: -4s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-atmosphere-glow--top,
+  .app-atmosphere-glow--bottom {
+    animation: none;
+    opacity: 0.88;
+  }
+}
+
+.primary-button-wrap {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+.primary-button-underglow {
+  position: absolute;
+  left: 50%;
+  top: calc(100% - 10px);
+  z-index: 0;
+  width: min(100%, 24rem);
+  height: 5rem;
+  pointer-events: none;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    ellipse 110% 100% at 50% 0%,
+    rgba(0, 122, 255, 0.72) 0%,
+    rgba(0, 90, 220, 0.28) 52%,
+    transparent 78%
+  );
+  filter: blur(48px);
+  opacity: 0.48;
+}
+
+.primary-button-wrap:has(button:disabled) .primary-button-underglow {
+  opacity: 0;
 }

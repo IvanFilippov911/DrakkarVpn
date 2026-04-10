@@ -55,7 +55,7 @@ const flowPrimaryLargeClass =
   '!px-10 !py-[1.35rem] !text-[1.0625rem] !font-semibold transition-[transform,box-shadow] duration-300 sm:!py-6 sm:!text-[1.1875rem]'
 
 const flowSecondaryCompactClass =
-  'w-full rounded-full bg-[rgba(255,255,255,0.07)] px-8 py-3.5 font-sans text-[15px] font-semibold text-[#9ca0a5] shadow-none transition-[transform,background-color,color] duration-300 hover:bg-[rgba(255,255,255,0.11)] hover:text-[#c5c9ce] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(255,255,255,0.12)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#040608] active:scale-[0.99] disabled:pointer-events-none disabled:opacity-40 sm:text-[0.97rem]'
+  'w-full rounded-full bg-[rgba(255,255,255,0.07)] px-8 py-3.5 font-sans text-[15px] font-semibold text-[#9ca0a5] shadow-none transition-[transform,background-color,color] duration-300 hover:bg-[rgba(255,255,255,0.11)] hover:text-[#c5c9ce] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(255,255,255,0.12)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#000] active:scale-[0.99] disabled:pointer-events-none disabled:opacity-40 sm:text-[0.97rem]'
 
 type NeedInstallClientContextValue = {
   copyTarget: string
@@ -139,7 +139,7 @@ function NeedInstallClientCards() {
   const { selected, setSelected } = useNeedInstallClientContext()
 
   const cardBase =
-    'flex min-h-[102px] min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[14px] px-2 py-3.5 text-center transition-[background-color,border-color,box-shadow,transform] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(0,122,255,0.35)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#040608] disabled:pointer-events-none disabled:opacity-40'
+    'flex min-h-[102px] min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[14px] px-2 py-3.5 text-center transition-[background-color,border-color,box-shadow,transform] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(0,122,255,0.35)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#000] disabled:pointer-events-none disabled:opacity-40'
   const cardIdle =
     'border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.04)] hover:border-[rgba(255,255,255,0.14)] hover:bg-[rgba(255,255,255,0.07)] active:scale-[0.98]'
   const cardActive =
