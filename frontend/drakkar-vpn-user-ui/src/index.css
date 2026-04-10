@@ -6,7 +6,8 @@
 
 html,
 body {
-  height: 100%;
+  height: var(--app-viewport-height, var(--tg-viewport-height, 100dvh));
+  max-height: var(--app-viewport-height, var(--tg-viewport-height, 100dvh));
   overflow: hidden;
 }
 
@@ -27,7 +28,8 @@ body {
   max-width: none;
   margin: 0;
   border: none;
-  height: 100%;
+  height: var(--app-viewport-height, var(--tg-viewport-height, 100dvh));
+  max-height: var(--app-viewport-height, var(--tg-viewport-height, 100dvh));
   min-height: 0;
   text-align: initial;
   display: flex;
@@ -146,7 +148,10 @@ body {
  */
 .app-atmosphere {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--app-viewport-height, var(--tg-viewport-height, 100dvh));
   z-index: 0;
   pointer-events: none;
   background-color: #000;
@@ -188,6 +193,70 @@ body {
   .app-atmosphere-glow--bottom {
     animation: none;
     opacity: 0.88;
+  }
+}
+
+/* All routed pages: same subtle entrance (220ms, ~6px lift). */
+.page-entrance {
+  opacity: 0;
+  transform: translate3d(0, 6px, 0);
+  transition:
+    opacity 220ms cubic-bezier(0.33, 1, 0.68, 1),
+    transform 220ms cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+.page-entrance.page-entrance--on {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-entrance,
+  .page-entrance.page-entrance--on {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* Connect probe: cycling ellipsis while checking VPN client */
+@keyframes connect-client-ellipsis-step {
+  0% {
+    opacity: 0.35;
+  }
+  33% {
+    opacity: 1;
+  }
+  66% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 0.35;
+  }
+}
+
+.connect-client-ellipsis-dot {
+  display: inline-block;
+  width: 0.2em;
+  height: 0.2em;
+  border-radius: 9999px;
+  background: currentColor;
+  vertical-align: 0.15em;
+  animation: connect-client-ellipsis-step 1.2s ease-in-out infinite;
+}
+
+.connect-client-ellipsis-dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.connect-client-ellipsis-dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .connect-client-ellipsis-dot {
+    animation: none;
+    opacity: 0.85;
   }
 }
 

@@ -11,7 +11,7 @@ export function PrimaryButton({ children, className = '', type = 'button', ...re
       <button
         type={type}
         className={[
-          'relative z-[1] w-full rounded-full border border-transparent bg-[var(--btn-primary-bg)] px-10 py-5',
+          'relative z-[1] w-full touch-manipulation rounded-full border border-transparent bg-[var(--btn-primary-bg)] px-10 py-5',
           'font-sans text-base font-semibold text-[var(--btn-primary-text)] shadow-none sm:text-[1.125rem]',
           'transition-colors focus-visible:outline-none',
           'hover:bg-[var(--btn-primary-hover)]',

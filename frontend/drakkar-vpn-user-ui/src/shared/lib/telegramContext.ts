@@ -4,9 +4,17 @@ declare global {
       WebApp?: {
         ready: () => void
         expand: () => void
+        /** Current visible Mini App height (px). Prefer over CSS 100vh in Telegram. */
+        viewportHeight?: number
+        /** Last stable visible height; changes after gestures finish. */
+        viewportStableHeight?: number
         initData: string
         initDataUnsafe?: { user?: { id?: number } }
         platform?: string
+        onEvent?: (eventType: 'viewportChanged', eventHandler: () => void) => void
+        offEvent?: (eventType: 'viewportChanged', eventHandler: () => void) => void
+        /** Открытие URL вне Mini App; для iOS WebView предпочтительно для happ:// / v2raytun:// вместо location.href */
+        openLink?: (url: string, options?: { try_instant_view?: boolean }) => void
       }
     }
   }
@@ -71,9 +79,9 @@ export function readTelegramBootContext(): TelegramBootResult {
   }
 }
 
+/** Hides Telegram chrome loading state. expand() runs once at app entry (see telegramViewport.primeTelegramMiniAppViewport). */
 export function initTelegramChrome(): void {
   window.Telegram?.WebApp?.ready()
-  window.Telegram?.WebApp?.expand()
 }
 
 /** Telegram user id из WebApp (после успешного boot совпадает с контекстом покупки). */

@@ -24,7 +24,7 @@ export function BottomNavProvider({ children }: { children: ReactNode }) {
 
   return (
     <BottomNavContext.Provider value={value}>
-      <div className="flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden">
+      <div className="flex h-[var(--app-viewport-height,var(--tg-viewport-height,100dvh))] max-h-[var(--app-viewport-height,var(--tg-viewport-height,100dvh))] min-h-0 flex-col overflow-hidden">
         <div
           className={
             hidden

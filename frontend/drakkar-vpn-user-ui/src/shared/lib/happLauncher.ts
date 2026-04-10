@@ -114,8 +114,45 @@ export function pickPrimaryVpnDeeplink(
 }
 
 /**
- * Открытие VPN-клиента строго в том же синхронном стеке, что и user gesture (iOS / Telegram WebApp).
- * Вариант B: `window.location.href` (без `window.open`, без await до присваивания).
+ * Открытие кастомной схемы (happ://, v2raytun://).
+ * В Telegram **iOS** WKWebView часто не отрабатывает `window.location` для внешних приложений;
+ * Mini App API `openLink` документирован для ссылок в другие приложения.
+ * Дальше — запасной `<a click>` и `location.assign`.
+ */
+export function openDeeplinkUrlSync(url: string): void {
+  if (!url.trim()) return
+
+  if (import.meta.env.DEV) {
+    console.info('[drakkar-vpn] deeplink open', url.slice(0, 96))
+  } else {
+    console.info('[drakkar-vpn] deeplink open')
+  }
+
+  const tw = window.Telegram?.WebApp
+  if (typeof tw?.openLink === 'function') {
+    try {
+      tw.openLink(url, { try_instant_view: false })
+      return
+    } catch {
+      // fallback
+    }
+  }
+
+  try {
+    const a = document.createElement('a')
+    a.href = url
+    a.setAttribute('rel', 'noopener noreferrer')
+    a.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0;pointer-events:none'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  } catch {
+    window.location.assign(url)
+  }
+}
+
+/**
+ * Открытие VPN-клиента в том же синхронном стеке, что и user gesture (важно для iOS).
  */
 export function openVpnClientDeeplinkSync(
   happLink: string | null | undefined,
@@ -123,14 +160,7 @@ export function openVpnClientDeeplinkSync(
 ): void {
   const url = pickPrimaryVpnDeeplink(happLink, v2rayLink)
   if (!url) return
-
-  if (import.meta.env.DEV) {
-    console.info('[drakkar-vpn] deeplink attempt (sync navigate)', url)
-  } else {
-    console.info('[drakkar-vpn] deeplink attempt (sync navigate)')
-  }
-
-  window.location.href = url
+  openDeeplinkUrlSync(url)
 }
 
 export type VpnDeeplinkOutcomeOptions = {
@@ -172,6 +202,83 @@ export function beginVpnDeeplinkAttempt(options: VpnDeeplinkOutcomeOptions): voi
   const timerId = window.setTimeout(() => {
     finish('still')
   }, timeoutMs)
+}
+
+/**
+ * Сначала Happ (если есть), после таймаута и если WebView всё ещё видим — v2RayTun (если есть).
+ * Если оба исчерпаны и страница всё ещё на месте — onStillVisible (экран установки клиента и т.д.).
+ */
+export function beginSequentialVpnDeeplinkAttempt(
+  happLink: string | null | undefined,
+  v2rayLink: string | null | undefined,
+  options: VpnDeeplinkOutcomeOptions,
+): void {
+  const h = (happLink ?? '').trim()
+  const v = (v2rayLink ?? '').trim()
+  const timeoutMs = options.timeoutMs ?? 1600
+
+  if (!h && !v) {
+    options.onStillVisible?.()
+    return
+  }
+
+  const run = (which: 'happ' | 'v2ray'): void => {
+    const url =
+      which === 'happ' ? pickPrimaryVpnDeeplink(h, undefined) : pickPrimaryVpnDeeplink(undefined, v)
+    if (!url) {
+      if (which === 'happ' && v) {
+        run('v2ray')
+        return
+      }
+      options.onStillVisible?.()
+      return
+    }
+
+    let finished = false
+    let timerId = 0
+
+    const cleanup = (onVis: () => void) => {
+      document.removeEventListener('visibilitychange', onVis)
+      window.clearTimeout(timerId)
+    }
+
+    const onLikelyOpened = () => {
+      if (finished) return
+      finished = true
+      cleanup(onVis)
+      options.onLikelyOpened()
+    }
+
+    const onStill = () => {
+      if (finished) return
+      finished = true
+      cleanup(onVis)
+      if (which === 'happ' && v) {
+        run('v2ray')
+        return
+      }
+      options.onStillVisible?.()
+    }
+
+    const onVis = () => {
+      if (document.hidden) {
+        onLikelyOpened()
+      }
+    }
+
+    document.addEventListener('visibilitychange', onVis)
+    timerId = window.setTimeout(() => {
+      if (document.hidden) {
+        onLikelyOpened()
+      } else {
+        onStill()
+      }
+    }, timeoutMs)
+
+    openDeeplinkUrlSync(url)
+  }
+
+  run(h ? 'happ' : 'v2ray')
 }
 
 export function getHappInstallUrl(platform?: string): string {

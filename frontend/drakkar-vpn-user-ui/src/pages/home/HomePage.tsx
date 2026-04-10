@@ -1,6 +1,7 @@
 import { differenceInCalendarDays } from 'date-fns'
 import type { ReactNode } from 'react'
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { useBottomNavControl } from '../../context/bottomNavContext'
@@ -14,16 +15,14 @@ import {
 } from '../../entities/user'
 import { useStartProvision } from '../../features/user'
 import {
-  beginVpnDeeplinkAttempt,
+  beginSequentialVpnDeeplinkAttempt,
   getHappInstallUrl,
   getV2RayTunInstallUrl,
-  hasOpenedHappSuccessfullyInSession,
   markHappOpenedSuccessfully,
-  openVpnClientDeeplinkSync,
   pickPrimaryVpnDeeplink,
 } from '../../shared/lib/happLauncher'
 import drakkarMark from '../../assets/drakkar-mark.png'
-import { AppContainer, BrandBlock, HomeBrandShell, PrimaryButton } from '../../shared/ui'
+import { AppContainer, HomeBrandShell, PrimaryButton } from '../../shared/ui'
 import { HOME_PRESENTATION } from './homePresentation'
 
 type ReadyCtaError = 'maintenance' | 'session'
@@ -358,6 +357,56 @@ function pluralizeDaysRu(n: number): string {
   return 'дней'
 }
 
+const HOME_STATUS_CARD_SHELL =
+  'mx-auto w-full max-w-sm rounded-2xl bg-[rgba(255,255,255,0.04)] p-4 shadow-[0_10px_40px_rgba(37,99,235,0.08)]'
+
+function SummaryCardSkeleton() {
+  return (
+    <div className={HOME_STATUS_CARD_SHELL} aria-busy aria-hidden>
+      <div className="flex items-center gap-3">
+        <div className="h-5 w-5 shrink-0 rounded-full bg-[rgba(255,255,255,0.06)]" />
+        <div className="min-w-0 flex-1 space-y-2">
+          <div className="h-[17px] w-[72%] max-w-[16rem] rounded bg-[rgba(255,255,255,0.07)]" />
+          <div className="h-[14px] w-[48%] max-w-[10rem] rounded bg-[rgba(255,255,255,0.05)]" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function HomeSummaryCardSlot({
+  homeContextReady,
+  summary,
+}: {
+  homeContextReady: boolean
+  summary: ReturnType<typeof useUserSummary>
+}) {
+  if (!homeContextReady) {
+    return <SummaryCardSkeleton />
+  }
+  if (summary.data) {
+    return (
+      <SummaryCard
+        subscriptionEndAtUtc={summary.data.subscriptionEndAtUtc}
+        connectedDevices={summary.data.connectedDevices}
+        maxDevices={summary.data.maxDevices}
+      />
+    )
+  }
+  return <SummaryCardSkeleton />
+}
+
+function HomePrimaryCtaPlaceholder() {
+  return (
+    <div
+      className="mx-auto flex min-h-[3.75rem] w-full items-center justify-center rounded-full border border-transparent bg-[rgba(255,255,255,0.06)] px-10 py-5"
+      aria-hidden
+    >
+      <div className="h-4 w-32 max-w-[60%] rounded bg-[rgba(255,255,255,0.08)]" />
+    </div>
+  )
+}
+
 function SummaryCard({
   subscriptionEndAtUtc,
   connectedDevices,
@@ -375,7 +424,7 @@ function SummaryCard({
       : null
 
   return (
-    <div className="mx-auto w-full max-w-sm rounded-2xl bg-[rgba(255,255,255,0.04)] p-4 shadow-[0_10px_40px_rgba(37,99,235,0.08)]">
+    <div className={HOME_STATUS_CARD_SHELL}>
       <div className="flex items-center gap-3">
         <span className="shrink-0 leading-none" aria-hidden>
           {hasSubscription ? (
@@ -458,6 +507,27 @@ function pickCopyTarget(data: VpnConfigResponse | undefined): string {
   return data.happLink ?? data.v2rayLink ?? data.configUrl ?? ''
 }
 
+function ConnectClientProbePortal() {
+  return createPortal(
+    <div
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+      className="fixed inset-0 z-[70] flex flex-col items-center justify-center bg-[rgba(0,0,0,0.86)] px-6 pt-[max(2rem,env(safe-area-inset-top))] pb-[max(2rem,env(safe-area-inset-bottom))]"
+    >
+      <p className="max-w-[20rem] text-center font-sans text-[17px] font-medium leading-relaxed text-[var(--foreground)]">
+        Проверяем наличие клиента
+        <span className="inline-flex items-baseline gap-[0.12em] pl-0.5" aria-hidden>
+          <span className="connect-client-ellipsis-dot" />
+          <span className="connect-client-ellipsis-dot" />
+          <span className="connect-client-ellipsis-dot" />
+        </span>
+      </p>
+    </div>,
+    document.body,
+  )
+}
+
 export function HomePage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -479,6 +549,7 @@ export function HomePage() {
   const [userConnectIntent, setUserConnectIntent] = useState(false)
   const [overlay, setOverlay] = useState<ConnectOverlay | null>(null)
   const [copyToast, setCopyToast] = useState<'idle' | 'copied'>('idle')
+  const [connectClientProbeOpen, setConnectClientProbeOpen] = useState(false)
 
   const { setBottomNavHidden } = useBottomNavControl()
 
@@ -524,9 +595,11 @@ export function HomePage() {
 
     if (!happ && !v2ray) {
       if (isVpnConfigPending && !data) {
+        setUserConnectIntent(false)
         return
       }
       if (isIos && configUrl) {
+        setUserConnectIntent(false)
         setOverlay({
           kind: 'addSubscription',
           happLink: '',
@@ -535,20 +608,29 @@ export function HomePage() {
         })
         return
       }
+      setUserConnectIntent(false)
       setReadyCtaError('maintenance')
       return
     }
 
     const url = pickPrimaryVpnDeeplink(happ, v2ray)
     if (!url) {
+      setUserConnectIntent(false)
       setReadyCtaError('maintenance')
       return
     }
 
     launchLockRef.current = true
+    setConnectClientProbeOpen(true)
+    const failsafeUnlock = window.setTimeout(() => {
+      launchLockRef.current = false
+      setConnectClientProbeOpen(false)
+    }, 12_000)
 
-    beginVpnDeeplinkAttempt({
+    beginSequentialVpnDeeplinkAttempt(happ, v2ray, {
       onLikelyOpened: () => {
+        window.clearTimeout(failsafeUnlock)
+        setConnectClientProbeOpen(false)
         markHappOpenedSuccessfully()
         setUserConnectIntent(false)
         setOverlay(null)
@@ -556,17 +638,13 @@ export function HomePage() {
         launchLockRef.current = false
       },
       onStillVisible: () => {
+        window.clearTimeout(failsafeUnlock)
+        setConnectClientProbeOpen(false)
         setUserConnectIntent(false)
-        if (hasOpenedHappSuccessfullyInSession()) {
-          setOverlay(null)
-        } else {
-          setOverlay({ kind: 'needInstallClient', happLink: happ, v2rayLink: v2ray, copyTarget })
-        }
+        setOverlay({ kind: 'needInstallClient', happLink: happ, v2rayLink: v2ray, copyTarget })
         launchLockRef.current = false
       },
     })
-
-    openVpnClientDeeplinkSync(happ, v2ray)
   }, [home, isIos, isVpnConfigPending, queryClient, vpnConfig])
 
   useEffect(() => {
@@ -594,8 +672,9 @@ export function HomePage() {
       return
     }
     if (state === 'Ready') {
-      setUserConnectIntent(true)
+      // Deeplink должен вызываться до setState: на iOS жест пользователя не должен «обрываться» ре-рендером.
       runConnectLaunch()
+      setUserConnectIntent(true)
     }
   }
 
@@ -616,23 +695,7 @@ export function HomePage() {
   const happInstallUrl = getHappInstallUrl(tgPlatform)
   const v2rayTunInstallUrl = getV2RayTunInstallUrl(tgPlatform)
 
-  if (home.isPending) {
-    return (
-      <HomeBrandShell
-        brand={<BrandBlock />}
-        statusCard={
-          <div
-            className="mx-auto w-full max-w-sm rounded-2xl bg-[rgba(255,255,255,0.04)] p-4 shadow-[0_10px_40px_rgba(37,99,235,0.08)]"
-            aria-hidden
-          >
-            <div className="h-5 w-[72%] max-w-[16rem] rounded bg-[rgba(255,255,255,0.07)]" />
-            <div className="mt-2.5 h-4 w-[48%] max-w-[10rem] rounded bg-[rgba(255,255,255,0.05)]" />
-          </div>
-        }
-        footer={<div className="mx-auto h-14 w-full max-w-sm rounded-full bg-[rgba(255,255,255,0.06)]" aria-hidden />}
-      />
-    )
-  }
+  const mainStateReady = home.isSuccess && state != null && view != null
 
   if (home.isError) {
     return (
@@ -658,11 +721,11 @@ export function HomePage() {
     )
   }
 
-  if (!view || state == null) {
+  if (!home.isPending && home.isSuccess && (!view || state == null)) {
     return null
   }
 
-  if (provisionFailure) {
+  if (mainStateReady && provisionFailure) {
     const handleRetryProvision = () => {
       setProvisionFailure(null)
       setUserConnectIntent(true)
@@ -695,11 +758,11 @@ export function HomePage() {
     )
   }
 
-  if (overlay?.kind === 'needInstallClient') {
+  if (mainStateReady && overlay?.kind === 'needInstallClient') {
     const { happLink, v2rayLink, copyTarget } = overlay
 
     const handleInstalled = () => {
-      beginVpnDeeplinkAttempt({
+      beginSequentialVpnDeeplinkAttempt(happLink, v2rayLink, {
         onLikelyOpened: () => {
           markHappOpenedSuccessfully()
           setOverlay(null)
@@ -707,7 +770,6 @@ export function HomePage() {
           void home.refetch()
         },
       })
-      openVpnClientDeeplinkSync(happLink, v2rayLink)
     }
 
     return (
@@ -750,12 +812,12 @@ export function HomePage() {
     )
   }
 
-  if (overlay?.kind === 'addSubscription') {
+  if (mainStateReady && overlay?.kind === 'addSubscription') {
     const { happLink, v2rayLink, copyTarget } = overlay
 
     const openHapp = () => {
       if (happLink || v2rayLink) {
-        beginVpnDeeplinkAttempt({
+        beginSequentialVpnDeeplinkAttempt(happLink, v2rayLink, {
           onLikelyOpened: () => {
             markHappOpenedSuccessfully()
             setOverlay(null)
@@ -764,14 +826,9 @@ export function HomePage() {
           },
           onStillVisible: () => {
             setUserConnectIntent(false)
-            if (hasOpenedHappSuccessfullyInSession()) {
-              setOverlay(null)
-              return
-            }
             setOverlay({ kind: 'needInstallClient', happLink, v2rayLink, copyTarget })
           },
         })
-        openVpnClientDeeplinkSync(happLink, v2rayLink)
         return
       }
       window.location.href = happInstallUrl
@@ -807,7 +864,7 @@ export function HomePage() {
     )
   }
 
-  if (readyCtaError) {
+  if (mainStateReady && readyCtaError) {
     const handleRetry = () => {
       setReadyCtaError(null)
       setUserConnectIntent(true)
@@ -840,20 +897,21 @@ export function HomePage() {
     )
   }
 
+  const showMainHomeChrome = home.isPending || mainStateReady
+  if (!showMainHomeChrome) {
+    return null
+  }
+
   return (
-    <HomeBrandShell
+    <>
+      {connectClientProbeOpen ? <ConnectClientProbePortal /> : null}
+      <HomeBrandShell
       statusText={null}
-      statusCard={
-        summary.data ? (
-          <SummaryCard
-            subscriptionEndAtUtc={summary.data.subscriptionEndAtUtc}
-            connectedDevices={summary.data.connectedDevices}
-            maxDevices={summary.data.maxDevices}
-          />
-        ) : null
-      }
+      statusCard={<HomeSummaryCardSlot homeContextReady={!home.isPending} summary={summary} />}
       footer={
-        view.primaryCtaLabel ? (
+        home.isPending ? (
+          <HomePrimaryCtaPlaceholder />
+        ) : view!.primaryCtaLabel ? (
           <PrimaryButton
             type="button"
             disabled={ctaDisabled}
@@ -866,7 +924,7 @@ export function HomePage() {
                 Подключение...
               </span>
             ) : (
-              view.primaryCtaLabel
+              view!.primaryCtaLabel
             )}
           </PrimaryButton>
         ) : showConnectLoading ? (
@@ -881,5 +939,6 @@ export function HomePage() {
         )
       }
     />
+    </>
   )
 }

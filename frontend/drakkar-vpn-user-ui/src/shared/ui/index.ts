@@ -1,5 +1,6 @@
 export { BottomNav } from './bottom-nav/BottomNav'
 export { AppContainer } from './app-container/AppContainer'
+export { PageEntrance } from './page-entrance/PageEntrance'
 export { BrandBlock } from './brand-block/BrandBlock'
 export { HomeBrandShell, HomeFooterStatusCardSpace } from './home-brand-shell/HomeBrandShell'
 export type { HomeBrandShellProps } from './home-brand-shell/HomeBrandShell'

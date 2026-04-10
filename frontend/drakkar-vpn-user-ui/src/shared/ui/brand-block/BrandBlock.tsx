@@ -45,7 +45,7 @@ export function BrandBlock({
           <img
             src={drakkarMark}
             alt=""
-            className="h-[8.5rem] w-auto max-h-[min(32vh,11.5rem)] max-w-[min(96vw,14rem)] object-contain select-none sm:h-[10.5rem] sm:max-w-[17rem] md:h-[11.5rem] md:max-w-[19rem]"
+            className="h-[8.5rem] w-auto max-h-[min(30dvh,11.5rem)] max-w-[min(96vw,14rem)] object-contain select-none sm:h-[10.5rem] sm:max-w-[17rem] md:h-[11.5rem] md:max-w-[19rem]"
             draggable={false}
           />
         )}

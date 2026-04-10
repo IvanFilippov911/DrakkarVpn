@@ -2,7 +2,7 @@ import { isAxiosError } from 'axios'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { Outlet } from 'react-router-dom'
+import { RoutedPageOutlet } from './RoutedPageOutlet'
 import { getHomeContext } from '../entities/user/api'
 import { userQueryKeys } from '../entities/user/queryKeys'
 import { useConnectDevice, useRegister } from '../features/user'
@@ -17,7 +17,7 @@ type BootPhase = 'running' | 'ready' | 'error'
 
 function BootShell({ footer }: { footer: ReactNode }) {
   return (
-    <div className="flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden">
+    <div className="flex h-[var(--app-viewport-height,var(--tg-viewport-height,100dvh))] max-h-[var(--app-viewport-height,var(--tg-viewport-height,100dvh))] min-h-0 flex-col overflow-hidden">
       <AppContainer>
         <main className="flex min-h-0 flex-1 flex-col items-center justify-center px-6 pb-3 pt-[max(1.5rem,env(safe-area-inset-top))]">
           <div className="flex w-full min-h-0 flex-1 flex-col items-center justify-center">
@@ -149,7 +149,7 @@ export function AppBootLayout() {
 
   return (
     <BottomNavProvider>
-      <Outlet />
+      <RoutedPageOutlet />
     </BottomNavProvider>
   )
 }
