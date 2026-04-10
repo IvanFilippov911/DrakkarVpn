@@ -89,9 +89,17 @@ body{display:flex;flex-direction:column;min-height:100dvh;overflow-x:hidden}
 </head>
 <body>
 
-<!-- Phase 1: blank while trying deeplink -->
+<!-- Phase 1: brief hint before system dialog -->
 <div id="phase-launch" class="shell">
-  <div style="flex:1"></div>
+  <div class="split" style="gap:8px">
+    <div class="hero fade-in">
+      <div class="hero-logo" aria-hidden>
+        <img src="/drakkar-mark.png" alt="" draggable="false"/>
+      </div>
+      <h2>Открываем VPN-клиент</h2>
+      <p>На следующем шаге нажмите «Открыть» или установите клиент</p>
+    </div>
+  </div>
 </div>
 
 <!-- Phase 2: full fallback (matches webapp NeedInstallClient) -->
@@ -235,16 +243,18 @@ body{display:flex;flex-direction:column;min-height:100dvh;overflow-x:hidden}
   if (!configUrl) document.getElementById('copy-btn').disabled = true;
   updateStoreLink();
 
-  /* 1) Try opening the deeplink */
-  window.location.href = deeplink;
+  /* 1) Let the user read the hint for 4s, then fire deeplink */
+  setTimeout(function(){
+    window.location.href = deeplink;
+  }, 4000);
 
-  /* 2) If still on this page after 1.5s — show fallback */
+  /* 2) If still on this page after 6.5s — app not installed, show fallback */
   setTimeout(function(){
     document.getElementById('phase-launch').classList.add('hidden');
     var el = document.getElementById('phase-install');
     el.classList.remove('hidden');
     el.classList.add('fade-in');
-  }, 1500);
+  }, 6500);
 
 })();
 </script>

@@ -4,10 +4,13 @@ export function Overlay({
   open,
   children,
   onClose,
+  maxWidthClassName = 'max-w-lg',
 }: {
   open: boolean
   children: ReactNode
   onClose: () => void
+  /** Panel width (Tailwind max-width utility). */
+  maxWidthClassName?: string
 }) {
   if (!open) return null
 
@@ -19,7 +22,7 @@ export function Overlay({
         className="absolute inset-0 bg-black/40"
         onClick={onClose}
       />
-      <div className="relative z-10 mx-auto mt-24 w-full max-w-lg px-4">
+      <div className={['relative z-10 mx-auto mt-24 w-full px-4', maxWidthClassName].join(' ')}>
         <div className="rounded-lg border bg-background shadow-sm">{children}</div>
       </div>
     </div>

@@ -28,6 +28,7 @@ export type AdminUserCardDto = {
   user: {
     id: Guid
     telegram: number | null
+    username: string | null
     createdAtUtc: UtcDateTimeString
     status: UserStatus
     isOnline: boolean

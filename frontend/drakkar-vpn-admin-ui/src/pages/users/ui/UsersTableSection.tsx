@@ -1,7 +1,25 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { EmptyState, InlineAlert, Skeleton, StatusDot } from '../../../shared/ui'
+import { ADMIN_TABLE, ADMIN_TD, ADMIN_TH, EmptyState, InlineAlert, Skeleton, StatusDot } from '../../../shared/ui'
 import type { UiState, UserRow } from './types'
+import { UserRowActionsModal } from './UserRowActionsModal'
+
+const USERS_TABLE_HEADERS: { label: string; align: 'left' | 'right' }[] = [
+  { label: 'User ID', align: 'left' },
+  { label: 'Telegram', align: 'left' },
+  { label: 'Username', align: 'left' },
+  { label: 'Created', align: 'left' },
+  { label: 'Status', align: 'left' },
+  { label: 'Online', align: 'left' },
+  { label: 'Devices', align: 'right' },
+  { label: 'Last Seen', align: 'left' },
+  { label: 'Subscription status', align: 'left' },
+  { label: 'Subscription End', align: 'left' },
+  { label: 'Max Devices', align: 'right' },
+  { label: 'Traffic 24h', align: 'right' },
+  { label: 'Actions', align: 'right' },
+  { label: 'Detail', align: 'right' },
+]
 
 function shortUserId(id: string) {
   const raw = id.trim()
@@ -10,14 +28,14 @@ function shortUserId(id: string) {
 }
 
 function TableSkeletonRows({ rowsCount = 8 }: { rowsCount?: number }) {
-  const columnsCount = 14
+  const columnsCount = 15
 
   return (
     <>
       {Array.from({ length: rowsCount }).map((_, idx) => (
-        <tr key={idx} className="border-b">
+        <tr key={idx}>
           {Array.from({ length: columnsCount }).map((__, col) => (
-            <td key={col} className="p-2 align-middle">
+            <td key={col} className={ADMIN_TD}>
               <Skeleton
                 className={[
                   col === 1 ? 'h-4 w-40' : col === 2 ? 'h-4 w-24' : col === 12 ? 'h-4 w-10' : 'h-4 w-20',
@@ -73,28 +91,26 @@ function UsersTableRow({
   row,
   isSelected,
   onToggleSelect,
-  onAction,
+  onOpenActions,
 }: {
   row: UserRow
   isSelected: boolean
   onToggleSelect: () => void
-  onAction: (action: 'ban' | 'unban' | 'grantSubscription' | 'markInternal') => void
+  onOpenActions: () => void
 }) {
-  const [open, setOpen] = useState(false)
-
   return (
-    <tr className={['border-b hover:bg-muted/50', isSelected ? 'bg-muted' : ''].join(' ')}>
-      <td className="p-2 align-middle">
+    <tr className={['hover:bg-muted/50', isSelected ? 'bg-muted' : ''].join(' ')}>
+      <td className={[ADMIN_TD, 'text-center'].join(' ')}>
         <input type="checkbox" checked={isSelected} onChange={onToggleSelect} />
       </td>
-      <td className="p-2 align-middle">
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-xs text-muted-foreground" title={row.id}>
+      <td className={[ADMIN_TD, 'min-w-0'].join(' ')}>
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2">
+          <span className="min-w-0 truncate font-mono text-xs text-muted-foreground" title={row.id}>
             {shortUserId(row.id)}
           </span>
           <button
             type="button"
-            className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
+            className="shrink-0 text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
             title="Copy user id"
             onClick={async () => {
               try {
@@ -108,89 +124,35 @@ function UsersTableRow({
           </button>
         </div>
       </td>
-      <td className="p-2 align-middle text-muted-foreground tabular-nums">{row.telegram}</td>
-      <td className="p-2 align-middle text-muted-foreground">{row.createdAt}</td>
-      <td className="p-2 align-middle">
+      <td className={[ADMIN_TD, 'text-left text-muted-foreground tabular-nums'].join(' ')}>{row.telegram}</td>
+      <td className={[ADMIN_TD, 'text-left text-muted-foreground'].join(' ')}>{row.username}</td>
+      <td className={[ADMIN_TD, 'text-left text-muted-foreground'].join(' ')}>{row.createdAt}</td>
+      <td className={[ADMIN_TD, 'text-left'].join(' ')}>
         <UserStatusBadge value={row.status} />
       </td>
-      <td className="p-2 align-middle">
+      <td className={[ADMIN_TD, 'text-left'].join(' ')}>
         <StatusDot ok={row.online} label={row.online ? 'Online' : 'Offline'} />
       </td>
-      <td className="p-2 align-middle text-right tabular-nums">{row.devices}</td>
-      <td className="p-2 align-middle text-muted-foreground">{row.lastSeen}</td>
-      <td className="p-2 align-middle">
+      <td className={[ADMIN_TD, 'text-right tabular-nums'].join(' ')}>{row.devices}</td>
+      <td className={[ADMIN_TD, 'text-left text-muted-foreground'].join(' ')}>{row.lastSeen}</td>
+      <td className={[ADMIN_TD, 'text-left'].join(' ')}>
         <SubscriptionStatusBadge value={row.subscriptionStatus} />
       </td>
-      <td className="p-2 align-middle text-muted-foreground">{row.subscriptionEnd}</td>
-      <td className="p-2 align-middle text-right tabular-nums">{row.maxDevices}</td>
-      <td className="p-2 align-middle text-right tabular-nums">{row.traffic24h}</td>
-      <td className="p-2 align-middle text-right">
-        <div className="relative">
-          <button
-            type="button"
-            className="h-8 w-8 inline-flex items-center justify-center rounded-md hover:bg-accent"
-            aria-haspopup="menu"
-            aria-expanded={open}
-            onClick={() => setOpen((v) => !v)}
-          >
-            <span className="text-lg leading-none">⋯</span>
-            <span className="sr-only">Row actions</span>
-          </button>
-
-          {open ? (
-            <div role="menu" className="absolute right-0 mt-1 w-56 rounded-md border bg-popover shadow-sm z-10">
-              <button
-                type="button"
-                role="menuitem"
-                className="w-full text-left px-2 py-1.5 text-sm hover:bg-accent text-destructive"
-                onClick={() => {
-                  setOpen(false)
-                  onAction('ban')
-                }}
-              >
-                Ban user
-              </button>
-
-              <button
-                type="button"
-                role="menuitem"
-                className="w-full text-left px-2 py-1.5 text-sm hover:bg-accent"
-                onClick={() => {
-                  setOpen(false)
-                  onAction('unban')
-                }}
-              >
-                Unban user
-              </button>
-
-              <button
-                type="button"
-                role="menuitem"
-                className="w-full text-left px-2 py-1.5 text-sm hover:bg-accent"
-                onClick={() => {
-                  setOpen(false)
-                  onAction('grantSubscription')
-                }}
-              >
-                Grant subscription
-              </button>
-
-              <button
-                type="button"
-                role="menuitem"
-                className="w-full text-left px-2 py-1.5 text-sm hover:bg-accent"
-                onClick={() => {
-                  setOpen(false)
-                  onAction('markInternal')
-                }}
-              >
-                Mark internal
-              </button>
-            </div>
-          ) : null}
-        </div>
+      <td className={[ADMIN_TD, 'text-left text-muted-foreground'].join(' ')}>{row.subscriptionEnd}</td>
+      <td className={[ADMIN_TD, 'text-right tabular-nums'].join(' ')}>{row.maxDevices}</td>
+      <td className={[ADMIN_TD, 'text-right tabular-nums'].join(' ')}>{row.traffic24h}</td>
+      <td className={[ADMIN_TD, 'text-right'].join(' ')}>
+        <button
+          type="button"
+          className="h-8 w-8 inline-flex items-center justify-center rounded-md hover:bg-accent"
+          aria-haspopup="dialog"
+          aria-label="Open user actions"
+          onClick={onOpenActions}
+        >
+          <span className="text-lg leading-none">⋯</span>
+        </button>
       </td>
-      <td className="p-2 align-middle text-right">
+      <td className={[ADMIN_TD, 'text-right'].join(' ')}>
         <Link
           to={`/users/${row.id}`}
           className="inline-flex h-8 items-center justify-center px-3 rounded-md text-sm border border-border/60 text-muted-foreground hover:bg-accent hover:text-foreground"
@@ -219,14 +181,15 @@ export function UsersTableSection({
   onClearSelection: () => void
   onRowAction: (userId: string, action: 'ban' | 'unban' | 'grantSubscription' | 'markInternal') => void
 }) {
+  const [actionsUserId, setActionsUserId] = useState<string | null>(null)
   const allOnPageSelected = rows.length > 0 && rows.every((r) => selectedUserIds.includes(r.id))
 
   return (
     <div className="border rounded-lg">
-      <table className="w-full text-sm">
+      <table className={ADMIN_TABLE}>
         <thead>
-          <tr className="border-b">
-            <th className="h-10 px-2 font-medium text-left whitespace-nowrap">
+          <tr>
+            <th className={[ADMIN_TH, 'text-center'].join(' ')}>
               <input
                 type="checkbox"
                 checked={allOnPageSelected}
@@ -236,30 +199,12 @@ export function UsersTableSection({
                 }}
               />
             </th>
-            {[
-              'User ID',
-              'Telegram',
-              'Created',
-              'Status',
-              'Online',
-              'Devices',
-              'Last Seen',
-              'Subscription status',
-              'Subscription End',
-              'Max Devices',
-              'Traffic 24h',
-              'Actions',
-              'Detail',
-            ].map((h) => (
+            {USERS_TABLE_HEADERS.map((h) => (
               <th
-                key={h}
-                className={[
-                  'h-10 px-2 font-medium text-left whitespace-nowrap',
-                  h === 'Actions' ? 'w-10 text-right' : '',
-                  h === 'Detail' ? 'text-right' : '',
-                ].join(' ')}
+                key={h.label}
+                className={[ADMIN_TH, h.align === 'right' ? 'text-right' : 'text-left'].join(' ')}
               >
-                {h}
+                {h.label}
               </th>
             ))}
           </tr>
@@ -270,13 +215,13 @@ export function UsersTableSection({
             <TableSkeletonRows />
           ) : state === 'error' ? (
             <tr>
-              <td colSpan={14} className="p-4">
+              <td colSpan={15} className="p-4">
                 <InlineAlert message="Failed to load users list." />
               </td>
             </tr>
           ) : state === 'empty' ? (
             <tr>
-              <td colSpan={14} className="p-6">
+              <td colSpan={15} className="p-6">
                 <EmptyState title="No users" description="No users match the current filters." />
               </td>
             </tr>
@@ -287,12 +232,24 @@ export function UsersTableSection({
                 row={row}
                 isSelected={selectedUserIds.includes(row.id)}
                 onToggleSelect={() => onToggleRow(row.id)}
-                onAction={(action) => onRowAction(row.id, action)}
+                onOpenActions={() => setActionsUserId(row.id)}
               />
             ))
           )}
         </tbody>
       </table>
+
+      <UserRowActionsModal
+        open={actionsUserId !== null}
+        userId={actionsUserId}
+        onClose={() => setActionsUserId(null)}
+        onPickAction={(action) => {
+          if (!actionsUserId) return
+          const id = actionsUserId
+          setActionsUserId(null)
+          onRowAction(id, action)
+        }}
+      />
     </div>
   )
 }

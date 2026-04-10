@@ -1,3 +1,4 @@
+export * from './adminDataTable'
 export * from './feedback/EmptyState'
 export * from './feedback/InlineAlert'
 export * from './feedback/Skeleton'

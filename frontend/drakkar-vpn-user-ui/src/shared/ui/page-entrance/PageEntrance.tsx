@@ -1,13 +1,21 @@
-import { useLayoutEffect, useState, type ReactNode } from 'react'
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+
+const firstMountDone = { current: false }
 
 /**
- * Unified first paint + route transition: fade + subtle lift after layout.
- * Parent must be a flex column; this node participates as flex-1 so child pages keep full height.
+ * Route transition: fade + subtle lift after layout.
+ * On the very first mount the app-level AppReadyGate handles the entrance,
+ * so we skip animation here to avoid a double-fade.
  */
 export function PageEntrance({ children }: { children: ReactNode }) {
-  const [on, setOn] = useState(false)
+  const isFirstMount = useRef(!firstMountDone.current)
+  const [on, setOn] = useState(isFirstMount.current)
 
   useLayoutEffect(() => {
+    if (isFirstMount.current) {
+      firstMountDone.current = true
+      return
+    }
     let raf1 = 0
     let raf2 = 0
     raf1 = requestAnimationFrame(() => {

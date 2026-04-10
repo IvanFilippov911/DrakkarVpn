@@ -1,8 +1,19 @@
 import { useMemo, useState } from 'react'
-import { EmptyState, InlineAlert, Skeleton } from '../../../shared/ui'
+import { ADMIN_TABLE, ADMIN_TD, ADMIN_TH, EmptyState, InlineAlert, Skeleton } from '../../../shared/ui'
 import { formatDecimal } from '../../../shared/lib/formatters'
 import type { TariffRow, UiState } from './types'
 import type { TariffStatus } from '../../../entities/tariffs'
+
+const TARIFFS_TABLE_HEADERS: { label: string; align: 'left' | 'right' }[] = [
+  { label: 'Name', align: 'left' },
+  { label: 'Kind', align: 'left' },
+  { label: 'Price', align: 'right' },
+  { label: 'Duration', align: 'left' },
+  { label: 'Devices', align: 'right' },
+  { label: 'Status', align: 'left' },
+  { label: 'Created', align: 'left' },
+  { label: 'Actions', align: 'right' },
+]
 
 function formatPrice(value: number) {
   // Currency is not provided by API contract; format decimal only.
@@ -37,9 +48,9 @@ function TableSkeletonRows({ rowsCount = 8 }: { rowsCount?: number }) {
   return (
     <>
       {Array.from({ length: rowsCount }).map((_, idx) => (
-        <tr key={idx} className="border-b">
+        <tr key={idx}>
           {Array.from({ length: columnsCount }).map((__, col) => (
-            <td key={col} className="p-2 align-middle">
+            <td key={col} className={ADMIN_TD}>
               <Skeleton
                 className={[
                   col === 0
@@ -90,18 +101,22 @@ function TariffTableRow({
   }, [row.status])
 
   return (
-    <tr className="border-b hover:bg-muted/50">
-      <td className="p-2 align-middle">{row.name}</td>
-      <td className="p-2 align-middle text-muted-foreground">{row.kind}</td>
-      <td className="p-2 align-middle text-right tabular-nums">{formatPrice(row.price)}</td>
-      <td className="p-2 align-middle">{row.duration}</td>
-      <td className="p-2 align-middle text-right tabular-nums">{row.devices}</td>
-      <td className="p-2 align-middle">
+    <tr className="hover:bg-muted/50">
+      <td className={[ADMIN_TD, 'min-w-0 text-left'].join(' ')}>
+        <span className="block truncate" title={row.name}>
+          {row.name}
+        </span>
+      </td>
+      <td className={[ADMIN_TD, 'text-left text-muted-foreground'].join(' ')}>{row.kind}</td>
+      <td className={[ADMIN_TD, 'text-right tabular-nums'].join(' ')}>{formatPrice(row.price)}</td>
+      <td className={[ADMIN_TD, 'text-left'].join(' ')}>{row.duration}</td>
+      <td className={[ADMIN_TD, 'text-right tabular-nums'].join(' ')}>{row.devices}</td>
+      <td className={[ADMIN_TD, 'text-left'].join(' ')}>
         <TariffStatusBadge status={row.status} />
       </td>
-      <td className="p-2 align-middle text-muted-foreground">{formatCreatedAt(row.createdAt)}</td>
-      <td className="p-2 align-middle text-right">
-        <div className="relative">
+      <td className={[ADMIN_TD, 'text-left text-muted-foreground'].join(' ')}>{formatCreatedAt(row.createdAt)}</td>
+      <td className={[ADMIN_TD, 'text-right'].join(' ')}>
+        <div className="relative inline-block text-left">
           <button
             type="button"
             className="h-8 w-8 inline-flex items-center justify-center rounded-md hover:bg-accent"
@@ -200,19 +215,16 @@ export function TariffsTableSection({
   onDelete: (id: string) => void
 }) {
   return (
-    <div className="border rounded-lg">
-      <table className="w-full text-sm">
+    <div className="border rounded-lg overflow-x-auto">
+      <table className={[ADMIN_TABLE, 'min-w-[52rem]'].join(' ')}>
         <thead>
-          <tr className="border-b">
-            {['Name', 'Kind', 'Price', 'Duration', 'Devices', 'Status', 'Created', 'Actions'].map((h) => (
+          <tr>
+            {TARIFFS_TABLE_HEADERS.map((h) => (
               <th
-                key={h}
-                className={[
-                  'h-10 px-2 font-medium text-left whitespace-nowrap',
-                  h === 'Actions' ? 'w-10 text-right' : '',
-                ].join(' ')}
+                key={h.label}
+                className={[ADMIN_TH, h.align === 'right' ? 'text-right' : 'text-left'].join(' ')}
               >
-                {h}
+                {h.label}
               </th>
             ))}
           </tr>

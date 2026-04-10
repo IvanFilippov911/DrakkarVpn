@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
-import { Skeleton } from '../../../shared/ui'
+import { ADMIN_TABLE, ADMIN_TD, ADMIN_TH, Skeleton } from '../../../shared/ui'
 import type { ErrorEventRow, ErrorsUiState } from './types'
 
 function maybeValue(v: string | null) {
@@ -26,73 +25,16 @@ function CopyableId({
   return (
     <button
       type="button"
-      className={['text-left font-mono text-xs hover:underline', maxWidthClassName, 'truncate'].join(' ')}
+      className={[
+        'block w-full min-w-0 text-left font-mono text-xs hover:underline',
+        maxWidthClassName,
+        'truncate',
+      ].join(' ')}
       onClick={() => void copyToClipboard(value)}
       title={value}
     >
       {value}
     </button>
-  )
-}
-
-function RowActions({
-  id,
-  onDeleteClick,
-  disabled,
-}: {
-  id: string
-  onDeleteClick: (id: string) => void
-  disabled?: boolean
-}) {
-  const [open, setOpen] = useState(false)
-  const rootRef = useRef<HTMLDivElement | null>(null)
-
-  useEffect(() => {
-    if (!open) return
-
-    const onDocClick = (e: MouseEvent) => {
-      if (!rootRef.current) return
-      if (e.target instanceof Node && rootRef.current.contains(e.target)) return
-      setOpen(false)
-    }
-
-    document.addEventListener('mousedown', onDocClick)
-    return () => document.removeEventListener('mousedown', onDocClick)
-  }, [open])
-
-  return (
-    <div className="relative" ref={rootRef}>
-      <button
-        type="button"
-        className="h-8 w-8 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
-        aria-haspopup="menu"
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-        disabled={disabled}
-      >
-        ⋯
-      </button>
-
-      {open ? (
-        <div
-          role="menu"
-          className="absolute right-0 mt-1 w-40 rounded-md border bg-background shadow-sm"
-        >
-          <button
-            type="button"
-            role="menuitem"
-            className="w-full text-left px-2 py-1.5 text-sm hover:bg-accent text-destructive"
-            onClick={() => {
-              setOpen(false)
-              onDeleteClick(id)
-            }}
-            disabled={disabled}
-          >
-            Delete
-          </button>
-        </div>
-      ) : null}
-    </div>
   )
 }
 
@@ -108,63 +50,67 @@ export function ErrorsTableSection({
   deleteDisabled?: boolean
 }) {
   return (
-    <div className="border rounded-lg overflow-hidden mb-6">
-      <table className="w-full text-sm">
+    <div className="border rounded-lg mb-6">
+      <table className={ADMIN_TABLE}>
         <thead>
-          <tr className="border-b">
-            <th className="h-10 px-2 font-medium text-left whitespace-nowrap">Timestamp</th>
-            <th className="h-10 px-2 font-medium text-left whitespace-nowrap">Command</th>
-            <th className="h-10 px-2 font-medium text-left whitespace-nowrap">Area</th>
-            <th className="h-10 px-2 font-medium text-left whitespace-nowrap">Error Type</th>
-            <th className="h-10 px-2 font-medium text-left whitespace-nowrap">Domain Code</th>
-            <th className="h-10 px-2 font-medium text-left whitespace-nowrap">Message</th>
-            <th className="h-10 px-2 font-medium text-left whitespace-nowrap">Trace ID</th>
-            <th className="h-10 px-2 font-medium text-left whitespace-nowrap">User ID</th>
-            <th className="h-10 px-2 font-medium text-left whitespace-nowrap">Telegram ID</th>
-            <th className="h-10 px-2 font-medium text-left whitespace-nowrap w-10">Actions</th>
+          <tr>
+            <th className={[ADMIN_TH, 'text-left'].join(' ')}>Timestamp</th>
+            <th className={[ADMIN_TH, 'text-left'].join(' ')}>Command</th>
+            <th className={[ADMIN_TH, 'text-left'].join(' ')}>Area</th>
+            <th className={[ADMIN_TH, 'text-left'].join(' ')}>Error Type</th>
+            <th className={[ADMIN_TH, 'text-left'].join(' ')}>Domain Code</th>
+            <th className={[ADMIN_TH, 'text-left'].join(' ')}>Message</th>
+            <th className={[ADMIN_TH, 'text-left'].join(' ')}>Trace ID</th>
+            <th className={[ADMIN_TH, 'text-left'].join(' ')}>User ID</th>
+            <th className={[ADMIN_TH, 'text-left'].join(' ')}>Telegram ID</th>
+            <th className={[ADMIN_TH, 'text-right'].join(' ')}>Actions</th>
           </tr>
         </thead>
         <tbody>
           {state === 'loading'
             ? Array.from({ length: 6 }).map((_, idx) => (
-                <tr key={idx} className="border-b hover:bg-muted/50">
-                  {Array.from({ length: 9 }).map((__, cIdx) => (
-                    <td key={cIdx} className="p-2 align-middle">
-                      <Skeleton className="h-4 w-full" />
+                <tr key={idx} className="hover:bg-muted/50">
+                  {Array.from({ length: 10 }).map((__, cIdx) => (
+                    <td key={cIdx} className={[ADMIN_TD, cIdx === 9 ? 'text-right' : ''].join(' ')}>
+                      <Skeleton className={cIdx === 9 ? 'inline-block h-8 w-8' : 'h-4 w-full'} />
                     </td>
                   ))}
-                  <td className="p-2 align-middle">
-                    <Skeleton className="h-8 w-8" />
-                  </td>
                 </tr>
               ))
             : rows.map((r) => (
-                <tr key={r.id} className="border-b hover:bg-muted/50">
-                  <td className="p-2 align-middle whitespace-nowrap">{r.timestamp}</td>
-                  <td className="p-2 align-middle whitespace-nowrap">{r.command}</td>
-                  <td className="p-2 align-middle whitespace-nowrap">{r.area}</td>
-                  <td className="p-2 align-middle whitespace-nowrap">{r.errorType}</td>
-                  <td className="p-2 align-middle whitespace-nowrap">{maybeValue(r.domainCode)}</td>
-                  <td className="p-2 align-middle">
-                    <div className="max-w-[480px] truncate" title={r.message}>
+                <tr key={r.id} className="hover:bg-muted/50">
+                  <td className={[ADMIN_TD, 'text-left whitespace-nowrap'].join(' ')}>{r.timestamp}</td>
+                  <td className={[ADMIN_TD, 'min-w-0 text-left break-words'].join(' ')}>{r.command}</td>
+                  <td className={[ADMIN_TD, 'min-w-0 text-left break-words'].join(' ')}>{r.area}</td>
+                  <td className={[ADMIN_TD, 'min-w-0 text-left break-words'].join(' ')}>{r.errorType}</td>
+                  <td className={[ADMIN_TD, 'min-w-0 text-left break-words'].join(' ')}>
+                    {maybeValue(r.domainCode)}
+                  </td>
+                  <td className={[ADMIN_TD, 'min-w-0 text-left'].join(' ')}>
+                    <div className="break-words line-clamp-3" title={r.message}>
                       {r.message}
                     </div>
                   </td>
-                  <td className="p-2 align-middle whitespace-nowrap">
-                    <CopyableId value={r.traceId} maxWidthClassName="max-w-[220px]" />
+                  <td className={[ADMIN_TD, 'min-w-0 text-left'].join(' ')}>
+                    <CopyableId value={r.traceId} maxWidthClassName="max-w-full" />
                   </td>
-                  <td className="p-2 align-middle whitespace-nowrap">
-                    <CopyableId value={r.userId} maxWidthClassName="max-w-[220px]" />
+                  <td className={[ADMIN_TD, 'min-w-0 text-left'].join(' ')}>
+                    <CopyableId value={r.userId} maxWidthClassName="max-w-full" />
                   </td>
-                  <td className="p-2 align-middle whitespace-nowrap">
-                    <CopyableId value={r.telegramId} maxWidthClassName="max-w-[220px]" />
+                  <td className={[ADMIN_TD, 'min-w-0 text-left'].join(' ')}>
+                    <CopyableId value={r.telegramId} maxWidthClassName="max-w-full" />
                   </td>
-                  <td className="p-2 align-middle whitespace-nowrap w-10">
-                    <RowActions
-                      id={r.id}
+                  <td className={[ADMIN_TD, 'text-right'].join(' ')}>
+                    <button
+                      type="button"
+                      className="h-8 w-8 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-50"
                       disabled={deleteDisabled}
-                      onDeleteClick={onDeleteClick}
-                    />
+                      aria-label="Delete error event"
+                      title="Delete error event"
+                      onClick={() => onDeleteClick(r.id)}
+                    >
+                      ⋯
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -173,4 +119,3 @@ export function ErrorsTableSection({
     </div>
   )
 }
-

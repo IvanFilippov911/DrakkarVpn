@@ -94,6 +94,7 @@ public static class UsersQueryableExtensions
             new UserIndexRowDto(
                 x.User.Id,
                 x.User.TelegramId,
+                x.User.Username,
                 x.User.CreatedAt,
                 x.User.Status,
                 x.Stats != null && x.Stats.IsOnline,

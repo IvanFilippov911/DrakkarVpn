@@ -62,7 +62,8 @@ public sealed class UsersQueryService : IUsersQueryService
                 Status:       r.Status,
                 IsOnline:     r.IsOnline,
                 DeviceCount:  r.DeviceCount,
-                LastSeenUtc:  r.LastSeenUtc
+                LastSeenUtc:  r.LastSeenUtc,
+                Username:     r.Username
             );
 
             var subscription = new SubscriptionSummaryDto(

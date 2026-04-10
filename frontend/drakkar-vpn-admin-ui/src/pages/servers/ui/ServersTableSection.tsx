@@ -1,14 +1,30 @@
 import { useState } from 'react'
 import type { ServerRow, UiState } from './types'
-import { EmptyState, InlineAlert, Skeleton, StatusDot } from '../../../shared/ui'
+import { ADMIN_TABLE, ADMIN_TD, ADMIN_TH, EmptyState, InlineAlert, Skeleton, StatusDot } from '../../../shared/ui'
+
+const SERVERS_TABLE_HEADERS: { label: string; align: 'left' | 'right' }[] = [
+  { label: 'Server', align: 'left' },
+  { label: 'Region', align: 'left' },
+  { label: 'Status', align: 'left' },
+  { label: 'Reachable', align: 'left' },
+  { label: 'Online', align: 'right' },
+  { label: 'Active', align: 'right' },
+  { label: 'Max', align: 'right' },
+  { label: 'Speed', align: 'right' },
+  { label: 'Latency', align: 'right' },
+  { label: '1h Traffic', align: 'right' },
+  { label: '24h Traffic', align: 'right' },
+  { label: 'Peers', align: 'right' },
+  { label: 'Actions', align: 'right' },
+]
 
 function TableSkeletonRows() {
   return (
     <>
       {Array.from({ length: 8 }).map((_, idx) => (
-        <tr key={idx} className="border-b">
+        <tr key={idx}>
           {Array.from({ length: 13 }).map((__, col) => (
-            <td key={col} className="p-2 align-middle">
+            <td key={col} className={ADMIN_TD}>
               <Skeleton className={col === 0 ? 'h-4 w-48' : 'h-4 w-20'} />
             </td>
           ))}
@@ -30,21 +46,25 @@ function ServerTableRow({
   const [open, setOpen] = useState(false)
 
   return (
-    <tr className="border-b hover:bg-muted/50">
-      <td className="p-2 align-middle">{row.name}</td>
-      <td className="p-2 align-middle text-muted-foreground">{row.region}</td>
-      <td className="p-2 align-middle">{row.status}</td>
-      <td className="p-2 align-middle">
+    <tr className="hover:bg-muted/50">
+      <td className={[ADMIN_TD, 'min-w-0 text-left'].join(' ')}>
+        <span className="block truncate" title={row.name}>
+          {row.name}
+        </span>
+      </td>
+      <td className={[ADMIN_TD, 'text-left text-muted-foreground'].join(' ')}>{row.region}</td>
+      <td className={[ADMIN_TD, 'text-left'].join(' ')}>{row.status}</td>
+      <td className={[ADMIN_TD, 'text-left'].join(' ')}>
         <StatusDot ok={row.reachable} label={row.reachable ? 'Yes' : 'No'} />
       </td>
-      <td className="p-2 align-middle text-right tabular-nums">{row.online}</td>
-      <td className="p-2 align-middle text-right tabular-nums">{row.active}</td>
-      <td className="p-2 align-middle text-right tabular-nums">{row.max}</td>
-      <td className="p-2 align-middle text-right tabular-nums">{row.speed}</td>
-      <td className="p-2 align-middle text-right tabular-nums">{row.latency}</td>
-      <td className="p-2 align-middle text-right tabular-nums">{row.traffic1h}</td>
-      <td className="p-2 align-middle text-right tabular-nums">{row.traffic24h}</td>
-      <td className="p-2 align-middle text-right">
+      <td className={[ADMIN_TD, 'text-right tabular-nums'].join(' ')}>{row.online}</td>
+      <td className={[ADMIN_TD, 'text-right tabular-nums'].join(' ')}>{row.active}</td>
+      <td className={[ADMIN_TD, 'text-right tabular-nums'].join(' ')}>{row.max}</td>
+      <td className={[ADMIN_TD, 'text-right tabular-nums'].join(' ')}>{row.speed}</td>
+      <td className={[ADMIN_TD, 'text-right tabular-nums'].join(' ')}>{row.latency}</td>
+      <td className={[ADMIN_TD, 'text-right tabular-nums'].join(' ')}>{row.traffic1h}</td>
+      <td className={[ADMIN_TD, 'text-right tabular-nums'].join(' ')}>{row.traffic24h}</td>
+      <td className={[ADMIN_TD, 'text-right'].join(' ')}>
         <button
           type="button"
           className="h-8 px-3 rounded-md text-sm border bg-background hover:bg-accent"
@@ -53,8 +73,8 @@ function ServerTableRow({
           Peers
         </button>
       </td>
-      <td className="p-2 align-middle">
-        <div className="relative">
+      <td className={[ADMIN_TD, 'text-right'].join(' ')}>
+        <div className="relative inline-block text-left">
           <button
             type="button"
             className="h-8 w-8 inline-flex items-center justify-center rounded-md hover:bg-accent"
@@ -102,34 +122,16 @@ export function ServersTableSection({
   onDelete: (id: string) => void
 }) {
   return (
-    <div className="border rounded-lg">
-      <table className="w-full text-sm">
+    <div className="border rounded-lg overflow-x-auto">
+      <table className={[ADMIN_TABLE, 'min-w-[70rem]'].join(' ')}>
         <thead>
-          <tr className="border-b">
-            {[
-              'Server',
-              'Region',
-              'Status',
-              'Reachable',
-              'Online',
-              'Active',
-              'Max',
-              'Speed',
-              'Latency',
-              '1h Traffic',
-              '24h Traffic',
-              'Peers',
-              'Actions',
-            ].map((h) => (
+          <tr>
+            {SERVERS_TABLE_HEADERS.map((h) => (
               <th
-                key={h}
-                className={[
-                  'h-10 px-2 font-medium text-left whitespace-nowrap',
-                  h === 'Actions' ? 'w-10' : '',
-                  h === 'Peers' ? 'text-right' : '',
-                ].join(' ')}
+                key={h.label}
+                className={[ADMIN_TH, h.align === 'right' ? 'text-right' : 'text-left'].join(' ')}
               >
-                {h}
+                {h.label}
               </th>
             ))}
           </tr>

@@ -1,5 +1,5 @@
 import { isAxiosError } from 'axios'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { RoutedPageOutlet } from './RoutedPageOutlet'
@@ -189,8 +189,36 @@ export function AppBootLayout() {
   }
 
   return (
-    <BottomNavProvider>
-      <RoutedPageOutlet />
-    </BottomNavProvider>
+    <AppReadyGate>
+      <BottomNavProvider>
+        <RoutedPageOutlet />
+      </BottomNavProvider>
+    </AppReadyGate>
+  )
+}
+
+/**
+ * Single coordinated fade-in for the entire app shell (page + bottom nav).
+ * Waits 2 rAFs so the browser lays out everything first, then reveals in one pass.
+ */
+function AppReadyGate({ children }: { children: ReactNode }) {
+  const [on, setOn] = useState(false)
+
+  useLayoutEffect(() => {
+    let raf1 = 0
+    let raf2 = 0
+    raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => setOn(true))
+    })
+    return () => {
+      cancelAnimationFrame(raf1)
+      cancelAnimationFrame(raf2)
+    }
+  }, [])
+
+  return (
+    <div className={on ? 'app-ready-gate app-ready-gate--on' : 'app-ready-gate'}>
+      {children}
+    </div>
   )
 }

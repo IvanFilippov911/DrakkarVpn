@@ -3,6 +3,7 @@ export type UiState = 'loading' | 'error' | 'empty' | 'success'
 export type UserRow = {
   id: string
   telegram: string
+  username: string
   createdAt: string
   status: string
   online: boolean

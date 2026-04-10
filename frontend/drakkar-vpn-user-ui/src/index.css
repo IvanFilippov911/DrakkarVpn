@@ -196,6 +196,24 @@ body {
   }
 }
 
+/* App-level gate: everything (page + bottom nav) fades in together on first ready. */
+.app-ready-gate {
+  opacity: 0;
+  transition: opacity 260ms cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+.app-ready-gate.app-ready-gate--on {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-ready-gate,
+  .app-ready-gate.app-ready-gate--on {
+    opacity: 1;
+    transition: none;
+  }
+}
+
 /* All routed pages: same subtle entrance (220ms, ~6px lift). */
 .page-entrance {
   opacity: 0;

@@ -9,5 +9,6 @@ public sealed record UserSummaryDto(
     UserStatus Status,
     bool IsOnline,
     int DeviceCount,
-    DateTime?  LastSeenUtc
+    DateTime?  LastSeenUtc,
+    string? Username
 );

@@ -18,6 +18,11 @@ export function formatMaybeTelegram(value: number | null | undefined): string {
   return String(Math.trunc(value))
 }
 
+export function formatMaybeUsername(value: string | null | undefined): string {
+  if (value == null || value.trim() === '') return '—'
+  return value.trim()
+}
+
 /** Backend sends enum as string (Active | Expired | Cancelled) via JsonStringEnumConverter. */
 export function formatMaybeSubscriptionStatus(value: string | null | undefined): string {
   if (value == null || value === '') return '—'

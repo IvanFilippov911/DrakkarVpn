@@ -14,6 +14,7 @@ import {
   formatMaybeNumber,
   formatMaybeSubscriptionStatus,
   formatMaybeTelegram,
+  formatMaybeUsername,
 } from './ui/formatters'
 import { BanUsersDialogShell } from './ui/BanUsersDialogShell'
 import { UnbanUsersDialogShell } from './ui/UnbanUsersDialogShell'
@@ -68,6 +69,7 @@ export function UsersPage() {
     return items.map((dto) => ({
       id: dto.user.id,
       telegram: formatMaybeTelegram(dto.user.telegram),
+      username: formatMaybeUsername(dto.user.username),
       createdAt: formatMaybeDateTimeUtc(dto.user.createdAtUtc),
       status: dto.user.status,
       online: dto.user.isOnline,

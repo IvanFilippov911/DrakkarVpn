@@ -6,6 +6,7 @@ namespace DrakkarVpn.Core.Api.Modules.Users.Infrastructure.Repositories.rowDTOs;
 public sealed record UserIndexRowDto(
     Guid       UserId,
     long?      TelegramId,
+    string?    Username,
     DateTime   CreatedAtUtc,
     UserStatus Status,
     bool       IsOnline,
