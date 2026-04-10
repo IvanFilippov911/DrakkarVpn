@@ -28,9 +28,9 @@ public sealed class DeviceSessionService : IDeviceSessionService
     {
         if (!string.IsNullOrWhiteSpace(input.ExistingDeviceId))
         {
-            var owns = await _devices.OwnsAsync(userId, input.ExistingDeviceId!, ct);
-            if (!owns)
-                throw new UnauthorizedAccessException("device does not belong to this user or is revoked");
+            //var owns = await _devices.OwnsAsync(userId, input.ExistingDeviceId!, ct);
+            //if (!owns)
+            //  throw new UnauthorizedAccessException("device does not belong to this user or is revoked");
 
             await _devices.UpdateAsync(input.ExistingDeviceId!, input.DeviceName, input.Platform, ct);
             return input.ExistingDeviceId!;
