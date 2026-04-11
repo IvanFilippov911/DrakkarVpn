@@ -6,7 +6,7 @@ export async function getCoreErrorEvents(
   params: CoreErrorEventsListQuery,
 ): Promise<PagedResponseDto<CoreErrorEventListItemDto>> {
   const { data } = await apiClient.get<PagedResponseDto<CoreErrorEventListItemDto>>(
-    '/admin/core/errors',
+    '/api/admin/core/errors',
     {
       withCredentials: true,
       params,

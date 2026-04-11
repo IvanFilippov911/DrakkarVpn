@@ -11,7 +11,7 @@ namespace DrakkarVpn.Core.Api.Modules.Admin.API;
 
 [ApiController]
 [Authorize(Policy = AdminPolicies.ObservabilityRead)]
-[Route("admin/core/errors")]
+[Route("api/admin/core/errors")]
 public sealed class AdminCoreErrorsController : ControllerBase
 {
     private readonly IMediator _mediator;

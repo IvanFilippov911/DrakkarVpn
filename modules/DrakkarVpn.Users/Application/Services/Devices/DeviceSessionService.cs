@@ -31,8 +31,23 @@ public sealed class DeviceSessionService : IDeviceSessionService
             //var owns = await _devices.OwnsAsync(userId, input.ExistingDeviceId!, ct);
             //if (!owns)
             //  throw new UnauthorizedAccessException("device does not belong to this user or is revoked");
+            
+            var existingDevice = await _devices.GetByIdAsync(input.ExistingDeviceId!, ct);
 
-            await _devices.UpdateAsync(input.ExistingDeviceId!, input.DeviceName, input.Platform, ct);
+            if (existingDevice is not null)
+            {
+                await _devices.UpdateAsync(input.ExistingDeviceId!, input.DeviceName, input.Platform, ct);
+                return input.ExistingDeviceId!;
+            }
+
+            var recreatedDevice = Device.Create(
+                deviceId: input.ExistingDeviceId!,
+                userId: userId,
+                name: input.DeviceName,
+                platform: input.Platform,
+                nowUtc: nowUtc);
+
+            await _devices.AddAsync(recreatedDevice, ct);
             return input.ExistingDeviceId!;
         }
 
