@@ -222,8 +222,11 @@ export function beginVpnDeeplinkAttempt(options: VpnDeeplinkOutcomeOptions): voi
 }
 
 /**
- * Сначала Happ (если есть), после таймаута и если WebView всё ещё видим — v2RayTun (если есть).
- * Если оба исчерпаны и страница всё ещё на месте — onStillVisible (экран установки клиента и т.д.).
+ * Если есть обе ссылки: открываем Happ, затем **всегда** через паузу открываем v2RayTun и только на
+ * втором шаге считаем исход (иначе при уходе в Safari из Telegram `document.hidden` обрывал цепочку
+ * и v2RayTun никогда не вызывался).
+ *
+ * Если ссылка одна — одна попытка с прежней эвристикой visibility + таймер.
  */
 export function beginSequentialVpnDeeplinkAttempt(
   happLink: string | null | undefined,
@@ -239,14 +242,8 @@ export function beginSequentialVpnDeeplinkAttempt(
     return
   }
 
-  const run = (which: 'happ' | 'v2ray'): void => {
-    const url =
-      which === 'happ' ? pickPrimaryVpnDeeplink(h, undefined) : pickPrimaryVpnDeeplink(undefined, v)
-    if (!url) {
-      if (which === 'happ' && v) {
-        run('v2ray')
-        return
-      }
+  const runTrackedOpen = (url: string): void => {
+    if (!url.trim()) {
       options.onStillVisible?.()
       return
     }
@@ -270,10 +267,6 @@ export function beginSequentialVpnDeeplinkAttempt(
       if (finished) return
       finished = true
       cleanup(onVis)
-      if (which === 'happ' && v) {
-        run('v2ray')
-        return
-      }
       options.onStillVisible?.()
     }
 
@@ -295,7 +288,32 @@ export function beginSequentialVpnDeeplinkAttempt(
     openDeeplinkUrlSync(url)
   }
 
-  run(h ? 'happ' : 'v2ray')
+  if (h && v) {
+    const happUrl = pickPrimaryVpnDeeplink(h, undefined)
+    const v2Url = pickPrimaryVpnDeeplink(undefined, v)
+    if (!v2Url) {
+      options.onStillVisible?.()
+      return
+    }
+    if (happUrl) {
+      openDeeplinkUrlSync(happUrl)
+    }
+    window.setTimeout(() => {
+      runTrackedOpen(v2Url)
+    }, timeoutMs)
+    return
+  }
+
+  if (h) {
+    const url = pickPrimaryVpnDeeplink(h, undefined)
+    if (url) runTrackedOpen(url)
+    else options.onStillVisible?.()
+    return
+  }
+
+  const url = pickPrimaryVpnDeeplink(undefined, v)
+  if (url) runTrackedOpen(url)
+  else options.onStillVisible?.()
 }
 
 export function getHappInstallUrl(platform?: string): string {
