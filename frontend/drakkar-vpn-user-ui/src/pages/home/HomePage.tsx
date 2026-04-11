@@ -1,4 +1,3 @@
-import { differenceInCalendarDays } from 'date-fns'
 import type { ReactNode } from 'react'
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -15,6 +14,11 @@ import {
 } from '../../entities/user'
 import { useStartProvision } from '../../features/user'
 import {
+  consumeConnectLaunchPending,
+  peekConnectLaunchPending,
+} from '../../shared/lib/connectLaunchPending'
+import { markProvisionKickoff } from '../../shared/lib/provisionKickoff'
+import {
   beginSequentialVpnDeeplinkAttempt,
   getHappInstallUrl,
   getV2RayTunInstallUrl,
@@ -23,6 +27,7 @@ import {
 } from '../../shared/lib/happLauncher'
 import drakkarMark from '../../assets/drakkar-mark.png'
 import { AppContainer, HomeBrandShell, PrimaryButton } from '../../shared/ui'
+import { HomeSummaryCardSlot } from './homeSummaryCard'
 import { HOME_PRESENTATION } from './homePresentation'
 
 type ReadyCtaError = 'maintenance' | 'session'
@@ -347,55 +352,6 @@ function ConnectStepShell({
   )
 }
 
-function pluralizeDaysRu(n: number): string {
-  const abs = Math.abs(n)
-  const mod10 = abs % 10
-  const mod100 = abs % 100
-  if (mod100 >= 11 && mod100 <= 14) return 'дней'
-  if (mod10 === 1) return 'день'
-  if (mod10 >= 2 && mod10 <= 4) return 'дня'
-  return 'дней'
-}
-
-const HOME_STATUS_CARD_SHELL =
-  'mx-auto w-full max-w-sm rounded-2xl bg-[rgba(255,255,255,0.04)] p-4 shadow-[0_10px_40px_rgba(37,99,235,0.08)]'
-
-function SummaryCardSkeleton() {
-  return (
-    <div className={HOME_STATUS_CARD_SHELL} aria-busy aria-hidden>
-      <div className="flex items-center gap-3">
-        <div className="h-5 w-5 shrink-0 rounded-full bg-[rgba(255,255,255,0.06)]" />
-        <div className="min-w-0 flex-1 space-y-2">
-          <div className="h-[17px] w-[72%] max-w-[16rem] rounded bg-[rgba(255,255,255,0.07)]" />
-          <div className="h-[14px] w-[48%] max-w-[10rem] rounded bg-[rgba(255,255,255,0.05)]" />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function HomeSummaryCardSlot({
-  homeContextReady,
-  summary,
-}: {
-  homeContextReady: boolean
-  summary: ReturnType<typeof useUserSummary>
-}) {
-  if (!homeContextReady) {
-    return <SummaryCardSkeleton />
-  }
-  if (summary.data) {
-    return (
-      <SummaryCard
-        subscriptionEndAtUtc={summary.data.subscriptionEndAtUtc}
-        connectedDevices={summary.data.connectedDevices}
-        maxDevices={summary.data.maxDevices}
-      />
-    )
-  }
-  return <SummaryCardSkeleton />
-}
-
 function HomePrimaryCtaPlaceholder() {
   return (
     <div
@@ -403,85 +359,6 @@ function HomePrimaryCtaPlaceholder() {
       aria-hidden
     >
       <div className="h-4 w-32 max-w-[60%] rounded bg-[rgba(255,255,255,0.08)]" />
-    </div>
-  )
-}
-
-function SummaryCard({
-  subscriptionEndAtUtc,
-  connectedDevices,
-  maxDevices,
-}: {
-  subscriptionEndAtUtc: string | null
-  connectedDevices: number
-  maxDevices: number | null
-}) {
-  const hasSubscription = subscriptionEndAtUtc != null && subscriptionEndAtUtc.trim() !== '' && maxDevices != null
-  const endDate = hasSubscription ? new Date(subscriptionEndAtUtc!) : null
-  const daysLeft =
-    endDate && Number.isFinite(endDate.getTime())
-      ? Math.max(0, differenceInCalendarDays(endDate, new Date()))
-      : null
-
-  return (
-    <div className={HOME_STATUS_CARD_SHELL}>
-      <div className="flex items-center gap-3">
-        <span className="shrink-0 leading-none" aria-hidden>
-          {hasSubscription ? (
-            <svg
-              className="block h-5 w-5 text-[#22c55e]"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M20 6L9 17l-5-5"
-                stroke="currentColor"
-                strokeWidth="2.25"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          ) : (
-            <svg
-              className="block h-5 w-5 text-[#ef4444]"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M18 6L6 18M6 6l12 12"
-                stroke="currentColor"
-                strokeWidth="2.25"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          )}
-        </span>
-        <div className="min-w-0">
-          {hasSubscription ? (
-            <>
-              <p className="truncate font-sans text-[15px] font-semibold text-[var(--foreground)]">
-                Подписка активна
-                {daysLeft != null ? ` · ${daysLeft} ${pluralizeDaysRu(daysLeft)}` : ''}
-              </p>
-              <p className="mt-0.5 text-[13px] font-normal text-[#8b8f94]">
-                Устройства: {connectedDevices} из {maxDevices}
-              </p>
-            </>
-          ) : (
-            <>
-              <p className="truncate font-sans text-[15px] font-semibold text-[var(--foreground)]">
-                Подписка неактивна
-              </p>
-              <p className="mt-0.5 text-[13px] font-normal text-[#8b8f94]">
-                Подключите тариф для доступа
-              </p>
-            </>
-          )}
-        </div>
-      </div>
     </div>
   )
 }
@@ -534,7 +411,6 @@ export function HomePage() {
   const home = useHomeContext()
   const summary = useUserSummary()
   const startProvision = useStartProvision()
-
   const state = home.data?.state
   const {
     data: vpnConfig,
@@ -555,6 +431,17 @@ export function HomePage() {
 
   const launchLockRef = useRef(false)
   const prevStateRef = useRef<HomeScreenState | undefined>(undefined)
+  /**
+   * После успешного auto-connect по флагу — блокируем повторный runConnectLaunch при refetch.
+   * Сбрасываем, когда state уходит с Ready (следующий цикл provisioning).
+   */
+  const postProvisionAutoConnectDoneRef = useRef(false)
+
+  useEffect(() => {
+    if (state !== 'Ready') {
+      postProvisionAutoConnectDoneRef.current = false
+    }
+  }, [state])
 
   const view = state != null ? HOME_PRESENTATION[state] : null
 
@@ -563,17 +450,26 @@ export function HomePage() {
 
   useEffect(() => {
     if (provisionPolling.data?.status !== 'Failed') return
-    setProvisionFailure({
-      errorCode: provisionPolling.data.errorCode,
-      errorMessage: provisionPolling.data.errorMessage,
+    const snap = provisionPolling.data
+    queueMicrotask(() => {
+      setProvisionFailure({
+        errorCode: snap.errorCode,
+        errorMessage: snap.errorMessage,
+      })
     })
   }, [provisionPolling.data])
 
   useEffect(() => {
     if (state === 'Ready') {
-      setProvisionFailure(null)
+      queueMicrotask(() => setProvisionFailure(null))
     }
   }, [state])
+
+  useEffect(() => {
+    if (state === 'Ready' && (startProvision.isSuccess || startProvision.isError)) {
+      startProvision.reset()
+    }
+  }, [state, startProvision])
 
   useEffect(() => {
     setBottomNavHidden(overlay !== null)
@@ -661,6 +557,26 @@ export function HomePage() {
     prevStateRef.current = state
   }, [state, userConnectIntent, overlay, runConnectLaunch])
 
+  /**
+   * После provisioning: с /provision выставлен markConnectLaunchPending → здесь один раз
+   * продолжаем connect (runConnectLaunch), без второго тапа. userConnectIntent на главной
+   * теряется при unmount — флаг в sessionStorage переносит намерение.
+   */
+  useEffect(() => {
+    if (state !== 'Ready' || overlay != null) return
+    if (postProvisionAutoConnectDoneRef.current) return
+    if (!peekConnectLaunchPending()) return
+
+    const data =
+      queryClient.getQueryData<VpnConfigResponse>(userQueryKeys.currentConfig) ?? vpnConfig ?? undefined
+    if (!data && isVpnConfigPending) return
+
+    if (!consumeConnectLaunchPending()) return
+    postProvisionAutoConnectDoneRef.current = true
+    runConnectLaunch()
+    setUserConnectIntent(true)
+  }, [state, overlay, queryClient, vpnConfig, isVpnConfigPending, runConnectLaunch])
+
   const handlePrimary = () => {
     if (state === 'NoSubscription') {
       navigate('/tariffs')
@@ -668,19 +584,22 @@ export function HomePage() {
     }
     if (state === 'NotStarted') {
       setUserConnectIntent(true)
-      startProvision.mutate()
+      markProvisionKickoff()
+      navigate('/provision')
       return
     }
     if (state === 'Ready') {
+      void consumeConnectLaunchPending()
       // Deeplink должен вызываться до setState: на iOS жест пользователя не должен «обрываться» ре-рендером.
       runConnectLaunch()
       setUserConnectIntent(true)
     }
   }
 
-  /** Спиннер и текст «Подключение…» только пока создаётся пир (джоба), не во время открытия HApp. */
-  const showConnectLoading =
-    state === 'Pending' || (state === 'NotStarted' && startProvision.isPending)
+  /** Спиннер на главной только для Pending; старт provision уходит на /provision с первого тапа. */
+  const showConnectLoading = state === 'Pending'
+
+  const mainStateReady = home.isSuccess && state != null && view != null
 
   const ctaDisabled =
     showConnectLoading ||
@@ -695,9 +614,15 @@ export function HomePage() {
   const happInstallUrl = getHappInstallUrl(tgPlatform)
   const v2rayTunInstallUrl = getV2RayTunInstallUrl(tgPlatform)
 
-  const mainStateReady = home.isSuccess && state != null && view != null
   const summaryStillLoading = home.isSuccess && summary.isPending
-  const deferHomeFooterForSyncPaint = home.isPending || summaryStillLoading
+  /**
+   * На NotStarted никогда не подменяем CTA плейсхолдером — иначе первый тап попадает в «пустышку».
+   * Для Pending тоже показываем реальный футер (спиннер), а не скелетон.
+   */
+  const deferHomeFooterForSyncPaint =
+    state === 'NotStarted' || state === 'Pending'
+      ? false
+      : home.isPending || summaryStillLoading
 
   if (home.isError) {
     return (
@@ -731,7 +656,8 @@ export function HomePage() {
     const handleRetryProvision = () => {
       setProvisionFailure(null)
       setUserConnectIntent(true)
-      startProvision.mutate()
+      markProvisionKickoff()
+      navigate('/provision')
     }
 
     return (
@@ -739,18 +665,13 @@ export function HomePage() {
         statusText={view.subscriptionStatusLabel}
         footer={
           <div className="space-y-3">
-            <PrimaryButton
-              type="button"
-              onClick={handleRetryProvision}
-              disabled={startProvision.isPending}
-            >
+            <PrimaryButton type="button" onClick={handleRetryProvision}>
               Повторить подключение
             </PrimaryButton>
             <PrimaryButton
               type="button"
               className="border border-[var(--btn-primary-border)] bg-transparent text-[var(--foreground)] hover:bg-[var(--surface-2)]"
               onClick={() => setProvisionFailure(null)}
-              disabled={startProvision.isPending}
             >
               Назад
             </PrimaryButton>

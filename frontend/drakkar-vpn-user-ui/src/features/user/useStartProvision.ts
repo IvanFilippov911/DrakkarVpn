@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { startProvision } from '../../entities/user/api'
+import { getHomeContext, startProvision } from '../../entities/user/api'
 import { userQueryKeys } from '../../entities/user/queryKeys'
 
 export function useStartProvision() {
@@ -9,7 +9,11 @@ export function useStartProvision() {
     mutationFn: () => startProvision(),
     retry: false,
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: userQueryKeys.homeContext })
+      void queryClient.fetchQuery({
+        queryKey: userQueryKeys.homeContext,
+        queryFn: getHomeContext,
+        staleTime: 0,
+      })
       void queryClient.invalidateQueries({ queryKey: userQueryKeys.currentConfig })
     },
   })

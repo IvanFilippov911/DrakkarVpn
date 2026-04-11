@@ -9,7 +9,7 @@ declare global {
         /** Last stable visible height; changes after gestures finish. */
         viewportStableHeight?: number
         initData: string
-        initDataUnsafe?: { user?: { id?: number } }
+        initDataUnsafe?: { user?: { id?: number; username?: string } }
         platform?: string
         onEvent?: (eventType: 'viewportChanged', eventHandler: () => void) => void
         offEvent?: (eventType: 'viewportChanged', eventHandler: () => void) => void
@@ -24,6 +24,8 @@ export type TelegramBootOk = {
   ok: true
   initData: string
   telegramId: number
+  /** @username из Telegram WebApp (может отсутствовать). */
+  username?: string | null
   platform?: string
 }
 
@@ -47,11 +49,12 @@ function devBypassTelegramId(): number {
 export function readTelegramBootContext(): TelegramBootResult {
   if (devTelegramBypassEnabled()) {
     const telegramId = devBypassTelegramId()
-    const initData = `dev=1&auth_date=${Math.floor(Date.now() / 1000)}&user=${encodeURIComponent(JSON.stringify({ id: telegramId }))}`
+    const initData = `dev=1&auth_date=${Math.floor(Date.now() / 1000)}&user=${encodeURIComponent(JSON.stringify({ id: telegramId, username: 'dev_user' }))}`
     return {
       ok: true,
       initData,
       telegramId,
+      username: 'dev_user',
       platform: 'telegram_webapp',
     }
   }
@@ -71,10 +74,15 @@ export function readTelegramBootContext(): TelegramBootResult {
     return { ok: false, message: 'Не удалось определить пользователя Telegram.' }
   }
 
+  const rawUsername = tw.initDataUnsafe?.user?.username
+  const username =
+    typeof rawUsername === 'string' && rawUsername.trim() !== '' ? rawUsername.trim() : null
+
   return {
     ok: true,
     initData,
     telegramId,
+    username,
     platform: tw.platform,
   }
 }

@@ -111,28 +111,9 @@ export function AppBootLayout() {
     const runBoot = async () => {
       setPhase('running')
 
-      const existingToken = getStoredAccessToken()
-      if (existingToken) {
-        setAccessToken(existingToken)
-        try {
-          const home = await getHomeContext()
-          if (gen !== bootGenRef.current) return
-          queryClientRef.current.setQueryData(userQueryKeys.homeContext, home)
-          initTelegramChrome()
-          await prefetchHomeRouteData(queryClientRef.current)
-          if (gen !== bootGenRef.current) return
-          setPhase('ready')
-          return
-        } catch (err) {
-          if (gen !== bootGenRef.current) return
-          if (
-            isAxiosError(err) &&
-            (err.response?.status === 401 || err.response?.status === 403)
-          ) {
-            clearStoredAccessToken()
-            setAccessToken(null)
-          }
-        }
+      const storedToken = getStoredAccessToken()
+      if (storedToken) {
+        setAccessToken(storedToken)
       }
 
       initTelegramChrome()
@@ -150,15 +131,57 @@ export function AppBootLayout() {
         return
       }
 
+      const connectPayload = {
+        initData: ctx.initData,
+        deviceName: typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 120) : undefined,
+        platform: ctx.platform ?? 'telegram_webapp',
+        existingDeviceId: getStoredDeviceId() ?? undefined,
+      } as const
+
       try {
-        await registerAsyncRef.current({ telegramId: ctx.telegramId })
-        if (gen !== bootGenRef.current) return
-        await connectAsyncRef.current({
-          initData: ctx.initData,
-          deviceName: typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 120) : undefined,
-          platform: ctx.platform ?? 'telegram_webapp',
-          existingDeviceId: getStoredDeviceId() ?? undefined,
+        const reg = await registerAsyncRef.current({
+          telegramId: ctx.telegramId,
+          username: ctx.username ?? undefined,
         })
+        if (gen !== bootGenRef.current) return
+
+        // Новый пользователь на сервере: всегда заново device + JWT, даже если в WebView остался старый токен
+        // (например, удалили строки в БД, а локальный токен сохранился).
+        if (reg.isNewUser) {
+          clearStoredAccessToken()
+          setAccessToken(null)
+          await connectAsyncRef.current(connectPayload)
+          if (gen !== bootGenRef.current) return
+          await prefetchHomeRouteData(queryClientRef.current)
+          if (gen !== bootGenRef.current) return
+          setPhase('ready')
+          return
+        }
+
+        if (storedToken) {
+          setAccessToken(storedToken)
+          try {
+            const home = await getHomeContext()
+            if (gen !== bootGenRef.current) return
+            queryClientRef.current.setQueryData(userQueryKeys.homeContext, home)
+            initTelegramChrome()
+            await prefetchHomeRouteData(queryClientRef.current)
+            if (gen !== bootGenRef.current) return
+            setPhase('ready')
+            return
+          } catch (err) {
+            if (gen !== bootGenRef.current) return
+            if (
+              isAxiosError(err) &&
+              (err.response?.status === 401 || err.response?.status === 403)
+            ) {
+              clearStoredAccessToken()
+              setAccessToken(null)
+            }
+          }
+        }
+
+        await connectAsyncRef.current(connectPayload)
         if (gen !== bootGenRef.current) return
         await prefetchHomeRouteData(queryClientRef.current)
         if (gen !== bootGenRef.current) return

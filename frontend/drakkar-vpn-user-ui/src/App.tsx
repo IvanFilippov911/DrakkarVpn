@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { AppBootLayout } from './app/AppBootLayout'
 import { HomePage } from './pages/home'
+import { ProvisionWaitingPage } from './pages/provision-waiting'
 import { SupportPage } from './pages/support'
 import { TariffsPage } from './pages/tariffs'
 
@@ -11,6 +12,7 @@ function App() {
         <Routes>
           <Route element={<AppBootLayout />}>
             <Route path="/" element={<HomePage />} />
+            <Route path="/provision" element={<ProvisionWaitingPage />} />
             <Route path="/tariffs" element={<TariffsPage />} />
             <Route path="/support" element={<SupportPage />} />
           </Route>

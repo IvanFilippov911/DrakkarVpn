@@ -19,10 +19,8 @@ export type RegisterResponse = {
 
 export type RegisterPayload = {
   telegramId: number
-  publicPort?: number
-  realityPublicKey?: string
-  realityShortId?: string
-  realitySni?: string
+  /** Telegram @username из WebApp initDataUnsafe (опционально). */
+  username?: string | null
 }
 
 export type ConnectDevicePayload = {

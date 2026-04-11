@@ -1,7 +1,5 @@
 using System.Reflection;
-using DrakkarVpn.Bot.Application.Abstractions;
 using DrakkarVpn.Bot.Infrastructure.Hosting;
-using DrakkarVpn.Bot.Infrastructure.Integrations.UserFlowApi;
 using DrakkarVpn.Bot.Infrastructure.Telegram.Options;
 using DrakkarVpn.Bot.Infrastructure.Telegram.UpdateHandling;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,17 +24,6 @@ var host = Host.CreateDefaultBuilder(args)
 
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
-
-        services.AddHttpClient<IUserFlowClient, UserFlowClient>((sp, client) =>
-        {
-            var baseUrl = context.Configuration["UserFlowApi:BaseUrl"];
-
-            if (string.IsNullOrWhiteSpace(baseUrl))
-                throw new InvalidOperationException("Configuration UserFlowApi:BaseUrl is missing");
-
-            client.BaseAddress = new Uri(baseUrl);
-            client.Timeout = TimeSpan.FromSeconds(10);
-        });
     })
     .Build();
 

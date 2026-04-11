@@ -33,6 +33,7 @@ export function useHomeContext(options?: UseHomeContextOptions) {
     queryFn: getHomeContext,
     enabled,
     staleTime: STALE_HOME_MS,
+    placeholderData: keepPreviousData,
     retry: READ_RETRY_COUNT,
     retryDelay: readRetryDelay,
   })
