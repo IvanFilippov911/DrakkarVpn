@@ -80,14 +80,14 @@ public sealed class RunServersPollingHandler
             .ToList();
 
         if (appliedResults.Count > 0)
-            await _domainApply.ApplyPollResultsAsync(appliedResults, DateTime.UtcNow, ct);
+            await _domainApply.ApplyPollResultsAsync(appliedResults, applyUtc, ct);
 
-        // 4) metrics history from state
-        var periodStartUtc = TruncateTo10sUtc(DateTime.UtcNow);
+        // 4) metrics history from state (same cycle timestamp as poll-state / domain apply)
+        var periodStartUtc = TruncateTo10sUtc(applyUtc);
         await _history.AppendFromStateAsync(
             appliedIds,
             periodStartUtc,
-            DateTime.UtcNow,
+            applyUtc,
             ct);
 
         return await FinishAsync(

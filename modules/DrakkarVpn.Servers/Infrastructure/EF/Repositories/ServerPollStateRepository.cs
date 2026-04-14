@@ -2,6 +2,7 @@ using System.Data;
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Queries.GetServers.ServerState;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.EF;
+using DrakkarVpn.Servers.Application.DTOs.ServerState;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using NpgsqlTypes;

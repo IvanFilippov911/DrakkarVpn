@@ -126,10 +126,7 @@ public sealed class ServersQueryService : IServersQueryService, IServerQueryForP
         return new ServerConfigDataDto(
             server.Region.Code,
             server.PublicHost.Value,
-            server.PublicPort,
-            server.RealitySni,
-            server.RealityPublicKey,
-            server.RealityShortId);
+            server.PublicPort);
     }
 
     

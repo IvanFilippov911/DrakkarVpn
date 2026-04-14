@@ -1,5 +1,6 @@
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Queries.GetServers.ServerState;
+using DrakkarVpn.Servers.Application.DTOs.ServerState;
 
 namespace DrakkarVpn.Core.Api.Modules.Servers.Application.Services;
 

@@ -1,6 +1,7 @@
 using DrakkarVpn.Core.Api.Modules.Servers.Domain;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.EF.ReadModels;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.Entities;
+using DrakkarVpn.Servers.Domain.Aggregates;
 
 namespace DrakkarVpn.Servers.Infrastructure.EF.Extensions;
 

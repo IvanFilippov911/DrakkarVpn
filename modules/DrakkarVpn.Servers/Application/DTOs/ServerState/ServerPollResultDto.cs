@@ -1,4 +1,6 @@
-namespace DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Queries.GetServers.ServerState;
+using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Queries.GetServers.ServerState;
+
+namespace DrakkarVpn.Servers.Application.DTOs.ServerState;
 
 public sealed record ServerPollResultDto(
     Guid ServerId,

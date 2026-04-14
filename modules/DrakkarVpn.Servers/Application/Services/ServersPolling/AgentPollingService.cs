@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Net.Http.Json;
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Queries.GetServers.ServerState;
+using DrakkarVpn.Servers.Application.DTOs.ServerState;
 using DrakkarVpn.Shared;
 using Microsoft.Extensions.Logging;
 

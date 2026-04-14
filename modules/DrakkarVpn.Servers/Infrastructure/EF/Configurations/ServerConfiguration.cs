@@ -1,5 +1,6 @@
 using DrakkarVpn.Core.Api.Modules.Servers.Domain;
 using DrakkarVpn.Core.Api.Modules.Servers.Domain.VO;
+using DrakkarVpn.Servers.Domain.Aggregates;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -33,21 +34,6 @@ public sealed class ServerConfiguration : IEntityTypeConfiguration<Server>
         b.Property(x => x.PublicPort)
             .IsRequired()
             .HasColumnName("public_port");
-
-        b.Property(x => x.RealityPublicKey)
-            .IsRequired()
-            .HasMaxLength(256)
-            .HasColumnName("reality_public_key");
-
-        b.Property(x => x.RealityShortId)
-            .IsRequired()
-            .HasMaxLength(64)
-            .HasColumnName("reality_short_id");
-
-        b.Property(x => x.RealitySni)
-            .IsRequired()
-            .HasMaxLength(255)
-            .HasColumnName("reality_sni");
 
         b.Property(x => x.AgentBaseUrl)
             .HasConversion(u => u.ToString(), s => new Uri(s))

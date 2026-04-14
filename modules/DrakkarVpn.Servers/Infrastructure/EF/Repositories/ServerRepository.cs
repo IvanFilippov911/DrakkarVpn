@@ -5,6 +5,7 @@ using DrakkarVpn.Core.Api.Modules.Servers.Domain.VO;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.EF;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.EF.ReadModels;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.Entities;
+using DrakkarVpn.Servers.Domain.Aggregates;
 using DrakkarVpn.Servers.Infrastructure.EF.Extensions;
 using DrakkarVpn.Shared;
 using Microsoft.EntityFrameworkCore;
