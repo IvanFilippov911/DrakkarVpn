@@ -3,5 +3,9 @@ namespace DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Queries.GetSe
 public sealed record ServerConfigDataDto(
     string Region,
     string PublicHost,
-    int    PublicPort);
+    int PublicPort,
+    string RealitySni,
+    string RealityPublicKey,
+    string RealityShortId,
+    string RealityFingerprint);
 

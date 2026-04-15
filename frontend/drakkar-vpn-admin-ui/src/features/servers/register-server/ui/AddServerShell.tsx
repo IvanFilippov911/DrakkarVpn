@@ -11,9 +11,6 @@ type FormValues = {
   region: string
   publicHost: string
   publicPort: string
-  realityPublicKey: string
-  realityShortId: string
-  realitySni: string
   agentBaseUrl: string
   agentTokenEncrypted: string
   maxPeers: string
@@ -30,9 +27,6 @@ const schema = z.object({
     .refine((v) => /^\d+$/.test(v), 'Public port must be a number')
     .transform((v) => Number(v))
     .refine((v) => Number.isInteger(v) && v >= 1 && v <= 65535, 'Public port must be 1..65535'),
-  realityPublicKey: z.string().trim().min(1, 'Reality public key is required'),
-  realityShortId: z.string().trim().min(1, 'Reality short id is required'),
-  realitySni: z.string().trim().min(1, 'Reality SNI is required'),
   agentBaseUrl: z.string().trim().url('Agent base URL must be a valid URL'),
   agentTokenEncrypted: z.string().trim().min(1, 'Agent token is required'),
   maxPeers: z
@@ -66,9 +60,6 @@ export function AddServerShell({
       region: '',
       publicHost: '',
       publicPort: '',
-      realityPublicKey: '',
-      realityShortId: '',
-      realitySni: '',
       agentBaseUrl: '',
       agentTokenEncrypted: '',
       maxPeers: '',
@@ -112,9 +103,6 @@ export function AddServerShell({
       region: v.region.trim(),
       publicHost: v.publicHost.trim(),
       publicPort: v.publicPort,
-      realityPublicKey: v.realityPublicKey.trim(),
-      realityShortId: v.realityShortId.trim(),
-      realitySni: v.realitySni.trim(),
       agentBaseUrl: v.agentBaseUrl.trim(),
       agentTokenEncrypted: v.agentTokenEncrypted.trim(),
       maxPeers: v.maxPeers === '' ? null : Number(v.maxPeers),
@@ -185,28 +173,6 @@ export function AddServerShell({
             placeholder="e.g. 443"
             error={errors.publicPort?.message}
             inputProps={register('publicPort')}
-          />
-
-          <div className="grid grid-cols-2 gap-3">
-            <FormField
-              label="Reality public key"
-              placeholder="e.g. base64..."
-              error={errors.realityPublicKey?.message}
-              inputProps={register('realityPublicKey')}
-            />
-            <FormField
-              label="Reality short id"
-              placeholder="e.g. 1a2b3c"
-              error={errors.realityShortId?.message}
-              inputProps={register('realityShortId')}
-            />
-          </div>
-
-          <FormField
-            label="Reality SNI"
-            placeholder="e.g. www.cloudflare.com"
-            error={errors.realitySni?.message}
-            inputProps={register('realitySni')}
           />
 
           <FormField

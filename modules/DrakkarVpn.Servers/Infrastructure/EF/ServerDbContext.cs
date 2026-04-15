@@ -13,9 +13,12 @@ public sealed class ServerDbContext : DbContext
     }
 
     public DbSet<Server> Servers => Set<Server>();
+    public DbSet<ServerTransportProfile> ServerTransportProfiles => Set<ServerTransportProfile>();
     public DbSet<ServerPollState> ServerPollStates => Set<ServerPollState>();
     public DbSet<ServerRealtimeStats> ServerRealtimeStats => Set<ServerRealtimeStats>();
     public DbSet<ServerMetricsHistory> ServersMetricsHistories => Set<ServerMetricsHistory>();
+    public DbSet<TransportIncident> TransportIncidents => Set<TransportIncident>();
+    public DbSet<TransportRemediationAttempt> TransportIncidentAttempts => Set<TransportRemediationAttempt>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

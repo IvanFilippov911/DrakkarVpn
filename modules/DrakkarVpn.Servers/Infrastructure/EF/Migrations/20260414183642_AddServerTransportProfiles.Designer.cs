@@ -3,6 +3,7 @@ using System;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.EF;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DrakkarVpn.Servers.Infrastructure.EF.Migrations
 {
     [DbContext(typeof(ServerDbContext))]
-    partial class ServerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260414183642_AddServerTransportProfiles")]
+    partial class AddServerTransportProfiles
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -341,9 +344,6 @@ namespace DrakkarVpn.Servers.Infrastructure.EF.Migrations
                         .IsUnique()
                         .HasDatabaseName("ux_server_transport_profiles_one_active_per_server")
                         .HasFilter("status = 2");
-
-                    b.HasIndex("ServerId", "Priority")
-                        .HasDatabaseName("ix_server_transport_profiles_server_id_priority");
 
                     b.ToTable("server_transport_profiles", "servers");
                 });

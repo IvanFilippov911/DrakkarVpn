@@ -4,8 +4,8 @@ using DrakkarVpn.Observability.Application.Abstracts.Services;
 using DrakkarVpn.Observability.Application.Commands;
 using DrakkarVpn.Observability.Application.Features.Services.Alerts.Factories.Servers;
 using DrakkarVpn.Servers.Application.DTOs.ServerState;
-using DrakkarVpn.Servers.Domain.Aggregates;
 using DrakkarVpn.Servers.Domain.Inputs;
+using DrakkarVpn.Servers.Domain.Policies;
 using Microsoft.Extensions.Logging;
 
 namespace DrakkarVpn.Core.Api.Modules.Servers.Application.Services;
@@ -99,23 +99,22 @@ public sealed class ServerPollResultApplyService : IServerPollResultApplyService
                 ObservedAtUtc: nowUtc,
                 ConsecutiveFailures: state.ConsecutiveFailures
             );
-
-            var computed = Server.Compute(
-                current: state.Status,
-                maxPeers: state.MaxPeers,
-                result: input
-            );
+            
+            var newStatus = ServerStatusPolicy.Compute(
+                state.Status,
+                input,
+                state.MaxPeers);
 
             updates.Add(new ServerUpdate(
                 ServerId: result.ServerId,
-                Status: computed.Status,
-                Reachable: computed.Reachable,
-                PeersActive: computed.PeersActive,
-                RxTotal: computed.RxTotal,
-                TxTotal: computed.TxTotal,
-                InfraLatencyMs: computed.InfraLatencyMs,
-                VpnSpeedMbps: computed.VpnSpeedMbps,
-                UpdatedAtUtc: computed.ObservedAtUtc
+                Status: newStatus,
+                Reachable: input.Reachable,
+                PeersActive: input.PeersActive,
+                RxTotal: input.RxTotal,
+                TxTotal: input.TxTotal,
+                InfraLatencyMs: input.InfraLatencyMs,
+                VpnSpeedMbps: input.VpnSpeedMbps,
+                UpdatedAtUtc: input.ObservedAtUtc
             ));
         }
 

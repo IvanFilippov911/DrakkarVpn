@@ -126,9 +126,6 @@ public static class AdminServersApiMapping
             Region: request.Region,
             PublicHost: request.PublicHost,
             PublicPort: request.PublicPort,
-            RealityPublicKey: request.RealityPublicKey,
-            RealityShortId: request.RealityShortId,
-            RealitySni: request.RealitySni,
             AgentBaseUrl: request.AgentBaseUrl,
             AgentTokenEncrypted: request.AgentTokenEncrypted,
             MaxPeers: request.MaxPeers

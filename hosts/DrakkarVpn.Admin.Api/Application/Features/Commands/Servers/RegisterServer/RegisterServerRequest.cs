@@ -7,9 +7,6 @@ public sealed record RegisterServerRequest(
     string Region,
     string PublicHost,
     int PublicPort,
-    string RealityPublicKey,
-    string RealityShortId,
-    string RealitySni,
     string AgentBaseUrl,
     string AgentTokenEncrypted,
     int? MaxPeers

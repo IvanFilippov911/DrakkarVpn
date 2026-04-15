@@ -1,6 +1,5 @@
 using DrakkarVpn.Core.Api.Modules.Servers.Domain;
 using DrakkarVpn.Core.Api.Modules.Servers.Domain.VO;
-using DrakkarVpn.Servers.Domain.Aggregates;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -84,5 +83,7 @@ public sealed class ServerConfiguration : IEntityTypeConfiguration<Server>
 
         b.HasIndex(x => new { x.Region, x.Status })
             .HasDatabaseName("ix_servers_region_status");
+
+        b.Ignore(x => x.TransportProfiles);
     }
 }

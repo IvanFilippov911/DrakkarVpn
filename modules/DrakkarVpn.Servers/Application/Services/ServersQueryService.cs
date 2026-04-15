@@ -3,6 +3,7 @@ using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Queries.GetServer
 using DrakkarVpn.Core.Api.Modules.Servers.Domain;
 using DrakkarVpn.Core.Api.Modules.Servers.Domain.VO;
 using DrakkarVpn.Servers.Application.Mappers;
+using DrakkarVpn.Servers.Domain.Enums;
 using DrakkarVpn.Shared;
 using DrakkarVpn.Shared.Servers;
 using Microsoft.EntityFrameworkCore;
@@ -123,10 +124,20 @@ public sealed class ServersQueryService : IServersQueryService, IServerQueryForP
         if (server is null)
             return null;
 
+        var active = server.TransportProfiles
+            .FirstOrDefault(p => p.Status == TransportProfileStatus.Active);
+
+        if (active is null || active.SecurityType != SecurityType.Reality)
+            return null;
+
         return new ServerConfigDataDto(
             server.Region.Code,
             server.PublicHost.Value,
-            server.PublicPort);
+            server.PublicPort,
+            active.RealitySni!,
+            active.RealityPublicKey!,
+            active.RealityShortId!,
+            active.RealityFingerprint!);
     }
 
     

@@ -21,6 +21,8 @@ public sealed class VpnBuildArtifactsService : IVpnBuildArtifactsService
         PeerDataForConfigDto peer,
         ServerConfigDataDto server)
     {
+        var fp = string.IsNullOrWhiteSpace(server.RealityFingerprint) ? "chrome" : server.RealityFingerprint.Trim();
+
         return
             $"vless://{peer.AgentUuid}@{server.PublicHost}:{server.PublicPort}" +
             $"?security=reality" +
@@ -30,7 +32,7 @@ public sealed class VpnBuildArtifactsService : IVpnBuildArtifactsService
             $"&sni={Uri.EscapeDataString(server.RealitySni)}" +
             $"&pbk={Uri.EscapeDataString(server.RealityPublicKey)}" +
             $"&sid={Uri.EscapeDataString(server.RealityShortId)}" +
-            $"&fp=chrome" +
+            $"&fp={Uri.EscapeDataString(fp)}" +
             $"#DrakkarNetwork";
     }
     
@@ -66,6 +68,8 @@ public sealed class VpnBuildArtifactsService : IVpnBuildArtifactsService
     PeerDataForConfigDto peer,
     ServerConfigDataDto server)
     {
+        var fp = string.IsNullOrWhiteSpace(server.RealityFingerprint) ? "chrome" : server.RealityFingerprint.Trim();
+
         var config = new XrayClientConfigDto
         {
             Dns = new DnsDto
@@ -132,7 +136,7 @@ public sealed class VpnBuildArtifactsService : IVpnBuildArtifactsService
                     {
                         RealitySettings = new RealitySettingsDto
                         {
-                            Fingerprint = "qq",
+                            Fingerprint = fp,
                             PublicKey = server.RealityPublicKey,
                             ServerName = server.RealitySni,
                             ShortId = server.RealityShortId,

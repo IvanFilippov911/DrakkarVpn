@@ -19,7 +19,9 @@ public sealed class ServerRepository : IServerRepository
     public ServerRepository(ServerDbContext db) => _db = db;
 
     public Task<Server?> GetAsync(Guid id, CancellationToken ct) =>
-        _db.Servers.FirstOrDefaultAsync(s => s.Id == id, ct);
+        _db.Servers
+            .Include("_transportProfiles")
+            .FirstOrDefaultAsync(s => s.Id == id, ct);
     
     public async Task AddAsync(Server server, CancellationToken ct)
     {

@@ -22,18 +22,6 @@ public sealed class RegisterServerRequestValidator
         RuleFor(x => x.PublicPort)
             .InclusiveBetween(1, 65535);
 
-        RuleFor(x => x.RealityPublicKey)
-            .NotEmpty()
-            .MaximumLength(256);
-
-        RuleFor(x => x.RealityShortId)
-            .NotEmpty()
-            .MaximumLength(64);
-
-        RuleFor(x => x.RealitySni)
-            .NotEmpty()
-            .MaximumLength(255);
-
         RuleFor(x => x.AgentBaseUrl)
             .NotEmpty()
             .Must(uri => Uri.TryCreate(uri, UriKind.Absolute, out _))
