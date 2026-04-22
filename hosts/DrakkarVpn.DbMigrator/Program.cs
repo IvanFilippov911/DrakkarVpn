@@ -19,6 +19,8 @@ using Idempotency.Infrastructure.EF;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using NetworkMonitoring;
+using NetworkMonitoring.Infrastructure.EF;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -34,6 +36,7 @@ services.AddSubscriptionsInfrastructure(config);
 services.AddTariffsInfrastructure(config);
 services.AddObservabilityInfrastructure(config);
 services.AddIdempotencyInfrastructure(config);
+services.AddNetworkMonitoringInfrastructure(config);
 
 var app = builder.Build();
 
@@ -48,5 +51,6 @@ await sp.GetRequiredService<SubscriptionDbContext>().Database.MigrateAsync();
 await sp.GetRequiredService<TariffsDbContext>().Database.MigrateAsync();
 await sp.GetRequiredService<ObservabilityDbContext>().Database.MigrateAsync();
 await sp.GetRequiredService<IdempotencyDbContext>().Database.MigrateAsync();
+await sp.GetRequiredService<NetworkMonitoringDbContext>().Database.MigrateAsync();
 
 Console.WriteLine("✅ All migrations applied");

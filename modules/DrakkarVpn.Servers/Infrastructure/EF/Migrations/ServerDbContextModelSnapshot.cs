@@ -61,24 +61,6 @@ namespace DrakkarVpn.Servers.Infrastructure.EF.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("public_port");
 
-                    b.Property<string>("RealityPublicKey")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)")
-                        .HasColumnName("reality_public_key");
-
-                    b.Property<string>("RealityShortId")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
-                        .HasColumnName("reality_short_id");
-
-                    b.Property<string>("RealitySni")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("reality_sni");
-
                     b.Property<string>("Region")
                         .IsRequired()
                         .HasColumnType("text")
@@ -252,19 +234,91 @@ namespace DrakkarVpn.Servers.Infrastructure.EF.Migrations
                     b.ToTable("server_realtime_stats", "servers");
                 });
 
-            modelBuilder.Entity("DrakkarVpn.Servers.Domain.Aggregates.ServerTransportProfile", b =>
+            modelBuilder.Entity("DrakkarVpn.Servers.Domain.Aggregates.TransportIncident", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActiveProfileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("AffectedProbeCount")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("EscalatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("FailedProbeCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime>("OpenedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Reason")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("RemediationFinishedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("RemediationStartedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ResolvedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Scope")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ServerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("SuccessfulProfileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("TriggeredBy")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServerId");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("ServerId", "Status")
+                        .IsUnique()
+                        .HasFilter("\"Status\" IN (1,2,3)");
+
+                    b.ToTable("transport_incidents", "servers");
+                });
+
+            modelBuilder.Entity("DrakkarVpn.Servers.Domain.Aggregates.TransportProfile", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<DateTimeOffset?>("ActivatedAtUtc")
-                        .HasColumnType("timestamptz")
-                        .HasColumnName("activated_at_utc");
-
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("timestamptz")
                         .HasColumnName("created_at_utc");
+
+                    b.Property<int>("GlobalPriority")
+                        .HasColumnType("integer")
+                        .HasColumnName("global_priority");
 
                     b.Property<string>("GrpcAuthority")
                         .HasMaxLength(256)
@@ -276,15 +330,15 @@ namespace DrakkarVpn.Servers.Infrastructure.EF.Migrations
                         .HasColumnType("character varying(256)")
                         .HasColumnName("grpc_service_name");
 
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_enabled");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("name");
-
-                    b.Property<int>("Priority")
-                        .HasColumnType("integer")
-                        .HasColumnName("priority");
 
                     b.Property<string>("RealityDest")
                         .HasMaxLength(512)
@@ -295,11 +349,6 @@ namespace DrakkarVpn.Servers.Infrastructure.EF.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)")
                         .HasColumnName("reality_fingerprint");
-
-                    b.Property<string>("RealityPublicKey")
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)")
-                        .HasColumnName("reality_public_key");
 
                     b.Property<string>("RealityShortId")
                         .HasMaxLength(64)
@@ -315,14 +364,6 @@ namespace DrakkarVpn.Servers.Infrastructure.EF.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("security_type");
 
-                    b.Property<Guid>("ServerId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("server_id");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer")
-                        .HasColumnName("status");
-
                     b.Property<int>("TransportType")
                         .HasColumnType("integer")
                         .HasColumnName("transport_type");
@@ -337,15 +378,111 @@ namespace DrakkarVpn.Servers.Infrastructure.EF.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Name")
+                        .HasDatabaseName("ix_transport_profiles_name");
+
+                    b.HasIndex("IsEnabled", "GlobalPriority")
+                        .HasDatabaseName("ix_transport_profiles_enabled_priority");
+
+                    b.ToTable("transport_profiles", "servers");
+                });
+
+            modelBuilder.Entity("DrakkarVpn.Servers.Domain.Aggregates.TransportRemediationAttempt", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("FailureReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime?>("FinishedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("IncidentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ProfileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("StartedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IncidentId");
+
+                    b.HasIndex("IncidentId", "ProfileId")
+                        .IsUnique();
+
+                    b.ToTable("transport_incident_attempts", "servers");
+                });
+
+            modelBuilder.Entity("DrakkarVpn.Servers.Domain.Entities.ServerTransportActivation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("ActivatedAtUtc")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("activated_at_utc");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<int>("LocalPriority")
+                        .HasColumnType("integer")
+                        .HasColumnName("local_priority");
+
+                    b.Property<string>("RealityPublicKey")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("reality_public_key");
+
+                    b.Property<Guid>("ServerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("server_id");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("TransportProfileId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("transport_profile_id");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("updated_at_utc");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
                     b.HasIndex("ServerId")
                         .IsUnique()
-                        .HasDatabaseName("ux_server_transport_profiles_one_active_per_server")
-                        .HasFilter("status = 2");
+                        .HasDatabaseName("ux_server_transport_activations_one_active_per_server")
+                        .HasFilter("status = 1");
 
-                    b.HasIndex("ServerId", "Priority")
-                        .HasDatabaseName("ix_server_transport_profiles_server_id_priority");
+                    b.HasIndex("TransportProfileId");
 
-                    b.ToTable("server_transport_profiles", "servers");
+                    b.HasIndex("ServerId", "LocalPriority")
+                        .HasDatabaseName("ix_server_transport_activations_server_id_local_priority");
+
+                    b.HasIndex("ServerId", "TransportProfileId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_server_transport_activations_server_profile");
+
+                    b.ToTable("server_transport_activations", "servers");
                 });
 
             modelBuilder.Entity("DrakkarVpn.Core.Api.Modules.Servers.Domain.Server", b =>
@@ -451,18 +588,38 @@ namespace DrakkarVpn.Servers.Infrastructure.EF.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("DrakkarVpn.Servers.Domain.Aggregates.ServerTransportProfile", b =>
+            modelBuilder.Entity("DrakkarVpn.Servers.Domain.Aggregates.TransportRemediationAttempt", b =>
+                {
+                    b.HasOne("DrakkarVpn.Servers.Domain.Aggregates.TransportIncident", null)
+                        .WithMany("Attempts")
+                        .HasForeignKey("IncidentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DrakkarVpn.Servers.Domain.Entities.ServerTransportActivation", b =>
                 {
                     b.HasOne("DrakkarVpn.Core.Api.Modules.Servers.Domain.Server", null)
-                        .WithMany("_transportProfiles")
+                        .WithMany("TransportActivations")
                         .HasForeignKey("ServerId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DrakkarVpn.Servers.Domain.Aggregates.TransportProfile", null)
+                        .WithMany()
+                        .HasForeignKey("TransportProfileId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
             modelBuilder.Entity("DrakkarVpn.Core.Api.Modules.Servers.Domain.Server", b =>
                 {
-                    b.Navigation("_transportProfiles");
+                    b.Navigation("TransportActivations");
+                });
+
+            modelBuilder.Entity("DrakkarVpn.Servers.Domain.Aggregates.TransportIncident", b =>
+                {
+                    b.Navigation("Attempts");
                 });
 #pragma warning restore 612, 618
         }

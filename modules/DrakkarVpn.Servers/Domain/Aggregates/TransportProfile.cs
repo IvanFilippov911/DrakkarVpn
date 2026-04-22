@@ -1,63 +1,55 @@
+using DrakkarVpn.Core.Api.Modules.Servers.Domain.Abstractions;
 using DrakkarVpn.Servers.Domain.Enums;
 using DrakkarVpn.Servers.Domain.Policies;
 
 namespace DrakkarVpn.Servers.Domain.Aggregates;
 
-public sealed class ServerTransportProfile
+public sealed class TransportProfile : IAggregateRoot
 {
     public const int NameMaxLength = 200;
     public const int GrpcFieldMaxLength = 256;
     public const int RealitySniMaxLength = 255;
     public const int RealityShortIdMaxLength = 64;
-    public const int RealityPublicKeyMaxLength = 512;
     public const int RealityFingerprintMaxLength = 128;
     public const int RealityDestMaxLength = 512;
 
-    private ServerTransportProfile() { }
+    private TransportProfile() { }
 
-    private ServerTransportProfile(
+    private TransportProfile(
         Guid id,
-        Guid serverId,
         string name,
         TransportType transportType,
         SecurityType securityType,
         string? realitySni,
         string? realityShortId,
         string? realityFingerprint,
-        string? realityPublicKey,
         string? realityDest,
         string? grpcServiceName,
         string? grpcAuthority,
-        TransportProfileStatus status,
-        int priority,
-        int version,
+        int globalPriority,
+        bool isEnabled,
         DateTime createdAtUtc,
         DateTime updatedAtUtc,
-        DateTimeOffset? activatedAtUtc)
+        int version)
     {
         Id = id;
-        ServerId = serverId;
         Name = name;
         TransportType = transportType;
         SecurityType = securityType;
         RealitySni = realitySni;
         RealityShortId = realityShortId;
         RealityFingerprint = realityFingerprint;
-        RealityPublicKey = realityPublicKey;
         RealityDest = realityDest;
         GrpcServiceName = grpcServiceName;
         GrpcAuthority = grpcAuthority;
-        Status = status;
-        Priority = priority;
-        Version = version;
+        GlobalPriority = globalPriority;
+        IsEnabled = isEnabled;
         CreatedAtUtc = createdAtUtc;
         UpdatedAtUtc = updatedAtUtc;
-        ActivatedAtUtc = activatedAtUtc;
+        Version = version;
     }
 
     public Guid Id { get; private set; }
-    public Guid ServerId { get; private set; }
-
     public string Name { get; private set; } = default!;
 
     public TransportType TransportType { get; private set; }
@@ -66,55 +58,47 @@ public sealed class ServerTransportProfile
     public string? RealitySni { get; private set; }
     public string? RealityShortId { get; private set; }
     public string? RealityFingerprint { get; private set; }
-    public string? RealityPublicKey { get; private set; }
     public string? RealityDest { get; private set; }
 
     public string? GrpcServiceName { get; private set; }
     public string? GrpcAuthority { get; private set; }
 
-    public TransportProfileStatus Status { get; private set; }
-    public int Priority { get; private set; }
-    public int Version { get; private set; }
+    public int GlobalPriority { get; private set; }
+    public bool IsEnabled { get; private set; }
 
     public DateTime CreatedAtUtc { get; private set; }
     public DateTime UpdatedAtUtc { get; private set; }
-    public DateTimeOffset? ActivatedAtUtc { get; private set; }
+    public int Version { get; private set; }
 
-    public static ServerTransportProfile CreateRealityTcp(
+    public static TransportProfile CreateRealityTcp(
         Guid id,
-        Guid serverId,
         string name,
-        int priority,
+        int globalPriority,
         string realitySni,
         string realityShortId,
         string realityFingerprint,
-        string realityPublicKey,
         string realityDest,
         DateTime createdAtUtc)
         => CreateRealityCore(
             id,
-            serverId,
             name,
             TransportType.Tcp,
-            priority,
+            globalPriority,
             realitySni,
             realityShortId,
             realityFingerprint,
-            realityPublicKey,
             realityDest,
             grpcServiceName: null,
             grpcAuthority: null,
             createdAtUtc);
 
-    public static ServerTransportProfile CreateRealityGrpc(
+    public static TransportProfile CreateRealityGrpc(
         Guid id,
-        Guid serverId,
         string name,
-        int priority,
+        int globalPriority,
         string realitySni,
         string realityShortId,
         string realityFingerprint,
-        string realityPublicKey,
         string realityDest,
         string grpcServiceName,
         string? grpcAuthority,
@@ -124,16 +108,14 @@ public sealed class ServerTransportProfile
 
         return CreateRealityCore(
             id,
-            serverId,
             name,
             TransportType.Grpc,
-            priority,
+            globalPriority,
             realitySni,
             realityShortId,
             realityFingerprint,
-            realityPublicKey,
             realityDest,
-            NormalizeOptional(grpcServiceName, nameof(grpcServiceName), GrpcFieldMaxLength),
+            NormalizeRequired(grpcServiceName, nameof(grpcServiceName), GrpcFieldMaxLength),
             NormalizeOptional(grpcAuthority, nameof(grpcAuthority), GrpcFieldMaxLength),
             createdAtUtc);
     }
@@ -144,12 +126,10 @@ public sealed class ServerTransportProfile
         Touch(utcNow);
     }
 
-    public void UpdatePriority(int priority, DateTime utcNow)
+    public void UpdatePriority(int globalPriority, DateTime utcNow)
     {
-        if (priority < 0)
-            throw new ArgumentOutOfRangeException(nameof(priority), "Priority must be non-negative.");
-
-        Priority = priority;
+        ValidatePriority(globalPriority);
+        GlobalPriority = globalPriority;
         Touch(utcNow);
     }
 
@@ -157,7 +137,6 @@ public sealed class ServerTransportProfile
         string realitySni,
         string realityShortId,
         string realityFingerprint,
-        string realityPublicKey,
         string realityDest,
         DateTime utcNow)
     {
@@ -166,8 +145,8 @@ public sealed class ServerTransportProfile
         RealitySni = NormalizeRequired(realitySni, nameof(realitySni), RealitySniMaxLength);
         RealityShortId = NormalizeRequired(realityShortId, nameof(realityShortId), RealityShortIdMaxLength);
         RealityFingerprint = NormalizeRequired(realityFingerprint, nameof(realityFingerprint), RealityFingerprintMaxLength);
-        RealityPublicKey = NormalizeRequired(realityPublicKey, nameof(realityPublicKey), RealityPublicKeyMaxLength);
         RealityDest = NormalizeRequired(realityDest, nameof(realityDest), RealityDestMaxLength);
+
         Touch(utcNow);
     }
 
@@ -189,38 +168,70 @@ public sealed class ServerTransportProfile
         Touch(utcNow);
     }
 
-    public void MarkActive(DateTimeOffset nowUtc)
-    {
-        if (Status == TransportProfileStatus.Active)
-            return;
-
-        Status = TransportProfileStatus.Active;
-        ActivatedAtUtc = nowUtc.ToUniversalTime();
-        Touch(nowUtc.UtcDateTime);
-    }
-
-    public void MarkStandby() => MarkStandby(DateTime.UtcNow);
-
-    public void MarkStandby(DateTime utcNow)
-    {
-        if (Status == TransportProfileStatus.Standby)
-            return;
-
-        Status = TransportProfileStatus.Standby;
-        ActivatedAtUtc = null;
-        Touch(utcNow);
-    }
-
-    private static ServerTransportProfile CreateRealityCore(
-        Guid id,
-        Guid serverId,
+    public void Update(
         string name,
-        TransportType transportType,
-        int priority,
+        int globalPriority,
         string realitySni,
         string realityShortId,
         string realityFingerprint,
-        string realityPublicKey,
+        string realityDest,
+        string? grpcServiceName,
+        string? grpcAuthority,
+        DateTime utcNow)
+    {
+        Name = NormalizeRequired(name, nameof(name), NameMaxLength);
+        ValidatePriority(globalPriority);
+        GlobalPriority = globalPriority;
+
+        TransportProfileSecurityInvariants.EnsureRealitySettingsMutationAllowed(SecurityType);
+        RealitySni = NormalizeRequired(realitySni, nameof(realitySni), RealitySniMaxLength);
+        RealityShortId = NormalizeRequired(realityShortId, nameof(realityShortId), RealityShortIdMaxLength);
+        RealityFingerprint = NormalizeRequired(realityFingerprint, nameof(realityFingerprint), RealityFingerprintMaxLength);
+        RealityDest = NormalizeRequired(realityDest, nameof(realityDest), RealityDestMaxLength);
+
+        if (TransportType == TransportType.Grpc)
+        {
+            GrpcServiceName = NormalizeRequired(grpcServiceName!, nameof(grpcServiceName), GrpcFieldMaxLength);
+            GrpcAuthority = NormalizeOptional(grpcAuthority, nameof(grpcAuthority), GrpcFieldMaxLength);
+        }
+        else
+        {
+            if (!string.IsNullOrWhiteSpace(grpcServiceName) || !string.IsNullOrWhiteSpace(grpcAuthority))
+                throw new InvalidOperationException("gRPC settings are only applicable when transport type is Grpc.");
+
+            GrpcServiceName = null;
+            GrpcAuthority = null;
+        }
+
+        Touch(utcNow);
+    }
+
+    public void Enable(DateTime utcNow)
+    {
+        if (IsEnabled)
+            return;
+
+        IsEnabled = true;
+        Touch(utcNow);
+    }
+
+    public void Disable(DateTime utcNow)
+    {
+        if (!IsEnabled)
+            return;
+
+        IsEnabled = false;
+        Touch(utcNow);
+    }
+
+    private static TransportProfile CreateRealityCore(
+        Guid id,
+        string name,
+        TransportType transportType,
+        int globalPriority,
+        string realitySni,
+        string realityShortId,
+        string realityFingerprint,
         string realityDest,
         string? grpcServiceName,
         string? grpcAuthority,
@@ -228,17 +239,14 @@ public sealed class ServerTransportProfile
     {
         if (id == Guid.Empty)
             throw new ArgumentException("Id must not be empty.", nameof(id));
-        if (serverId == Guid.Empty)
-            throw new ArgumentException("ServerId must not be empty.", nameof(serverId));
 
-        ValidatePriority(priority);
+        ValidatePriority(globalPriority);
         createdAtUtc = EnsureUtc(createdAtUtc, nameof(createdAtUtc));
 
         var normalizedName = NormalizeRequired(name, nameof(name), NameMaxLength);
         var rsni = NormalizeRequired(realitySni, nameof(realitySni), RealitySniMaxLength);
         var rshort = NormalizeRequired(realityShortId, nameof(realityShortId), RealityShortIdMaxLength);
         var rfinger = NormalizeRequired(realityFingerprint, nameof(realityFingerprint), RealityFingerprintMaxLength);
-        var rpub = NormalizeRequired(realityPublicKey, nameof(realityPublicKey), RealityPublicKeyMaxLength);
         var rdest = NormalizeRequired(realityDest, nameof(realityDest), RealityDestMaxLength);
 
         TransportProfileSecurityInvariants.EnsureRealityFactorySecurity(SecurityType.Reality);
@@ -249,27 +257,26 @@ public sealed class ServerTransportProfile
                 throw new ArgumentNullException(nameof(grpcServiceName), "GrpcServiceName is required for Grpc transport.");
         }
         else if (grpcServiceName is not null || grpcAuthority is not null)
+        {
             throw new ArgumentException("gRPC fields must be null for non-Grpc transport.");
+        }
 
-        return new ServerTransportProfile(
+        return new TransportProfile(
             id,
-            serverId,
             normalizedName,
             transportType,
             SecurityType.Reality,
             rsni,
             rshort,
             rfinger,
-            rpub,
             rdest,
             grpcServiceName,
             grpcAuthority,
-            TransportProfileStatus.Standby,
-            priority,
-            version: 1,
+            globalPriority,
+            isEnabled: true,
             createdAtUtc,
-            updatedAtUtc: createdAtUtc,
-            activatedAtUtc: null);
+            createdAtUtc,
+            version: 1);
     }
 
     private void Touch(DateTime utcNow)
@@ -293,11 +300,11 @@ public sealed class ServerTransportProfile
         if (string.IsNullOrWhiteSpace(value))
             throw new ArgumentNullException(paramName);
 
-        var s = value.Trim();
-        if (s.Length > maxLength)
+        var normalized = value.Trim();
+        if (normalized.Length > maxLength)
             throw new ArgumentOutOfRangeException(paramName, $"Maximum length is {maxLength}.");
 
-        return s;
+        return normalized;
     }
 
     private static string? NormalizeOptional(string? value, string paramName, int maxLength)
@@ -305,11 +312,11 @@ public sealed class ServerTransportProfile
         if (string.IsNullOrWhiteSpace(value))
             return null;
 
-        var s = value.Trim();
-        if (s.Length > maxLength)
+        var normalized = value.Trim();
+        if (normalized.Length > maxLength)
             throw new ArgumentOutOfRangeException(paramName, $"Maximum length is {maxLength}.");
 
-        return s;
+        return normalized;
     }
 
     private static DateTime EnsureUtc(DateTime value, string paramName)

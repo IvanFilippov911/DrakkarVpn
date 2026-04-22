@@ -1,5 +1,6 @@
 using DrakkarVpn.Core.Api.Modules.Servers.Domain;
 using DrakkarVpn.Core.Api.Modules.Servers.Domain.VO;
+using DrakkarVpn.Servers.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -9,7 +10,7 @@ public sealed class ServerConfiguration : IEntityTypeConfiguration<Server>
 {
     public void Configure(EntityTypeBuilder<Server> b)
     {
-        b.ToTable("servers");
+        b.ToTable("servers", "servers");
         b.HasKey(x => x.Id);
 
         b.Property(x => x.Id)
@@ -83,7 +84,10 @@ public sealed class ServerConfiguration : IEntityTypeConfiguration<Server>
 
         b.HasIndex(x => new { x.Region, x.Status })
             .HasDatabaseName("ix_servers_region_status");
-
-        b.Ignore(x => x.TransportProfiles);
+        
+        b.HasMany(x => x.TransportActivations)
+            .WithOne()
+            .HasForeignKey(x => x.ServerId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

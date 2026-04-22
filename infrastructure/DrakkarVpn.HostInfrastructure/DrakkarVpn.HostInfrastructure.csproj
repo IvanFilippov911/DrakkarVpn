@@ -20,6 +20,7 @@
         <ProjectReference Include="..\..\modules\DrakkarVpn.AdminAuth\DrakkarVpn.AdminAuth.csproj" />
         <ProjectReference Include="..\..\modules\DrakkarVpn.Observability\DrakkarVpn.Observability.csproj" />
         <ProjectReference Include="..\..\modules\DrakkarVpn.Peers\DrakkarVpn.Peers.csproj" />
+        <ProjectReference Include="..\..\modules\NetworkMonitoring\NetworkMonitoring.csproj" />
         <ProjectReference Include="..\..\modules\DrakkarVpn.Servers\DrakkarVpn.Servers.csproj" />
         <ProjectReference Include="..\..\modules\DrakkarVpn.Subscriptions\DrakkarVpn.Subscriptions.csproj" />
         <ProjectReference Include="..\..\modules\DrakkarVpn.Tariffs\DrakkarVpn.Tariffs.csproj" />

@@ -1,9 +1,8 @@
 using DrakkarVpn.Core.Api.Modules.Servers.Domain.Abstractions;
+using DrakkarVpn.Core.Api.Modules.Servers.Domain.Exceptions;
 using DrakkarVpn.Core.Api.Modules.Servers.Domain.VO;
-using DrakkarVpn.Servers.Domain.Aggregates;
+using DrakkarVpn.Servers.Domain.Entities;
 using DrakkarVpn.Servers.Domain.Enums;
-using DrakkarVpn.Servers.Domain.Inputs;
-using DrakkarVpn.Servers.Domain.Policies;
 
 namespace DrakkarVpn.Core.Api.Modules.Servers.Domain;
 
@@ -11,10 +10,8 @@ public sealed class Server : IAggregateRoot
 {
     private const int MinPort = 1;
     private const int MaxPort = 65535;
-    private const int DisableFailuresThreshold = 3;
-    private const double DrainingPeersThreshold = 0.95;
 
-    private readonly List<ServerTransportProfile> _transportProfiles = new();
+    private readonly List<ServerTransportActivation> _transportActivations = new();
 
     private Server() { }
 
@@ -32,12 +29,9 @@ public sealed class Server : IAggregateRoot
         Name = NormalizeRequired(name, nameof(name), 100);
         Region = region;
         PublicHost = host;
-
         PublicPort = ValidatePort(publicPort);
-
         AgentBaseUrl = agentBaseUrl ?? throw new ArgumentNullException(nameof(agentBaseUrl));
         AgentTokenEncrypted = NormalizeRequired(agentTokenEncrypted, nameof(agentTokenEncrypted));
-
         MaxPeers = ValidateMaxPeers(maxPeers);
         Status = ServerStatus.Disabled;
         Health = new HealthSnapshot(false, 0, DateTime.UtcNow);
@@ -50,21 +44,17 @@ public sealed class Server : IAggregateRoot
     public string Name { get; private set; }
     public Region Region { get; private set; }
     public PublicHost PublicHost { get; private set; }
-
     public int PublicPort { get; private set; }
-
     public Uri AgentBaseUrl { get; private set; }
     public string AgentTokenEncrypted { get; private set; }
     public ServerStatus Status { get; private set; }
     public int? MaxPeers { get; private set; }
-
     public HealthSnapshot Health { get; private set; } = default!;
     public MetricsSnapshot Metrics { get; private set; } = default!;
     public BenchmarkSnapshot Benchmark { get; private set; } = default!;
-
     public DateTime CreatedAt { get; }
 
-    public IReadOnlyCollection<ServerTransportProfile> TransportProfiles => _transportProfiles.AsReadOnly();
+    public IReadOnlyCollection<ServerTransportActivation> TransportActivations => _transportActivations;
 
     public static Server Register(
         Guid id,
@@ -75,53 +65,77 @@ public sealed class Server : IAggregateRoot
         Uri agentBaseUrl,
         string agentTokenEncrypted,
         int? maxPeers)
-        => new(
-            id,
-            name,
-            region,
-            host,
-            publicPort,
-            agentBaseUrl,
-            agentTokenEncrypted,
-            maxPeers);
-    
-    
-    public void AddTransportProfile(ServerTransportProfile profile)
+        => new(id, name, region, host, publicPort, agentBaseUrl, agentTokenEncrypted, maxPeers);
+
+    public void AttachTransportProfile(
+        Guid activationId,
+        Guid transportProfileId,
+        string realityPublicKey,
+        int localPriority,
+        DateTime utcNow)
     {
-        ArgumentNullException.ThrowIfNull(profile);
+        ArgumentException.ThrowIfNullOrWhiteSpace(realityPublicKey);
 
-        if (profile.ServerId != Id)
-            throw new ArgumentException("Profile belongs to a different server.", nameof(profile));
+        if (_transportActivations.Exists(x => x.TransportProfileId == transportProfileId))
+            throw new TransportProfileAlreadyAttachedException(transportProfileId);
 
-        if (_transportProfiles.Exists(p => p.Id == profile.Id))
-            throw new InvalidOperationException("A transport profile with the same id already exists.");
+        var activation = ServerTransportActivation.Create(
+            activationId,
+            Id,
+            transportProfileId,
+            realityPublicKey,
+            localPriority,
+            utcNow);
 
-        if (profile.Status == TransportProfileStatus.Active
-            && _transportProfiles.Exists(p => p.Status == TransportProfileStatus.Active))
-            throw new InvalidOperationException("Cannot add an active profile while another profile is already active.");
-
-        _transportProfiles.Add(profile);
+        _transportActivations.Add(activation);
     }
-    
-    
-    public void ActivateTransportProfile(Guid profileId, DateTimeOffset nowUtc)
+
+    public void ActivateTransportActivation(Guid activationId, DateTimeOffset nowUtc)
     {
-        var profile = _transportProfiles.Find(p => p.Id == profileId)
-            ?? throw new InvalidOperationException("Transport profile was not found.");
+        var target = FindActivationOrThrow(activationId);
 
         var utcNow = nowUtc.UtcDateTime;
 
-        foreach (var p in _transportProfiles)
+        foreach (var activation in _transportActivations)
         {
-            if (p.Status != TransportProfileStatus.Active || p.Id == profileId)
+            if (activation.Id == activationId)
                 continue;
 
-            p.MarkStandby(utcNow);
+            if (activation.Status == TransportActivationStatus.Active)
+                activation.MarkStandby(utcNow);
         }
 
-        profile.MarkActive(nowUtc);
+        target.MarkActive(nowUtc);
     }
-    
+
+    public void UpdateTransportActivation(
+        Guid activationId,
+        string realityPublicKey,
+        int localPriority,
+        DateTime utcNow)
+    {
+        var activation = FindActivationOrThrow(activationId);
+        activation.Update(realityPublicKey, localPriority, utcNow);
+    }
+
+    public void DetachTransportActivation(Guid activationId)
+    {
+        var activation = FindActivationOrThrow(activationId);
+
+        if (activation.Status == TransportActivationStatus.Active)
+            throw new CannotDetachActiveTransportActivationException(activationId);
+
+        _transportActivations.Remove(activation);
+    }
+
+    private ServerTransportActivation FindActivationOrThrow(Guid activationId)
+    {
+        var activation = _transportActivations.Find(x => x.Id == activationId);
+        if (activation is null)
+            throw new TransportActivationNotAttachedException(activationId);
+
+        return activation;
+    }
 
     private static int ValidatePort(int publicPort)
     {

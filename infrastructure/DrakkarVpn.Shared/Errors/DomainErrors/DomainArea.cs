@@ -6,5 +6,6 @@ public enum DomainArea
     Subscription,
     Tariff,
     Peers,
-    Servers
+    Servers,
+    NetworkMonitoring
 }

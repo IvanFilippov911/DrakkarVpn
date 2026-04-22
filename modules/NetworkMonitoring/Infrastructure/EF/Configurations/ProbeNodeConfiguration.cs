@@ -8,7 +8,7 @@ public sealed class ProbeNodeConfiguration : IEntityTypeConfiguration<ProbeNode>
 {
     public void Configure(EntityTypeBuilder<ProbeNode> b)
     {
-        b.ToTable("probe_nodes", "servers");
+        b.ToTable("probe_nodes", "network_monitoring");
 
         b.HasKey(x => x.Id);
 

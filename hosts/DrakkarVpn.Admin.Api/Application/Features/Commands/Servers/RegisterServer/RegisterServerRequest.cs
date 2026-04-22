@@ -9,5 +9,12 @@ public sealed record RegisterServerRequest(
     int PublicPort,
     string AgentBaseUrl,
     string AgentTokenEncrypted,
-    int? MaxPeers
+    int? MaxPeers,
+    IReadOnlyList<RegisterServerTransportProfileItem>? TransportProfiles,
+    Guid? ActivateProfileId
 ) : IServersCommand<Guid>;
+
+public sealed record RegisterServerTransportProfileItem(
+    Guid TransportProfileId,
+    string RealityPublicKey,
+    int LocalPriority);

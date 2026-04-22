@@ -5,6 +5,8 @@ using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.EF;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.Repositories;
 using DrakkarVpn.Servers.Application.Abstractions.Services;
+using DrakkarVpn.Servers.Application.Services;
+using DrakkarVpn.Servers.Infrastructure.Time;
 using DrakkarVpn.Shared.Servers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -18,6 +20,8 @@ public static class Entry
     {
         services.AddScoped<IServersQueryService, ServersQueryService>();
         services.AddScoped<IServerManagementService, ServerManagementService>();
+        services.AddScoped<ITransportProfilesManagementService, TransportProfilesManagementService>();
+        services.AddScoped<IServerTransportActivationManagementService, ServerTransportActivationManagementService>();
         services.AddScoped<IAgentPollingService, AgentPollingService>();
         services.AddScoped<IServerPollStateService, ServerPollStateService>();
         services.AddScoped<IServerPollResultApplyService, ServerPollResultApplyService>();
@@ -47,6 +51,11 @@ public static class Entry
         services.AddScoped<IServerPollStateRepository, ServerPollStateRepository>();
         services.AddScoped<IServerPollResultApplyRepository, ServerPollResultApplyRepository>();
         services.AddScoped<IServerRealtimeStatsRepository, ServerRealtimeStatsRepository>();
+        services.AddScoped<ITransportProfileReadRepository, TransportProfileReadRepository>();
+        services.AddScoped<ITransportProfileWriteRepository, TransportProfileWriteRepository>();
+        services.AddScoped<IServerTransportActivationReadRepository, ServerTransportActivationReadRepository>();
+        services.AddScoped<IServerTransportActivationWriteRepository, ServerTransportActivationWriteRepository>();
+        services.AddSingleton<IDateTimeProvider, SystemDateTimeProvider>();
         services.AddScoped<IServersAgentClient, ServersAgentClient>();
 
         return services;

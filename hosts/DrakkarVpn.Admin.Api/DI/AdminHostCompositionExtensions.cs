@@ -5,6 +5,7 @@ using DrakkarVpn.Servers;
 using DrakkarVpn.Subscriptions;
 using DrakkarVpn.Tariffs;
 using DrakkarVpn.Users;
+using NetworkMonitoring;
 
 namespace DrakkarVpn.Admin.Api.DI;
 
@@ -30,6 +31,7 @@ public static class AdminHostCompositionExtensions
         services.AddServersInfrastructure(configuration);
         services.AddSubscriptionsInfrastructure(configuration);
         services.AddTariffsInfrastructure(configuration);
+        services.AddNetworkMonitoringInfrastructure(configuration);
 
         // host-specific module services
         services.AddAdminAuthAdminHost(configuration);
@@ -39,6 +41,7 @@ public static class AdminHostCompositionExtensions
         services.AddServersAdminHost();
         services.AddSubscriptionsAdminHost();
         services.AddTariffsAdminHost();
+        services.AddNetworkMonitoringAdminHost();
 
         // pipelines
         services.AddAdminHostPipelines();

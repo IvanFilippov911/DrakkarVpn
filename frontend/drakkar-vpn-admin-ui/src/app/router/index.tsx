@@ -6,9 +6,11 @@ import { LoginPage } from '../../pages/auth/LoginPage'
 import { DashboardPage } from '../../pages/dashboard/DashboardPage'
 import { ServersPage } from '../../pages/servers/ServersPage'
 import { PeersPage } from '../../pages/peers/PeersPage'
+import { ProbesPage } from '../../pages/probes/ProbesPage'
 import { UserDetailPage } from '../../pages/users/UserDetailPage'
 import { UsersPage } from '../../pages/users/UsersPage'
 import { TariffsPage } from '../../pages/tariffs/TariffsPage'
+import { TransportProfilesPage } from '../../pages/transport-profiles/TransportProfilesPage'
 import { ErrorsPage } from '../../pages/errors/ErrorsPage'
 import { getStoredAccessToken } from '../../shared/lib/authTokenStorage'
 import { clearSession } from '../../entities/auth/session'
@@ -69,9 +71,11 @@ export function AppRouter() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/servers" element={<ServersPage />} />
           <Route path="/servers/:serverId/peers" element={<PeersPage />} />
+          <Route path="/probes" element={<ProbesPage />} />
           <Route path="/users" element={<UsersPage />} />
           <Route path="/users/:userId" element={<UserDetailPage />} />
           <Route path="/tariffs" element={<TariffsPage />} />
+          <Route path="/transport-profiles" element={<TransportProfilesPage />} />
           <Route path="/errors" element={<ErrorsPage />} />
         </Route>
 

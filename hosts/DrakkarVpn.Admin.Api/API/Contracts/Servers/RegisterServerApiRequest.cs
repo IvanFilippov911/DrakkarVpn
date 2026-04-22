@@ -11,5 +11,12 @@ public sealed record RegisterServerApiRequest(
     int PublicPort,
     string AgentBaseUrl,
     string AgentTokenEncrypted,
-    int? MaxPeers);
+    int? MaxPeers,
+    IReadOnlyList<RegisterServerTransportProfileApiItem>? TransportProfiles,
+    Guid? ActivateProfileId);
+
+public sealed record RegisterServerTransportProfileApiItem(
+    Guid TransportProfileId,
+    string RealityPublicKey,
+    int LocalPriority);
 

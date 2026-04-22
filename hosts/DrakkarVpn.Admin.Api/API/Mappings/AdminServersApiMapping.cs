@@ -128,7 +128,12 @@ public static class AdminServersApiMapping
             PublicPort: request.PublicPort,
             AgentBaseUrl: request.AgentBaseUrl,
             AgentTokenEncrypted: request.AgentTokenEncrypted,
-            MaxPeers: request.MaxPeers
+            MaxPeers: request.MaxPeers,
+            TransportProfiles: request.TransportProfiles?.Select(x => new RegisterServerTransportProfileItem(
+                x.TransportProfileId,
+                x.RealityPublicKey,
+                x.LocalPriority)).ToList(),
+            ActivateProfileId: request.ActivateProfileId
         );
     }
 }

@@ -33,5 +33,37 @@ public sealed class RegisterServerRequestValidator
         RuleFor(x => x.MaxPeers)
             .GreaterThan(0)
             .When(x => x.MaxPeers.HasValue);
+
+        RuleForEach(x => x.TransportProfiles!)
+            .ChildRules(profile =>
+            {
+                profile.RuleFor(x => x.TransportProfileId)
+                    .NotEmpty();
+
+                profile.RuleFor(x => x.RealityPublicKey)
+                    .NotEmpty()
+                    .MaximumLength(512);
+
+                profile.RuleFor(x => x.LocalPriority)
+                    .GreaterThanOrEqualTo(0);
+            })
+            .When(x => x.TransportProfiles is not null);
+
+        RuleFor(x => x.TransportProfiles)
+            .Must(items => items is null || items.Select(i => i.TransportProfileId).Distinct().Count() == items.Count)
+            .WithMessage("TransportProfiles must not contain duplicate TransportProfileId values.");
+
+        RuleFor(x => x)
+            .Must(x =>
+            {
+                if (!x.ActivateProfileId.HasValue)
+                    return true;
+
+                if (x.TransportProfiles is null || x.TransportProfiles.Count == 0)
+                    return false;
+
+                return x.TransportProfiles.Any(p => p.TransportProfileId == x.ActivateProfileId.Value);
+            })
+            .WithMessage("ActivateProfileId must reference one of TransportProfiles.");
     }
 }

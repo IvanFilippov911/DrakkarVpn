@@ -4,6 +4,7 @@ using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Options;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Queries.GetServers;
+using DrakkarVpn.Servers.Domain.Enums;
 using Microsoft.Extensions.Options;
 
 namespace DrakkarVpn.Core.Api.Application.Services;
@@ -16,32 +17,51 @@ public sealed class VpnBuildArtifactsService : IVpnBuildArtifactsService
     {
         _linkOptions = linkOptions.Value;
     }
-    
+
     public string BuildVlessLink(
         PeerDataForConfigDto peer,
         ServerConfigDataDto server)
     {
-        var fp = string.IsNullOrWhiteSpace(server.RealityFingerprint) ? "chrome" : server.RealityFingerprint.Trim();
+        EnsureSupportedSecurity(server);
+        var fp = NormalizeFingerprint(server.RealityFingerprint);
+
+        var queryParts = new List<string>
+        {
+            "security=reality",
+            "flow=xtls-rprx-vision",
+            "encryption=none",
+            $"type={Uri.EscapeDataString(MapTransportType(server.TransportType))}",
+            $"sni={Uri.EscapeDataString(server.RealitySni)}",
+            $"pbk={Uri.EscapeDataString(server.RealityPublicKey)}",
+            $"sid={Uri.EscapeDataString(server.RealityShortId)}",
+            $"fp={Uri.EscapeDataString(fp)}"
+        };
+
+        if (server.TransportType == TransportType.Grpc)
+        {
+            if (string.IsNullOrWhiteSpace(server.GrpcServiceName))
+                throw new InvalidOperationException("GrpcServiceName is required for gRPC transport.");
+
+            queryParts.Add($"serviceName={Uri.EscapeDataString(server.GrpcServiceName)}");
+
+            if (!string.IsNullOrWhiteSpace(server.GrpcAuthority))
+                queryParts.Add($"authority={Uri.EscapeDataString(server.GrpcAuthority)}");
+        }
+
+        var query = string.Join("&", queryParts);
 
         return
             $"vless://{peer.AgentUuid}@{server.PublicHost}:{server.PublicPort}" +
-            $"?security=reality" +
-            $"&flow=xtls-rprx-vision" +
-            $"&encryption=none" +
-            $"&type=tcp" +
-            $"&sni={Uri.EscapeDataString(server.RealitySni)}" +
-            $"&pbk={Uri.EscapeDataString(server.RealityPublicKey)}" +
-            $"&sid={Uri.EscapeDataString(server.RealityShortId)}" +
-            $"&fp={Uri.EscapeDataString(fp)}" +
+            $"?{query}" +
             $"#DrakkarNetwork";
     }
-    
+
     public string BuildHappLink(Guid peerUuid)
     {
         var accessUrl = BuildPeerConfigAccessUrl(peerUuid);
         return $"happ://add/{accessUrl}";
     }
-    
+
     public string BuildV2RayTunDeepLink(Guid peerUuid)
     {
         var accessUrl = BuildPeerConfigAccessUrl(peerUuid);
@@ -65,10 +85,13 @@ public sealed class VpnBuildArtifactsService : IVpnBuildArtifactsService
     }
 
     public string BuildXrayClientConfig(
-    PeerDataForConfigDto peer,
-    ServerConfigDataDto server)
+        PeerDataForConfigDto peer,
+        ServerConfigDataDto server)
     {
-        var fp = string.IsNullOrWhiteSpace(server.RealityFingerprint) ? "chrome" : server.RealityFingerprint.Trim();
+        EnsureSupportedSecurity(server);
+        var fp = NormalizeFingerprint(server.RealityFingerprint);
+
+        var streamSettings = BuildStreamSettings(server, fp);
 
         var config = new XrayClientConfigDto
         {
@@ -132,25 +155,21 @@ public sealed class VpnBuildArtifactsService : IVpnBuildArtifactsService
                             }
                         }
                     },
-                    StreamSettings = new StreamSettingsDto
-                    {
-                        RealitySettings = new RealitySettingsDto
-                        {
-                            Fingerprint = fp,
-                            PublicKey = server.RealityPublicKey,
-                            ServerName = server.RealitySni,
-                            ShortId = server.RealityShortId,
-                            SpiderX = "/"
-                        },
-                        TcpSettings = new TcpSettingsDto
-                        {
-                            Header = new HeaderDto()
-                        }
-                    },
+                    StreamSettings = streamSettings,
                     Tag = "proxy"
                 },
-                new OutboundDto { Protocol = "freedom", Tag = "direct", Settings = new { } },
-                new OutboundDto { Protocol = "blackhole", Tag = "block", Settings = new { } }
+                new OutboundDto
+                {
+                    Protocol = "freedom",
+                    Tag = "direct",
+                    Settings = new { }
+                },
+                new OutboundDto
+                {
+                    Protocol = "blackhole",
+                    Tag = "block",
+                    Settings = new { }
+                }
             },
             Remarks = server.Region,
             Routing = new RoutingDto()
@@ -162,4 +181,74 @@ public sealed class VpnBuildArtifactsService : IVpnBuildArtifactsService
             WriteIndented = true
         });
     }
-} 
+
+    private static StreamSettingsDto BuildStreamSettings(ServerConfigDataDto server, string fingerprint)
+    {
+        var realitySettings = new RealitySettingsDto
+        {
+            Fingerprint = fingerprint,
+            PublicKey = server.RealityPublicKey,
+            ServerName = server.RealitySni,
+            ShortId = server.RealityShortId,
+            SpiderX = "/"
+        };
+
+        return server.TransportType switch
+        {
+            TransportType.Tcp => new StreamSettingsDto
+            {
+                Network = "tcp",
+                Security = "reality",
+                RealitySettings = realitySettings,
+                TcpSettings = new TcpSettingsDto
+                {
+                    Header = new HeaderDto()
+                }
+            },
+
+            TransportType.Grpc => new StreamSettingsDto
+            {
+                Network = "grpc",
+                Security = "reality",
+                RealitySettings = realitySettings,
+                GrpcSettings = new GrpcSettingsDto
+                {
+                    ServiceName = !string.IsNullOrWhiteSpace(server.GrpcServiceName)
+                        ? server.GrpcServiceName
+                        : throw new InvalidOperationException("GrpcServiceName is required for gRPC transport."),
+                    Authority = server.GrpcAuthority
+                }
+            },
+
+            _ => throw new InvalidOperationException(
+                $"Transport type '{server.TransportType}' is not supported for VPN config building.")
+        };
+    }
+
+    private static void EnsureSupportedSecurity(ServerConfigDataDto server)
+    {
+        if (server.SecurityType != SecurityType.Reality)
+        {
+            throw new InvalidOperationException(
+                $"Security type '{server.SecurityType}' is not supported for VPN config building.");
+        }
+    }
+
+    private static string NormalizeFingerprint(string? fingerprint)
+    {
+        return string.IsNullOrWhiteSpace(fingerprint)
+            ? "chrome"
+            : fingerprint.Trim();
+    }
+
+    private static string MapTransportType(TransportType transportType)
+    {
+        return transportType switch
+        {
+            TransportType.Tcp => "tcp",
+            TransportType.Grpc => "grpc",
+            _ => throw new InvalidOperationException(
+                $"Transport type '{transportType}' is not supported for VLESS link building.")
+        };
+    }
+}

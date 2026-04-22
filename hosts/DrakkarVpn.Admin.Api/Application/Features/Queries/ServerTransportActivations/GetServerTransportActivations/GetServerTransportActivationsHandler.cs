@@ -1,0 +1,19 @@
+using DrakkarVpn.Servers.Application.Abstractions.Services;
+using DrakkarVpn.Servers.Application.DTOs.ServerTransportActivations;
+using MediatR;
+
+namespace DrakkarVpn.Admin.Api.Application.Features.Queries.ServerTransportActivations.GetServerTransportActivations;
+
+public sealed class GetServerTransportActivationsHandler
+    : IRequestHandler<GetServerTransportActivationsQuery, IReadOnlyList<ServerTransportActivationListItemDto>>
+{
+    private readonly IServerTransportActivationManagementService _service;
+
+    public GetServerTransportActivationsHandler(IServerTransportActivationManagementService service)
+        => _service = service;
+
+    public Task<IReadOnlyList<ServerTransportActivationListItemDto>> Handle(
+        GetServerTransportActivationsQuery query,
+        CancellationToken ct)
+        => _service.GetByServerAsync(query.ServerId, ct);
+}

@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Application\" />
+    <ProjectReference Include="..\..\infrastructure\DrakkarVpn.Shared\DrakkarVpn.Shared.csproj" />
     </ItemGroup>
 
     <ItemGroup>

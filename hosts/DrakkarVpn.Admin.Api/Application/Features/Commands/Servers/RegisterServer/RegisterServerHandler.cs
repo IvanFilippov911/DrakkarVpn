@@ -1,6 +1,6 @@
 using DrakkarVpn.Admin.Api.Application.Features.Commands.Servers.RegisterServer;
-using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
 using DrakkarVpn.Servers.Application.Abstractions.Services;
+using DrakkarVpn.Servers.Application.DTOs.ServerTransportActivations;
 using MediatR;
 
 namespace DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Commands.Servers.RegisterServer;
@@ -9,13 +9,20 @@ namespace DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Commands.Server
 public sealed class RegisterServerHandler
     : IRequestHandler<RegisterServerRequest, Guid>
 {
-    private readonly IServerManagementService _service;
+    private readonly IServerManagementService _serverManagementService;
+    private readonly IServerTransportActivationManagementService _transportActivationManagementService;
 
-    public RegisterServerHandler(IServerManagementService service)
-        => _service = service;
+    public RegisterServerHandler(
+        IServerManagementService serverManagementService,
+        IServerTransportActivationManagementService transportActivationManagementService)
+    {
+        _serverManagementService = serverManagementService;
+        _transportActivationManagementService = transportActivationManagementService;
+    }
 
-    public Task<Guid> Handle(RegisterServerRequest c, CancellationToken ct)
-        => _service.RegisterAsync(
+    public async Task<Guid> Handle(RegisterServerRequest c, CancellationToken ct)
+    {
+        var serverId = await _serverManagementService.RegisterAsync(
             c.Name,
             c.Region,
             c.PublicHost,
@@ -24,4 +31,21 @@ public sealed class RegisterServerHandler
             c.AgentTokenEncrypted,
             c.MaxPeers,
             ct);
+
+        if (c.TransportProfiles is null || c.TransportProfiles.Count == 0)
+            return serverId;
+
+        var attachInput = new AttachServerTransportProfilesInput(
+            ServerId: serverId,
+            Profiles: c.TransportProfiles
+                .Select(x => new AttachServerTransportProfileItemInput(
+                    x.TransportProfileId,
+                    x.RealityPublicKey,
+                    x.LocalPriority))
+                .ToList(),
+            ActivateProfileId: c.ActivateProfileId);
+
+        await _transportActivationManagementService.AttachProfilesAsync(attachInput, ct);
+        return serverId;
+    }
 }

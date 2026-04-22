@@ -13,7 +13,7 @@ public sealed class ServerDbContext : DbContext
     }
 
     public DbSet<Server> Servers => Set<Server>();
-    public DbSet<ServerTransportProfile> ServerTransportProfiles => Set<ServerTransportProfile>();
+    public DbSet<TransportProfile> ServerTransportProfiles => Set<TransportProfile>();
     public DbSet<ServerPollState> ServerPollStates => Set<ServerPollState>();
     public DbSet<ServerRealtimeStats> ServerRealtimeStats => Set<ServerRealtimeStats>();
     public DbSet<ServerMetricsHistory> ServersMetricsHistories => Set<ServerMetricsHistory>();

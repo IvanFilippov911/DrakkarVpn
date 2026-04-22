@@ -2,6 +2,7 @@ using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Queries.GetServers;
 using DrakkarVpn.Core.Api.Modules.Servers.Domain;
 using DrakkarVpn.Core.Api.Modules.Servers.Domain.VO;
+using DrakkarVpn.Servers.Application.Abstractions.Services;
 using DrakkarVpn.Servers.Application.Mappers;
 using DrakkarVpn.Servers.Domain.Enums;
 using DrakkarVpn.Shared;
@@ -12,13 +13,19 @@ public sealed class ServersQueryService : IServersQueryService, IServerQueryForP
 {
     private readonly IServerRepository _servers;
     private readonly IServerMetricsHistoryRepository _history;
+    private readonly ITransportProfileWriteRepository _transportProfiles;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
     public ServersQueryService(
         IServerRepository servers,
-        IServerMetricsHistoryRepository history)
+        IServerMetricsHistoryRepository history,
+        ITransportProfileWriteRepository transportProfiles,
+        IDateTimeProvider dateTimeProvider)
     {
         _servers = servers;
         _history = history;
+        _transportProfiles = transportProfiles;
+        _dateTimeProvider = dateTimeProvider;
     }
     
     public async Task<IReadOnlyList<GetListServerDto>> GetListAsync(
@@ -124,20 +131,28 @@ public sealed class ServersQueryService : IServersQueryService, IServerQueryForP
         if (server is null)
             return null;
 
-        var active = server.TransportProfiles
-            .FirstOrDefault(p => p.Status == TransportProfileStatus.Active);
+        var activeActivation = server.TransportActivations
+            .FirstOrDefault(a => a.Status == TransportActivationStatus.Active);
+        if (activeActivation is null)
+            return null;
 
-        if (active is null || active.SecurityType != SecurityType.Reality)
+        var profile = await _transportProfiles.GetAsync(activeActivation.TransportProfileId, ct);
+        if (profile is null)
             return null;
 
         return new ServerConfigDataDto(
-            server.Region.Code,
-            server.PublicHost.Value,
-            server.PublicPort,
-            active.RealitySni!,
-            active.RealityPublicKey!,
-            active.RealityShortId!,
-            active.RealityFingerprint!);
+            Region: server.Region.Code,
+            PublicHost: server.PublicHost.Value,
+            PublicPort: server.PublicPort,
+            TransportType: profile.TransportType,
+            SecurityType: profile.SecurityType,
+            RealitySni: profile.RealitySni!,
+            RealityPublicKey: activeActivation.RealityPublicKey,
+            RealityShortId: profile.RealityShortId!,
+            RealityFingerprint: profile.RealityFingerprint!,
+            RealityDest: profile.RealityDest,
+            GrpcServiceName: profile.GrpcServiceName,
+            GrpcAuthority: profile.GrpcAuthority);
     }
 
     
@@ -147,7 +162,7 @@ public sealed class ServersQueryService : IServersQueryService, IServerQueryForP
         DateTime? toUtc,
         CancellationToken ct)
     {
-        var to   = (toUtc   ?? DateTime.UtcNow).ToUniversalTime();
+        var to = (toUtc ?? _dateTimeProvider.UtcNow.UtcDateTime).ToUniversalTime();
         var from = (fromUtc ?? to.AddHours(-24)).ToUniversalTime();
 
         var rows = await _history.GetRangeAsync(serverId, from, to, ct);
@@ -169,7 +184,7 @@ public sealed class ServersQueryService : IServersQueryService, IServerQueryForP
         CancellationToken ct)
     {
         minutes = minutes <= 0 ? 60 : minutes;
-        var to = DateTime.UtcNow;
+        var to = _dateTimeProvider.UtcNow.UtcDateTime;
         var from = to.AddMinutes(-minutes);
         return GetHistoryAsync(serverId, from, to, ct);
     }

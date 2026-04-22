@@ -13,6 +13,7 @@ using DrakkarVpn.Tariffs.Infrastructure.EF;
 using DrakkarVpn.Users.Infrastructure.EF;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using NetworkMonitoring.Application.Abstractions;
 
 namespace DrakkarVpn.HostInfrastructure;
 
@@ -25,12 +26,14 @@ public static class Entry
         services.AddScoped<IPeersUnitOfWork, PeersUnitOfWork>();
         services.AddScoped<IServersUnitOfWork, ServersUnitOfWork>();
         services.AddScoped<ITariffsUnitOfWork, TariffsUnitOfWork>();
+        services.AddScoped<INetworkMonitoringUnitOfWork, NetworkMonitoring.Infrastructure.EF.NetworkMonitoringUnitOfWork>();
 
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(UsersUnitOfWorkBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(SubscriptionsUnitOfWorkBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(PeersUnitOfWorkBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ServersUnitOfWorkBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TariffsUnitOfWorkBehavior<,>));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(NetworkMonitoringUnitOfWorkBehavior<,>));
 
         return services;
     }
@@ -43,6 +46,7 @@ public static class Entry
         services.AddScoped<IPeersUnitOfWork, PeersUnitOfWork>();
         services.AddScoped<IServersUnitOfWork, ServersUnitOfWork>();
         services.AddScoped<ITariffsUnitOfWork, TariffsUnitOfWork>();
+        services.AddScoped<INetworkMonitoringUnitOfWork, NetworkMonitoring.Infrastructure.EF.NetworkMonitoringUnitOfWork>();
 
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AdminAuthUnitOfWorkBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(UsersUnitOfWorkBehavior<,>));
@@ -50,6 +54,7 @@ public static class Entry
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(PeersUnitOfWorkBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ServersUnitOfWorkBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TariffsUnitOfWorkBehavior<,>));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(NetworkMonitoringUnitOfWorkBehavior<,>));
 
         return services;
     }
