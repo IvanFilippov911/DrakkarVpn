@@ -28,7 +28,9 @@ public static class Entry
         services.AddScoped<IServerRealtimeStatsUpsertService, ServerRealtimeStatsUpsertService>();
         services.AddScoped<IServerMetricsHistoryService, ServerMetricsHistoryService>();
         services.AddScoped<IServerQueryForPeers, ServersQueryService>();
-        
+        services.AddHttpClient<IAgentTransportApiClient, ServerTransportAgentClient>();
+        services.AddScoped<IAgentApplyServerTransportService, AgentApplyServerTransportService>();
+
         return services;
     }
     
@@ -56,7 +58,6 @@ public static class Entry
         services.AddScoped<IServerTransportActivationReadRepository, ServerTransportActivationReadRepository>();
         services.AddScoped<IServerTransportActivationWriteRepository, ServerTransportActivationWriteRepository>();
         services.AddSingleton<IDateTimeProvider, SystemDateTimeProvider>();
-        services.AddScoped<IServersAgentClient, ServersAgentClient>();
 
         return services;
     }

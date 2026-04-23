@@ -12,7 +12,6 @@ public static class ServersInfrastructureExtensions
     {
         
         services.AddScoped<IServerRepository, ServerRepository>();
-        services.AddHttpClient<IServersAgentClient, ServersAgentClient>();
         services.AddScoped<IServerMetricsHistoryRepository, ServerMetricsHistoryRepository>();
 
 

@@ -7,19 +7,26 @@ namespace DrakkarVpn.Admin.Api.Application.Features.Commands.ServerTransportActi
 public sealed class ActivateServerTransportActivationHandler
     : IRequestHandler<ActivateServerTransportActivationRequest, Unit>
 {
-    private readonly IServerTransportActivationManagementService _service;
+    private readonly IServerTransportActivationManagementService _transportService;
+    private readonly IAgentApplyServerTransportService _agentApplyService;
 
-    public ActivateServerTransportActivationHandler(IServerTransportActivationManagementService service)
-        => _service = service;
+    public ActivateServerTransportActivationHandler(
+        IServerTransportActivationManagementService transportService,
+        IAgentApplyServerTransportService agentApplyService)
+    { 
+        _transportService = transportService;
+        _agentApplyService = agentApplyService;
+    }
 
     public async Task<Unit> Handle(ActivateServerTransportActivationRequest command, CancellationToken ct)
     {
-        await _service.ActivateAsync(
+        await _transportService.ActivateAsync(
             new ActivateServerTransportActivationInput(
                 ServerId: command.ServerId,
                 ActivationId: command.ActivationId),
             ct);
         
+        await _agentApplyService.ApplyAsync(command.ServerId, ct);
         
 
         return Unit.Value;
