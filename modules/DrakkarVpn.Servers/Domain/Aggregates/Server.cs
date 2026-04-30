@@ -11,7 +11,7 @@ public sealed class Server : IAggregateRoot
     private const int MinPort = 1;
     private const int MaxPort = 65535;
 
-    private readonly List<ServerTransportActivation> _transportActivations = new();
+    private readonly List<ServerTransportProfileActivation> _transportActivations = new();
 
     private Server() { }
 
@@ -54,7 +54,7 @@ public sealed class Server : IAggregateRoot
     public BenchmarkSnapshot Benchmark { get; private set; } = default!;
     public DateTime CreatedAt { get; }
 
-    public IReadOnlyCollection<ServerTransportActivation> TransportActivations => _transportActivations;
+    public IReadOnlyCollection<ServerTransportProfileActivation> TransportActivations => _transportActivations;
 
     public static Server Register(
         Guid id,
@@ -79,7 +79,7 @@ public sealed class Server : IAggregateRoot
         if (_transportActivations.Exists(x => x.TransportProfileId == transportProfileId))
             throw new TransportProfileAlreadyAttachedException(transportProfileId);
 
-        var activation = ServerTransportActivation.Create(
+        var activation = ServerTransportProfileActivation.Create(
             activationId,
             Id,
             transportProfileId,
@@ -128,7 +128,7 @@ public sealed class Server : IAggregateRoot
         _transportActivations.Remove(activation);
     }
 
-    private ServerTransportActivation FindActivationOrThrow(Guid activationId)
+    private ServerTransportProfileActivation FindActivationOrThrow(Guid activationId)
     {
         var activation = _transportActivations.Find(x => x.Id == activationId);
         if (activation is null)

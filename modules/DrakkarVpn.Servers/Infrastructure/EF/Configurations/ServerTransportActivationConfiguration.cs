@@ -6,9 +6,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DrakkarVpn.Servers.Infrastructure.EF.Configurations;
 
-public sealed class ServerTransportActivationConfiguration : IEntityTypeConfiguration<ServerTransportActivation>
+public sealed class ServerTransportActivationConfiguration : IEntityTypeConfiguration<ServerTransportProfileActivation>
 {
-    public void Configure(EntityTypeBuilder<ServerTransportActivation> b)
+    public void Configure(EntityTypeBuilder<ServerTransportProfileActivation> b)
     {
         b.ToTable("server_transport_activations", "servers");
 
@@ -28,7 +28,7 @@ public sealed class ServerTransportActivationConfiguration : IEntityTypeConfigur
 
         b.Property(x => x.RealityPublicKey)
             .HasColumnName("reality_public_key")
-            .HasMaxLength(ServerTransportActivation.RealityPublicKeyMaxLength)
+            .HasMaxLength(ServerTransportProfileActivation.RealityPublicKeyMaxLength)
             .IsRequired();
 
         b.Property(x => x.LocalPriority)

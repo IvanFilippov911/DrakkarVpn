@@ -22,7 +22,7 @@ public sealed class AttachServerTransportActivationsRequestValidator : AbstractV
 
                 profile.RuleFor(x => x.RealityPublicKey)
                     .NotEmpty()
-                    .MaximumLength(ServerTransportActivation.RealityPublicKeyMaxLength);
+                    .MaximumLength(ServerTransportProfileActivation.RealityPublicKeyMaxLength);
 
                 profile.RuleFor(x => x.LocalPriority)
                     .GreaterThanOrEqualTo(0);

@@ -12,6 +12,7 @@ using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Services;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
 using Idempotency;
+using NetworkMonitoring;
 
 namespace DrakkarVpn.Core.Api.Extensions;
 
@@ -35,6 +36,7 @@ public static class UserHostCompositionExtensions
         services.AddSubscriptionsInfrastructure(configuration);
         services.AddIdempotencyInfrastructure(configuration);
         services.AddTariffsInfrastructure(configuration);
+        services.AddNetworkMonitoringInfrastructure(configuration);
         services.AddSingleton<IInstanceIdProvider, InstanceIdProvider>();
         
 

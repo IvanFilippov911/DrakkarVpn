@@ -4,30 +4,29 @@ using MediatR;
 
 namespace DrakkarVpn.Admin.Api.Application.Features.Commands.ServerTransportActivations.ActivateServerTransportActivation;
 
-public sealed class ActivateServerTransportActivationHandler
-    : IRequestHandler<ActivateServerTransportActivationRequest, Unit>
+public sealed class ActivateServerTransportHandler
+    : IRequestHandler<ActivateServerTransportRequest, Unit>
 {
     private readonly IServerTransportActivationManagementService _transportService;
-    private readonly IAgentApplyServerTransportService _agentApplyService;
+    private readonly IServerTransportApplyJobService _jobService;
 
-    public ActivateServerTransportActivationHandler(
+    public ActivateServerTransportHandler(
         IServerTransportActivationManagementService transportService,
-        IAgentApplyServerTransportService agentApplyService)
+        IServerTransportApplyJobService jobService)
     { 
         _transportService = transportService;
-        _agentApplyService = agentApplyService;
+        _jobService = jobService;
     }
 
-    public async Task<Unit> Handle(ActivateServerTransportActivationRequest command, CancellationToken ct)
+    public async Task<Unit> Handle(ActivateServerTransportRequest command, CancellationToken ct)
     {
         await _transportService.ActivateAsync(
             new ActivateServerTransportActivationInput(
                 ServerId: command.ServerId,
                 ActivationId: command.ActivationId),
             ct);
-        
-        await _agentApplyService.ApplyAsync(command.ServerId, ct);
-        
+
+        await _jobService.EnqueueAsync(command.ServerId, command.ActivationId, ct);
 
         return Unit.Value;
     }

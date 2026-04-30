@@ -2,9 +2,9 @@ using FluentValidation;
 
 namespace DrakkarVpn.Admin.Api.Application.Features.Commands.ServerTransportActivations.ActivateServerTransportActivation;
 
-public sealed class ActivateServerTransportActivationRequestValidator : AbstractValidator<ActivateServerTransportActivationRequest>
+public sealed class ActivateServerTransportRequestValidator : AbstractValidator<ActivateServerTransportRequest>
 {
-    public ActivateServerTransportActivationRequestValidator()
+    public ActivateServerTransportRequestValidator()
     {
         RuleFor(x => x.ServerId)
             .NotEmpty();

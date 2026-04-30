@@ -66,7 +66,7 @@ public sealed class ServerTransportActivationsController : ControllerBase
         Guid activationId,
         CancellationToken ct = default)
     {
-        await _mediator.Send(new ActivateServerTransportActivationRequest(serverId, activationId), ct);
+        await _mediator.Send(new ActivateServerTransportRequest(serverId, activationId), ct);
         return NoContent();
     }
 

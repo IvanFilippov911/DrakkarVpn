@@ -33,7 +33,7 @@ public sealed class TransportProfileWriteRepository : ITransportProfileWriteRepo
         => _db.ServerTransportProfiles.FirstOrDefaultAsync(x => x.Id == profileId, ct);
 
     public Task<bool> IsUsedInAnyActivationAsync(Guid profileId, CancellationToken ct)
-        => _db.Set<ServerTransportActivation>().AnyAsync(x => x.TransportProfileId == profileId, ct);
+        => _db.Set<ServerTransportProfileActivation>().AnyAsync(x => x.TransportProfileId == profileId, ct);
 
     public Task DeleteAsync(TransportProfile profile, CancellationToken ct)
     {

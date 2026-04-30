@@ -32,7 +32,7 @@ public static class AdminServerTransportActivationsApiMapping
             RealityPublicKey: request.RealityPublicKey,
             LocalPriority: request.LocalPriority);
 
-    public static ActivateServerTransportActivationRequest ToCommand(Guid serverId, Guid activationId)
+    public static ActivateServerTransportRequest ToCommand(Guid serverId, Guid activationId)
         => new(serverId, activationId);
 
     public static DeleteServerTransportActivationRequest ToCommandForDelete(Guid serverId, Guid activationId)

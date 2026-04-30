@@ -4,7 +4,6 @@ using DrakkarVpn.Core.Api.Modules.Peers.Domain.enums;
 using DrakkarVpn.Core.Api.Modules.Peers.Infrastructure.EF;
 using DrakkarVpn.Core.Api.Modules.Peers.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
-using Mono.TextTemplating;
 
 namespace DrakkarVpn.Core.Api.Modules.Peers.Infrastructure.Repositories;
 
@@ -21,14 +20,7 @@ public sealed class PeerProvisionJobsRepository : IPeerProvisionJobsRepository
     {
         nowUtc = DateTime.SpecifyKind(nowUtc, DateTimeKind.Utc);
 
-        var existing = await _db.PeerProvisionJobs
-            .AsNoTracking()
-            .Where(x => x.DeviceId == dto.DeviceId
-                        && x.State != PeerProvisionState.Failed
-                        && x.State != PeerProvisionState.Ready)
-            .Select(x => x.JobId)
-            .FirstOrDefaultAsync(ct);
-
+        var existing = await FindActiveJobIdByDeviceIdAsync(dto.DeviceId, ct);
         if (existing != Guid.Empty)
             return existing;
 
@@ -52,15 +44,7 @@ public sealed class PeerProvisionJobsRepository : IPeerProvisionJobsRepository
         }
         catch (DbUpdateException)
         {
-            var existingJobId = await _db.PeerProvisionJobs
-                .AsNoTracking()
-                .Where(x => x.DeviceId == dto.DeviceId
-                            && x.State != PeerProvisionState.Failed
-                            && x.State != PeerProvisionState.Ready)
-                .OrderByDescending(x => x.CreatedAtUtc)  
-                .Select(x => x.JobId)
-                .FirstOrDefaultAsync(ct);
-
+            var existingJobId = await FindActiveJobIdByDeviceIdAsync(dto.DeviceId, ct);
             if (existingJobId == Guid.Empty)
                 throw;
             return existingJobId;
@@ -127,13 +111,20 @@ public sealed class PeerProvisionJobsRepository : IPeerProvisionJobsRepository
     public Task<PeerProvisionJob?> GetByIdAsync(Guid jobId, CancellationToken ct)
         => _db.PeerProvisionJobs.AsNoTracking().FirstOrDefaultAsync(x => x.JobId == jobId, ct);
 
-    public Task<Guid?> GetActiveJobIdByDeviceIdAsync(string deviceId, CancellationToken ct)
+    public async Task<Guid?> GetActiveJobIdByDeviceIdAsync(string deviceId, CancellationToken ct)
+    {
+        var id = await FindActiveJobIdByDeviceIdAsync(deviceId, ct);
+        return id == Guid.Empty ? null : id;
+    }
+
+    private Task<Guid> FindActiveJobIdByDeviceIdAsync(string deviceId, CancellationToken ct)
         => _db.PeerProvisionJobs
             .AsNoTracking()
             .Where(x => x.DeviceId == deviceId
                         && x.State != PeerProvisionState.Failed
                         && x.State != PeerProvisionState.Ready)
-            .Select(x => (Guid?)x.JobId)
+            .OrderByDescending(x => x.CreatedAtUtc)
+            .Select(x => x.JobId)
             .FirstOrDefaultAsync(ct);
 
     public Task MarkAgentAppliedAsync(Guid jobId, DateTime nowUtc, CancellationToken ct)

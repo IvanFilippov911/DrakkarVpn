@@ -2,13 +2,13 @@ using DrakkarVpn.Servers.Domain.Enums;
 
 namespace DrakkarVpn.Servers.Domain.Entities;
 
-public sealed class ServerTransportActivation
+public sealed class ServerTransportProfileActivation
 {
     public const int RealityPublicKeyMaxLength = 512;
 
-    private ServerTransportActivation() { }
+    private ServerTransportProfileActivation() { }
 
-    private ServerTransportActivation(
+    private ServerTransportProfileActivation(
         Guid id,
         Guid serverId,
         Guid transportProfileId,
@@ -46,7 +46,7 @@ public sealed class ServerTransportActivation
     public DateTime UpdatedAtUtc { get; private set; }
     public int Version { get; private set; }
 
-    public static ServerTransportActivation Create(
+    public static ServerTransportProfileActivation Create(
         Guid id,
         Guid serverId,
         Guid transportProfileId,
@@ -65,7 +65,7 @@ public sealed class ServerTransportActivation
 
         createdAtUtc = EnsureUtc(createdAtUtc, nameof(createdAtUtc));
 
-        return new ServerTransportActivation(
+        return new ServerTransportProfileActivation(
             id,
             serverId,
             transportProfileId,

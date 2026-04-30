@@ -15,7 +15,7 @@ public sealed class UpdateServerTransportActivationRequestValidator : AbstractVa
 
         RuleFor(x => x.RealityPublicKey)
             .NotEmpty()
-            .MaximumLength(ServerTransportActivation.RealityPublicKeyMaxLength);
+            .MaximumLength(ServerTransportProfileActivation.RealityPublicKeyMaxLength);
 
         RuleFor(x => x.LocalPriority)
             .GreaterThanOrEqualTo(0);

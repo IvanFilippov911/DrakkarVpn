@@ -1,5 +1,6 @@
 using DrakkarVpn.Core.Api.Modules.Servers.Domain;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.Entities;
+using DrakkarVpn.Servers.Infrastructure.EF.Entities;
 using DrakkarVpn.Servers.Domain.Aggregates;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,6 +20,7 @@ public sealed class ServerDbContext : DbContext
     public DbSet<ServerMetricsHistory> ServersMetricsHistories => Set<ServerMetricsHistory>();
     public DbSet<TransportIncident> TransportIncidents => Set<TransportIncident>();
     public DbSet<TransportRemediationAttempt> TransportIncidentAttempts => Set<TransportRemediationAttempt>();
+    public DbSet<ServerTransportApplyJob> ServerTransportApplyJobs => Set<ServerTransportApplyJob>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

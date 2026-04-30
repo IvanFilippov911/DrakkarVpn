@@ -25,27 +25,27 @@ public sealed class AgentApplyServerTransportService : IAgentApplyServerTranspor
         _log = log;
     }
 
-    public async Task ApplyAsync(Guid serverId, CancellationToken ct)
+    public async Task ApplyAsync(Guid serverId, Guid activationId, CancellationToken ct)
     {
         var server = await _servers.GetAsync(serverId, ct);
         if (server is null)
             throw new InvalidOperationException($"Server '{serverId}' was not found.");
 
-        var activeActivation = server.TransportActivations
-            .FirstOrDefault(x => x.Status == TransportActivationStatus.Active);
+        var activation = server.TransportActivations
+            .FirstOrDefault(x => x.Id == activationId);
 
-        if (activeActivation is null)
+        if (activation is null)
             throw new InvalidOperationException(
                 $"Server '{serverId}' does not have an active transport activation.");
 
-        var profile = await _profiles.GetAsync(activeActivation.TransportProfileId, ct);
+        var profile = await _profiles.GetAsync(activation.TransportProfileId, ct);
         if (profile is null)
             throw new InvalidOperationException(
-                $"Transport profile '{activeActivation.TransportProfileId}' was not found.");
+                $"Transport profile '{activation.TransportProfileId}' was not found.");
 
         var request = new AgentApplyServerTransportRequest(
             ServerId: server.Id,
-            ActivationId: activeActivation.Id,
+            ActivationId: activationId,
             PublicHost: server.PublicHost.Value,
             PublicPort: server.PublicPort,
             TransportType: profile.TransportType.ToString(),
@@ -53,7 +53,7 @@ public sealed class AgentApplyServerTransportService : IAgentApplyServerTranspor
             RealitySni: profile.RealitySni!,
             RealityShortId: profile.RealityShortId!,
             RealityFingerprint: profile.RealityFingerprint!,
-            RealityPublicKey: activeActivation.RealityPublicKey,
+            RealityPublicKey: activation.RealityPublicKey,
             RealityDest: profile.RealityDest,
             GrpcServiceName: profile.GrpcServiceName,
             GrpcAuthority: profile.GrpcAuthority,
@@ -73,6 +73,6 @@ public sealed class AgentApplyServerTransportService : IAgentApplyServerTranspor
         _log.LogInformation(
             "Transport config applied on agent for server {ServerId}, activation {ActivationId}",
             server.Id,
-            activeActivation.Id);
+            activationId);
     }
 }

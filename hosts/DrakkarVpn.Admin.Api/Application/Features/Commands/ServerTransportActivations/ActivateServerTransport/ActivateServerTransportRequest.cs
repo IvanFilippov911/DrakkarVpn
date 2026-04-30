@@ -3,6 +3,6 @@ using MediatR;
 
 namespace DrakkarVpn.Admin.Api.Application.Features.Commands.ServerTransportActivations.ActivateServerTransportActivation;
 
-public sealed record ActivateServerTransportActivationRequest(
+public sealed record ActivateServerTransportRequest(
     Guid ServerId,
     Guid ActivationId) : IServersCommand<Unit>;

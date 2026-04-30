@@ -13,25 +13,25 @@ public sealed class ServerTransportActivationWriteRepository : IServerTransportA
     public ServerTransportActivationWriteRepository(ServerDbContext db)
         => _db = db;
 
-    public Task AddRangeAsync(IReadOnlyCollection<ServerTransportActivation> activations, CancellationToken ct)
+    public Task AddRangeAsync(IReadOnlyCollection<ServerTransportProfileActivation> activations, CancellationToken ct)
     {
-        _db.Set<ServerTransportActivation>().AddRange(activations);
+        _db.Set<ServerTransportProfileActivation>().AddRange(activations);
         return Task.CompletedTask;
     }
 
-    public Task<ServerTransportActivation?> GetByServerAndActivationIdAsync(Guid serverId, Guid activationId, CancellationToken ct)
-        => _db.Set<ServerTransportActivation>()
+    public Task<ServerTransportProfileActivation?> GetByServerAndActivationIdAsync(Guid serverId, Guid activationId, CancellationToken ct)
+        => _db.Set<ServerTransportProfileActivation>()
             .FirstOrDefaultAsync(x => x.ServerId == serverId && x.Id == activationId, ct);
 
-    public Task<ServerTransportActivation?> GetActiveByServerIdAsync(Guid serverId, CancellationToken ct)
-        => _db.Set<ServerTransportActivation>()
+    public Task<ServerTransportProfileActivation?> GetActiveByServerIdAsync(Guid serverId, CancellationToken ct)
+        => _db.Set<ServerTransportProfileActivation>()
             .FirstOrDefaultAsync(
                 x => x.ServerId == serverId && x.Status == TransportActivationStatus.Active,
                 ct);
 
-    public Task DeleteAsync(ServerTransportActivation activation, CancellationToken ct)
+    public Task DeleteAsync(ServerTransportProfileActivation profileActivation, CancellationToken ct)
     {
-        _db.Set<ServerTransportActivation>().Remove(activation);
+        _db.Set<ServerTransportProfileActivation>().Remove(profileActivation);
         return Task.CompletedTask;
     }
 }

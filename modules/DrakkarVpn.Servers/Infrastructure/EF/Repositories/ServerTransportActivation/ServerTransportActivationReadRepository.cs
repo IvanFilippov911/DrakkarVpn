@@ -38,7 +38,7 @@ public sealed class ServerTransportActivationReadRepository : IServerTransportAc
         if (transportProfileIds.Count == 0)
             return new HashSet<Guid>();
 
-        var ids = await _db.Set<ServerTransportActivation>()
+        var ids = await _db.Set<ServerTransportProfileActivation>()
             .AsNoTracking()
             .Where(x => x.ServerId == serverId && transportProfileIds.Contains(x.TransportProfileId))
             .Select(x => x.TransportProfileId)
@@ -49,7 +49,7 @@ public sealed class ServerTransportActivationReadRepository : IServerTransportAc
 
     public async Task<IReadOnlyList<ServerTransportActivationListItemDto>> GetByServerAsync(Guid serverId, CancellationToken ct)
     {
-        var items = await _db.Set<ServerTransportActivation>()
+        var items = await _db.Set<ServerTransportProfileActivation>()
             .AsNoTracking()
             .Where(x => x.ServerId == serverId)
             .Join(

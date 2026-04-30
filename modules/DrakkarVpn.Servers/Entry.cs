@@ -30,6 +30,8 @@ public static class Entry
         services.AddScoped<IServerQueryForPeers, ServersQueryService>();
         services.AddHttpClient<IAgentTransportApiClient, ServerTransportAgentClient>();
         services.AddScoped<IAgentApplyServerTransportService, AgentApplyServerTransportService>();
+        services.AddScoped<IServerTransportApplyJobService, ServerTransportApplyJobService>();
+        services.AddScoped<IServerTransportApplyJobProcessor, ServerTransportApplyJobProcessor>();
 
         return services;
     }
@@ -57,6 +59,7 @@ public static class Entry
         services.AddScoped<ITransportProfileWriteRepository, TransportProfileWriteRepository>();
         services.AddScoped<IServerTransportActivationReadRepository, ServerTransportActivationReadRepository>();
         services.AddScoped<IServerTransportActivationWriteRepository, ServerTransportActivationWriteRepository>();
+        services.AddScoped<IServerTransportApplyJobRepository, ServerTransportApplyJobRepository>();
         services.AddSingleton<IDateTimeProvider, SystemDateTimeProvider>();
 
         return services;
@@ -66,6 +69,7 @@ public static class Entry
     {
         services.AddHostedService<ServersPollingBackgroundWorker>();
         services.AddHostedService<ServerMetricsHistoryCleanupWorker>();
+        services.AddHostedService<ServerTransportApplyJobWorker>();
         return services;
     }
     
