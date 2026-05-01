@@ -1,6 +1,7 @@
 namespace DrakkarVpn.Servers.Application.DTOs.TransportProfiles;
 
 public sealed record AgentApplyServerTransportRequest(
+    Guid OperationId,
     Guid ServerId,
     Guid ActivationId,
     string PublicHost,

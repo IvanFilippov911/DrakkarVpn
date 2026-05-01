@@ -1,6 +1,7 @@
 namespace DrakkarVpn.Agent.Application.DTOs;
 
 public sealed record ApplyServerTransportRequestDto(
+    Guid OperationId,
     Guid ServerId,
     Guid ActivationId,
     string PublicHost,

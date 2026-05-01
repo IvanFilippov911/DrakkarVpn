@@ -73,13 +73,24 @@ public sealed class ServerTransportApplyJobService : IServerTransportApplyJobSer
         return row is null ? null : Map(row);
     }
 
-    public Task MarkCompletedAsync(Guid jobId, DateTime utcNow, CancellationToken ct)
+    public Task<int> MarkCompletedAsync(
+        ServerTransportApplyJobDto jobSnapshot,
+        DateTime utcNow,
+        CancellationToken ct)
     {
-        if (jobId == Guid.Empty) throw new ArgumentException("jobId is required", nameof(jobId));
-        return _repo.MarkCompletedAsync(jobId, EnsureUtc(utcNow), ct);
+        if (jobSnapshot is null) throw new ArgumentNullException(nameof(jobSnapshot));
+        if (jobSnapshot.JobId == Guid.Empty) throw new ArgumentException("JobId is required", nameof(jobSnapshot));
+        if (string.IsNullOrWhiteSpace(jobSnapshot.LeaseOwner))
+            throw new ArgumentException("LeaseOwner is required", nameof(jobSnapshot));
+
+        return _repo.MarkCompletedAsync(
+            jobSnapshot.JobId,
+            jobSnapshot.LeaseOwner,
+            EnsureUtc(utcNow),
+            ct);
     }
 
-    public Task FailPermanentAsync(
+    public Task<int> FailPermanentAsync(
         ServerTransportApplyJobDto jobSnapshot,
         string errorCode,
         string? errorMessage,
@@ -93,10 +104,19 @@ public sealed class ServerTransportApplyJobService : IServerTransportApplyJobSer
         var code = NormalizeErrorCode(errorCode);
         var message = NormalizeErrorMessage(errorMessage);
 
-        return _repo.MarkFailedAsync(jobSnapshot.JobId, code, message, utcNow, ct);
+        if (string.IsNullOrWhiteSpace(jobSnapshot.LeaseOwner))
+            throw new ArgumentException("LeaseOwner is required", nameof(jobSnapshot));
+
+        return _repo.MarkFailedAsync(
+            jobSnapshot.JobId,
+            jobSnapshot.LeaseOwner,
+            code,
+            message,
+            utcNow,
+            ct);
     }
 
-    public Task FailOrRescheduleAsync(
+    public Task<int> FailOrRescheduleAsync(
         ServerTransportApplyJobDto jobSnapshot,
         string errorCode,
         string? errorMessage,
@@ -108,6 +128,8 @@ public sealed class ServerTransportApplyJobService : IServerTransportApplyJobSer
         if (jobSnapshot.JobId == Guid.Empty) throw new ArgumentException("JobId is required", nameof(jobSnapshot));
         if (jobSnapshot.MaxAttempt <= 0) throw new ArgumentException("MaxAttempt must be > 0", nameof(jobSnapshot));
         if (backoff is null) throw new ArgumentNullException(nameof(backoff));
+        if (string.IsNullOrWhiteSpace(jobSnapshot.LeaseOwner))
+            throw new ArgumentException("LeaseOwner is required", nameof(jobSnapshot));
 
         utcNow = EnsureUtc(utcNow);
         var code = NormalizeErrorCode(errorCode);
@@ -116,7 +138,13 @@ public sealed class ServerTransportApplyJobService : IServerTransportApplyJobSer
 
         if (nextAttempt >= jobSnapshot.MaxAttempt)
         {
-            return _repo.MarkFailedAsync(jobSnapshot.JobId, code, message, utcNow, ct);
+            return _repo.MarkFailedAsync(
+                jobSnapshot.JobId,
+                jobSnapshot.LeaseOwner,
+                code,
+                message,
+                utcNow,
+                ct);
         }
 
         var delay = backoff(nextAttempt);
@@ -124,6 +152,7 @@ public sealed class ServerTransportApplyJobService : IServerTransportApplyJobSer
 
         return _repo.RescheduleAsync(
             jobId: jobSnapshot.JobId,
+            leaseOwner: jobSnapshot.LeaseOwner,
             newAttempt: nextAttempt,
             nextAttemptAtUtc: utcNow.Add(delay),
             code: code,

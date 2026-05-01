@@ -2,6 +2,7 @@ using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
 using DrakkarVpn.Servers.Application.Abstractions.Services;
 using DrakkarVpn.Servers.Application.DTOs.TransportProfiles;
 using DrakkarVpn.Servers.Domain.Enums;
+using DrakkarVpn.Servers.Application.DTOs.TransportProfiles;
 using Microsoft.Extensions.Logging;
 
 namespace DrakkarVpn.Servers.Application.Services;
@@ -25,7 +26,7 @@ public sealed class AgentApplyServerTransportService : IAgentApplyServerTranspor
         _log = log;
     }
 
-    public async Task ApplyAsync(Guid serverId, Guid activationId, CancellationToken ct)
+    public async Task<AgentApplyServerTransportWireResponse> ApplyAsync(Guid serverId, Guid activationId, CancellationToken ct)
     {
         var server = await _servers.GetAsync(serverId, ct);
         if (server is null)
@@ -44,6 +45,7 @@ public sealed class AgentApplyServerTransportService : IAgentApplyServerTranspor
                 $"Transport profile '{activation.TransportProfileId}' was not found.");
 
         var request = new AgentApplyServerTransportRequest(
+            OperationId: Guid.NewGuid(),
             ServerId: server.Id,
             ActivationId: activationId,
             PublicHost: server.PublicHost.Value,
@@ -68,11 +70,17 @@ public sealed class AgentApplyServerTransportService : IAgentApplyServerTranspor
                 $"Server '{serverId}' has no agent base URL configured.");
         }
 
-        await _agentClient.ApplyServerTransportAsync(agentBaseUrl, request, ct);
+        var wire = await _agentClient.ApplyServerTransportAsync(agentBaseUrl, request, ct);
 
         _log.LogInformation(
-            "Transport config applied on agent for server {ServerId}, activation {ActivationId}",
+            "Transport config applied on agent for server {ServerId}, activation {ActivationId}: outcome={Outcome}, payloadHash={PayloadHash}, rollbackAttempted={RollbackAttempted}, rollbackSucceeded={RollbackSucceeded}",
             server.Id,
-            activationId);
+            activationId,
+            wire.Outcome,
+            wire.PayloadHash,
+            wire.RollbackAttempted,
+            wire.RollbackSucceeded);
+
+        return wire;
     }
 }

@@ -71,37 +71,71 @@ public sealed class ServerTransportApplyJobRepository : IServerTransportApplyJob
         if (take <= 0)
             return Array.Empty<ServerTransportApplyJob>();
 
+        if (string.IsNullOrWhiteSpace(leaseOwner))
+            throw new ArgumentException("leaseOwner is required", nameof(leaseOwner));
+
         utcNow = EnsureUtc(utcNow);
-        var jobIds = await _db.Set<ServerTransportApplyJob>()
+        var leaseUntilUtc = utcNow.Add(lease);
+
+        var pending = (short)ServerTransportApplyJobStatus.Pending;
+        var processing = (short)ServerTransportApplyJobStatus.Processing;
+
+        await using var tx = await _db.Database.BeginTransactionAsync(ct);
+
+        var acquired = await _db.Set<ServerTransportApplyJob>()
+            .FromSqlInterpolated($"""
+                                  WITH picked AS (
+                                      SELECT j.job_id
+                                      FROM servers.server_transport_apply_jobs j
+                                      WHERE
+                                          (
+                                              j.state = {pending}
+                                              AND j.next_attempt_utc <= {utcNow}
+                                          )
+                                          OR
+                                          (
+                                              j.state = {processing}
+                                              AND j.lease_until_utc IS NOT NULL
+                                              AND j.lease_until_utc <= {utcNow}
+                                          )
+                                      ORDER BY j.created_at_utc
+                                      LIMIT {take}
+                                      FOR UPDATE SKIP LOCKED
+                                  ),
+                                  leased AS (
+                                      UPDATE servers.server_transport_apply_jobs u
+                                      SET
+                                          state = {processing},
+                                          lease_owner = {leaseOwner},
+                                          lease_until_utc = {leaseUntilUtc},
+                                          updated_at_utc = {utcNow}
+                                      FROM picked p
+                                      WHERE u.job_id = p.job_id
+                                      RETURNING u.*
+                                  )
+                                  SELECT *
+                                  FROM leased
+                                  ORDER BY created_at_utc;
+                                  """)
             .AsNoTracking()
-            .Where(x => x.State == ServerTransportApplyJobStatus.Pending)
-            .Where(x => x.NextAttemptUtc <= utcNow)
-            .OrderBy(x => x.CreatedAtUtc)
-            .Select(x => x.JobId)
-            .Take(take)
             .ToListAsync(ct);
 
-        if (jobIds.Count == 0)
-            return Array.Empty<ServerTransportApplyJob>();
+        await tx.CommitAsync(ct);
 
-        await _db.Set<ServerTransportApplyJob>()
-            .Where(x => jobIds.Contains(x.JobId))
-            .ExecuteUpdateAsync(set => set
-                .SetProperty(x => x.State, ServerTransportApplyJobStatus.Processing)
-                .SetProperty(x => x.UpdatedAtUtc, utcNow), ct);
-
-        return await _db.Set<ServerTransportApplyJob>()
-            .AsNoTracking()
-            .Where(x => jobIds.Contains(x.JobId))
-            .OrderBy(x => x.CreatedAtUtc)
-            .ToListAsync(ct);
+        return acquired;
     }
 
-    public Task MarkCompletedAsync(Guid jobId, DateTime utcNow, CancellationToken ct)
+    public Task<int> MarkCompletedAsync(
+        Guid jobId,
+        string leaseOwner,
+        DateTime utcNow,
+        CancellationToken ct)
     {
         utcNow = EnsureUtc(utcNow);
         return _db.Set<ServerTransportApplyJob>()
-            .Where(x => x.JobId == jobId)
+            .Where(x => x.JobId == jobId
+                        && x.LeaseOwner == leaseOwner
+                        && x.State == ServerTransportApplyJobStatus.Processing)
             .ExecuteUpdateAsync(set => set
                 .SetProperty(x => x.State, ServerTransportApplyJobStatus.Completed)
                 .SetProperty(x => x.CompletedAtUtc, utcNow)
@@ -112,8 +146,9 @@ public sealed class ServerTransportApplyJobRepository : IServerTransportApplyJob
                 .SetProperty(x => x.UpdatedAtUtc, utcNow), ct);
     }
 
-    public Task RescheduleAsync(
+    public Task<int> RescheduleAsync(
         Guid jobId,
+        string leaseOwner,
         int newAttempt,
         DateTime nextAttemptAtUtc,
         string code,
@@ -125,7 +160,9 @@ public sealed class ServerTransportApplyJobRepository : IServerTransportApplyJob
         nextAttemptAtUtc = EnsureUtc(nextAttemptAtUtc);
 
         return _db.Set<ServerTransportApplyJob>()
-            .Where(x => x.JobId == jobId)
+            .Where(x => x.JobId == jobId
+                        && x.LeaseOwner == leaseOwner
+                        && x.State == ServerTransportApplyJobStatus.Processing)
             .ExecuteUpdateAsync(set => set
                 .SetProperty(x => x.State, ServerTransportApplyJobStatus.Pending)
                 .SetProperty(x => x.Attempt, newAttempt)
@@ -137,8 +174,9 @@ public sealed class ServerTransportApplyJobRepository : IServerTransportApplyJob
                 .SetProperty(x => x.UpdatedAtUtc, utcNow), ct);
     }
 
-    public Task MarkFailedAsync(
+    public Task<int> MarkFailedAsync(
         Guid jobId,
+        string leaseOwner,
         string code,
         string? message,
         DateTime utcNow,
@@ -147,7 +185,9 @@ public sealed class ServerTransportApplyJobRepository : IServerTransportApplyJob
         utcNow = EnsureUtc(utcNow);
 
         return _db.Set<ServerTransportApplyJob>()
-            .Where(x => x.JobId == jobId)
+            .Where(x => x.JobId == jobId
+                        && x.LeaseOwner == leaseOwner
+                        && x.State == ServerTransportApplyJobStatus.Processing)
             .ExecuteUpdateAsync(set => set
                 .SetProperty(x => x.State, ServerTransportApplyJobStatus.Failed)
                 .SetProperty(x => x.LastErrorCode, code)

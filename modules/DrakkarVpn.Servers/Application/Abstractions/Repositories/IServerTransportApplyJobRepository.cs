@@ -22,10 +22,15 @@ public interface IServerTransportApplyJobRepository
         string leaseOwner,
         CancellationToken ct);
 
-    Task MarkCompletedAsync(Guid jobId, DateTime utcNow, CancellationToken ct);
-
-    Task RescheduleAsync(
+    Task<int> MarkCompletedAsync(
         Guid jobId,
+        string leaseOwner,
+        DateTime utcNow,
+        CancellationToken ct);
+
+    Task<int> RescheduleAsync(
+        Guid jobId,
+        string leaseOwner,
         int newAttempt,
         DateTime nextAttemptAtUtc,
         string code,
@@ -33,8 +38,9 @@ public interface IServerTransportApplyJobRepository
         DateTime utcNow,
         CancellationToken ct);
 
-    Task MarkFailedAsync(
+    Task<int> MarkFailedAsync(
         Guid jobId,
+        string leaseOwner,
         string code,
         string? message,
         DateTime utcNow,

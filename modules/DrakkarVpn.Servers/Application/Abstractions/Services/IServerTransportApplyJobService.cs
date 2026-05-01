@@ -17,16 +17,19 @@ public interface IServerTransportApplyJobService
 
     Task<ServerTransportApplyJobDto?> GetAsync(Guid jobId, CancellationToken ct);
 
-    Task MarkCompletedAsync(Guid jobId, DateTime utcNow, CancellationToken ct);
+    Task<int> MarkCompletedAsync(
+        ServerTransportApplyJobDto jobSnapshot,
+        DateTime utcNow,
+        CancellationToken ct);
 
-    Task FailPermanentAsync(
+    Task<int> FailPermanentAsync(
         ServerTransportApplyJobDto jobSnapshot,
         string errorCode,
         string? errorMessage,
         DateTime utcNow,
         CancellationToken ct);
 
-    Task FailOrRescheduleAsync(
+    Task<int> FailOrRescheduleAsync(
         ServerTransportApplyJobDto jobSnapshot,
         string errorCode,
         string? errorMessage,

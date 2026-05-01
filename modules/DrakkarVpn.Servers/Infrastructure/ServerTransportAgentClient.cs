@@ -14,7 +14,7 @@ public sealed class ServerTransportAgentClient : IAgentTransportApiClient
 
     public ServerTransportAgentClient(HttpClient http) => _http = http;
 
-    public async Task ApplyServerTransportAsync(
+    public async Task<AgentApplyServerTransportWireResponse> ApplyServerTransportAsync(
         string agentBaseUrl,
         AgentApplyServerTransportRequest request,
         CancellationToken ct)
@@ -28,31 +28,34 @@ public sealed class ServerTransportAgentClient : IAgentTransportApiClient
 
         var resp = await _http.PostAsJsonAsync(url, request, JsonOptions, ct);
 
-        if (resp.IsSuccessStatusCode)
-            return;
-
-        AgentError? err = null;
-        try
+        var json = await resp.Content.ReadAsStringAsync(ct);
+        AgentApplyServerTransportWireResponse? wire = null;
+        if (!string.IsNullOrWhiteSpace(json))
         {
-            err = await resp.Content.ReadFromJsonAsync<AgentError>(JsonOptions, cancellationToken: ct);
+            try
+            {
+                wire = JsonSerializer.Deserialize<AgentApplyServerTransportWireResponse>(
+                    json,
+                    JsonOptions);
+            }
+            catch (JsonException)
+            {
+                // leave wire null → throw below with generic mapping
+            }
         }
-        catch
-        {
-            
-        }
 
-        var code = err?.Code ?? $"HTTP_{(int)resp.StatusCode}";
-        var msg = err?.Message ?? $"Agent refused: {resp.StatusCode}";
-        throw new ServerTransportAgentCallFailedException(code, msg);
-    }
+        if (wire?.Success == true)
+            return wire;
 
-    private sealed class AgentError
-    {
-        [JsonPropertyName("code")]
-        public string Code { get; init; } = default!;
-
-        [JsonPropertyName("message")]
-        public string Message { get; init; } = default!;
+        var code = wire?.Code ?? $"HTTP_{(int)resp.StatusCode}";
+        var msg = wire?.Message ?? "Agent refused, malformed agent response, or apply did not succeed.";
+        throw new ServerTransportAgentCallFailedException(
+            code,
+            msg,
+            phase: wire?.Phase ?? string.Empty,
+            payloadHash: wire?.PayloadHash,
+            rollbackAttempted: wire?.RollbackAttempted,
+            rollbackSucceeded: wire?.RollbackSucceeded);
     }
 }
 
@@ -60,6 +63,26 @@ public sealed class ServerTransportAgentCallFailedException : Exception
 {
     public string Code { get; }
 
-    public ServerTransportAgentCallFailedException(string code, string message) : base(message) =>
+    public string Phase { get; }
+
+    public string? PayloadHash { get; }
+
+    public bool? RollbackAttempted { get; }
+
+    public bool? RollbackSucceeded { get; }
+
+    public ServerTransportAgentCallFailedException(
+        string code,
+        string message,
+        string? phase = null,
+        string? payloadHash = null,
+        bool? rollbackAttempted = null,
+        bool? rollbackSucceeded = null) : base(message)
+    {
         Code = code;
+        Phase = phase ?? string.Empty;
+        PayloadHash = payloadHash;
+        RollbackAttempted = rollbackAttempted;
+        RollbackSucceeded = rollbackSucceeded;
+    }
 }
