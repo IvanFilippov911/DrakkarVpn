@@ -46,6 +46,19 @@ public sealed class ServerRepository : IServerRepository
             .ToDictionaryAsync(s => s.Id, ct);
     }
 
+    public async Task<Dictionary<Guid, Server>> GetWithActivationsAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken ct)
+    {
+        if (ids.Count == 0)
+            return new();
+
+        return await _db.Servers
+            .Include("_transportActivations")
+            .Where(s => ids.Contains(s.Id))
+            .ToDictionaryAsync(s => s.Id, ct);
+    }
+
     public async Task<(IReadOnlyList<AdminServerIndexRowDto> Items, int Total)> GetPagedAsync(
         string? region,
         ServerStatus? status,

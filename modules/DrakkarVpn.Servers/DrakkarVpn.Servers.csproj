@@ -24,4 +24,13 @@
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Remove="Application\Services\ServerTransportProfileApply\AgentApplyServerTransportService.cs" />
+      <Compile Remove="Application\DTOs\ServerTransportApplyJobs\ServerTransportApplyJobOutcomeRecord.cs" />
+      <Compile Remove="Application\DTOs\TransportProfiles\AgentApply\PreparedAgentTransportApplyRequest.cs" />
+      <Compile Remove="Application\DTOs\TransportProfiles\AgentApply\AgentApplyRequestBuildResult.cs" />
+      <Compile Remove="Application\DTOs\TransportProfiles\AgentApply\AgentApplyOutcome.cs" />
+      <Compile Remove="Application\DTOs\TransportProfiles\AgentApply\AgentApplyResult.cs" />
+    </ItemGroup>
+
 </Project>

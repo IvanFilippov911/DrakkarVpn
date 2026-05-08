@@ -1,5 +1,6 @@
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Queries.GetServers;
 using DrakkarVpn.Core.Api.Modules.Servers.Domain;
+using DrakkarVpn.Servers.Application.DTOs.ServerTransportApplyJobs;
 using DrakkarVpn.Shared;
 
 namespace DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
@@ -47,5 +48,8 @@ public interface IServersQueryService
     Task<ServerConfigDataDto?> GetDataForConfigByIdAsync(
         Guid serverId,
         CancellationToken ct);
-    
+
+    Task<Dictionary<Guid, ServerTransportDesiredStateDto>> GetTransportDesiredStatesAsync(
+        Guid[] serverIds,
+        CancellationToken ct);
 }

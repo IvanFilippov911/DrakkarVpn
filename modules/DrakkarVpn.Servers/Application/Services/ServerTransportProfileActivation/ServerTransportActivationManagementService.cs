@@ -100,7 +100,7 @@ public sealed class ServerTransportActivationManagementService : IServerTranspor
         }
     }
 
-    public async Task ActivateAsync(ActivateServerTransportActivationInput input, CancellationToken ct)
+    public async Task<long> ActivateAsync(ActivateServerTransportActivationInput input, CancellationToken ct)
     {
         input = input ?? throw new ArgumentNullException(nameof(input));
         var server = await GetServerOrThrowAsync(input.ServerId, ct);
@@ -114,6 +114,8 @@ public sealed class ServerTransportActivationManagementService : IServerTranspor
         {
             throw BuildActivationNotFoundException(input.ServerId, input.ActivationId);
         }
+
+        return server.DesiredTransportVersion;
     }
 
     public async Task DetachAsync(DetachServerTransportActivationInput input, CancellationToken ct)

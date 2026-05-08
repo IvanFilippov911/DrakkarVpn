@@ -9,6 +9,9 @@ public interface IServerRepository
 {
     Task<Server?> GetAsync(Guid id, CancellationToken ct);
     Task<Dictionary<Guid, Server>> GetByIdsAsync(Guid[] ids, CancellationToken ct);
+    Task<Dictionary<Guid, Server>> GetWithActivationsAsync(
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken ct);
     Task AddAsync(Server server, CancellationToken ct);
     IQueryable<Server> Query();
     Task DeleteAsync(Server server, CancellationToken ct);

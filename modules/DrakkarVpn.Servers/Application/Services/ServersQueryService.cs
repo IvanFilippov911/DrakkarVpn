@@ -3,6 +3,7 @@ using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Queries.GetServer
 using DrakkarVpn.Core.Api.Modules.Servers.Domain;
 using DrakkarVpn.Core.Api.Modules.Servers.Domain.VO;
 using DrakkarVpn.Servers.Application.Abstractions.Services;
+using DrakkarVpn.Servers.Application.DTOs.ServerTransportApplyJobs;
 using DrakkarVpn.Servers.Application.Mappers;
 using DrakkarVpn.Servers.Domain.Enums;
 using DrakkarVpn.Shared;
@@ -118,8 +119,26 @@ public sealed class ServersQueryService : IServersQueryService, IServerQueryForP
 
     public Task<ServerShortDto?> GetShortAsync(Guid serverId, CancellationToken ct)
         => _servers.GetServerShortAsync(serverId, ct);
-    
-    
+
+    public async Task<Dictionary<Guid, ServerTransportDesiredStateDto>> GetTransportDesiredStatesAsync(
+        Guid[] serverIds,
+        CancellationToken ct)
+    {
+        if (serverIds.Length == 0)
+            return [];
+        
+        return await _servers.Query()
+            .Where(s => serverIds.Contains(s.Id))
+            .Select(s => new
+            {
+                s.Id,
+                DesiredState = new ServerTransportDesiredStateDto(
+                    s.DesiredTransportActivationId,
+                    s.DesiredTransportVersion)
+            })
+            .ToDictionaryAsync(x => x.Id, x => x.DesiredState, ct);
+    }
+
     public Task<ServerForAgentDto?> GetServerForAgentAsync(Guid serverId, CancellationToken ct)
         => _servers.GetForAgentAsync(serverId, ct);
     

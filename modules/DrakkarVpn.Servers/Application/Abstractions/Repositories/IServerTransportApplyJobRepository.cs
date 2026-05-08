@@ -7,6 +7,7 @@ public interface IServerTransportApplyJobRepository
     Task<Guid> CreateOrGetAsync(
         Guid serverId,
         Guid activationId,
+        long targetTransportVersion,
         int maxAttempt,
         DateTime utcNow,
         CancellationToken ct);
@@ -23,7 +24,7 @@ public interface IServerTransportApplyJobRepository
         CancellationToken ct);
 
     Task<int> MarkCompletedAsync(
-        Guid jobId,
+        IReadOnlyCollection<Guid> jobIds,
         string leaseOwner,
         DateTime utcNow,
         CancellationToken ct);
@@ -43,6 +44,24 @@ public interface IServerTransportApplyJobRepository
         string leaseOwner,
         string code,
         string? message,
+        DateTime utcNow,
+        CancellationToken ct);
+
+    Task<int> MarkFailedBatchAsync(
+        IReadOnlyList<ServerTransportApplyJobMarkFailedBatchRow> rows,
+        string leaseOwner,
+        DateTime utcNow,
+        CancellationToken ct);
+
+    Task<int> RescheduleBatchAsync(
+        IReadOnlyList<ServerTransportApplyJobRescheduleBatchRow> rows,
+        string leaseOwner,
+        DateTime utcNow,
+        CancellationToken ct);
+
+    Task<int> MarkObsoleteAsync(
+        IReadOnlyCollection<Guid> jobIds,
+        string leaseOwner,
         DateTime utcNow,
         CancellationToken ct);
 }

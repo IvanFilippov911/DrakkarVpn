@@ -15,7 +15,7 @@ public sealed class RunServerTransportApplyJobHandler
 
     public async Task<Unit> Handle(RunServerTransportApplyJobRequest request, CancellationToken ct)
     {
-        await _processor.ProcessAsync(request.JobId, ct);
+        await _processor.ProcessAsync(request.Jobs, request.leaseOwner, ct);
         return Unit.Value;
     }
 }

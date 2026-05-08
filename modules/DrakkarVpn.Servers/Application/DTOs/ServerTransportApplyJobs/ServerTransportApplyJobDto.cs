@@ -6,6 +6,7 @@ public sealed record ServerTransportApplyJobDto(
     Guid JobId,
     Guid ServerId,
     Guid ActivationId,
+    long TargetTransportVersion,
     ServerTransportApplyJobStatus State,
     DateTime? LeaseUntilUtc,
     string? LeaseOwner,

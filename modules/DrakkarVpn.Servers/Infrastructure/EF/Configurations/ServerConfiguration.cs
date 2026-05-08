@@ -56,6 +56,23 @@ public sealed class ServerConfiguration : IEntityTypeConfiguration<Server>
             .HasColumnName("created_at")
             .IsRequired();
 
+        b.Property(x => x.DesiredTransportActivationId)
+            .HasColumnName("desired_transport_activation_id");
+
+        b.Property(x => x.DesiredTransportVersion)
+            .HasColumnName("desired_transport_version")
+            .IsRequired();
+
+        b.Property(x => x.AppliedTransportActivationId)
+            .HasColumnName("applied_transport_activation_id");
+
+        b.Property(x => x.AppliedTransportVersion)
+            .HasColumnName("applied_transport_version")
+            .IsRequired();
+
+        b.Property(x => x.AppliedTransportAtUtc)
+            .HasColumnName("applied_transport_at_utc");
+
         b.OwnsOne(x => x.Health, hb =>
         {
             hb.WithOwner();

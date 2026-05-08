@@ -3,6 +3,8 @@ using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.EF;
 using DrakkarVpn.Servers.Domain.Enums.TransportProfile;
 using DrakkarVpn.Servers.Infrastructure.EF.Entities;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using NpgsqlTypes;
 
 namespace DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.Repositories;
 
@@ -18,34 +20,30 @@ public sealed class ServerTransportApplyJobRepository : IServerTransportApplyJob
     public async Task<Guid> CreateOrGetAsync(
         Guid serverId,
         Guid activationId,
+        long targetTransportVersion,
         int maxAttempt,
         DateTime utcNow,
         CancellationToken ct)
     {
         if (serverId == Guid.Empty) throw new ArgumentException("serverId is required", nameof(serverId));
         if (activationId == Guid.Empty) throw new ArgumentException("activationId is required", nameof(activationId));
+        if (targetTransportVersion <= 0)
+            throw new ArgumentOutOfRangeException(nameof(targetTransportVersion));
         if (maxAttempt <= 0) throw new ArgumentException("maxAttempt must be > 0", nameof(maxAttempt));
 
-        var existing = await FindActiveJobIdByServerIdAsync(serverId, ct);
-        if (existing != Guid.Empty)
-            return existing;
+        utcNow = EnsureUtc(utcNow);
 
-        var job = ServerTransportApplyJob.CreateNew(serverId, activationId, maxAttempt, EnsureUtc(utcNow));
-        _db.Set<ServerTransportApplyJob>().Add(job);
+        await SupersedeOlderInFlightJobsAsync(serverId, targetTransportVersion, utcNow, ct);
 
-        try
-        {
-            await _db.SaveChangesAsync(ct);
-            return job.JobId;
-        }
-        catch (DbUpdateException)
-        {
-            _db.Entry(job).State = EntityState.Detached;
-            var existingId = await FindActiveJobIdByServerIdAsync(serverId, ct);
-            if (existingId == Guid.Empty)
-                throw;
-            return existingId;
-        }
+        var job = ServerTransportApplyJob.CreateNew(
+            serverId,
+            activationId,
+            targetTransportVersion,
+            maxAttempt,
+            utcNow);
+
+        await _db.Set<ServerTransportApplyJob>().AddAsync(job, ct);
+        return job.JobId;
     }
 
     public async Task<Guid?> GetActiveJobIdByServerIdAsync(Guid serverId, CancellationToken ct)
@@ -126,14 +124,18 @@ public sealed class ServerTransportApplyJobRepository : IServerTransportApplyJob
     }
 
     public Task<int> MarkCompletedAsync(
-        Guid jobId,
+        IReadOnlyCollection<Guid> jobIds,
         string leaseOwner,
         DateTime utcNow,
         CancellationToken ct)
     {
+        if (jobIds.Count == 0)
+            return Task.FromResult(0);
+
         utcNow = EnsureUtc(utcNow);
+
         return _db.Set<ServerTransportApplyJob>()
-            .Where(x => x.JobId == jobId
+            .Where(x => jobIds.Contains(x.JobId)
                         && x.LeaseOwner == leaseOwner
                         && x.State == ServerTransportApplyJobStatus.Processing)
             .ExecuteUpdateAsync(set => set
@@ -159,19 +161,8 @@ public sealed class ServerTransportApplyJobRepository : IServerTransportApplyJob
         utcNow = EnsureUtc(utcNow);
         nextAttemptAtUtc = EnsureUtc(nextAttemptAtUtc);
 
-        return _db.Set<ServerTransportApplyJob>()
-            .Where(x => x.JobId == jobId
-                        && x.LeaseOwner == leaseOwner
-                        && x.State == ServerTransportApplyJobStatus.Processing)
-            .ExecuteUpdateAsync(set => set
-                .SetProperty(x => x.State, ServerTransportApplyJobStatus.Pending)
-                .SetProperty(x => x.Attempt, newAttempt)
-                .SetProperty(x => x.NextAttemptUtc, nextAttemptAtUtc)
-                .SetProperty(x => x.LastErrorCode, code)
-                .SetProperty(x => x.LastErrorMessage, message)
-                .SetProperty(x => x.LeaseOwner, (string?)null)
-                .SetProperty(x => x.LeaseUntilUtc, (DateTime?)null)
-                .SetProperty(x => x.UpdatedAtUtc, utcNow), ct);
+        var row = new ServerTransportApplyJobRescheduleBatchRow(jobId, newAttempt, nextAttemptAtUtc, code, message);
+        return RescheduleBatchAsync([row], leaseOwner, utcNow, ct);
     }
 
     public Task<int> MarkFailedAsync(
@@ -184,25 +175,182 @@ public sealed class ServerTransportApplyJobRepository : IServerTransportApplyJob
     {
         utcNow = EnsureUtc(utcNow);
 
+        var row = new ServerTransportApplyJobMarkFailedBatchRow(jobId, code, message);
+        return MarkFailedBatchAsync([row], leaseOwner, utcNow, ct);
+    }
+
+    public async Task<int> MarkFailedBatchAsync(
+        IReadOnlyList<ServerTransportApplyJobMarkFailedBatchRow> rows,
+        string leaseOwner,
+        DateTime utcNow,
+        CancellationToken ct)
+    {
+        if (rows.Count == 0)
+            return 0;
+        if (string.IsNullOrWhiteSpace(leaseOwner))
+            throw new ArgumentException("leaseOwner is required", nameof(leaseOwner));
+
+        leaseOwner = leaseOwner.Trim();
+        utcNow = EnsureUtc(utcNow);
+
+        var failedState = (int)ServerTransportApplyJobStatus.Failed;
+        var processingState = (int)ServerTransportApplyJobStatus.Processing;
+
+        var n = rows.Count;
+        var jobIds = new Guid[n];
+        var codes = new string[n];
+        var messages = new string?[n];
+        for (var i = 0; i < n; i++)
+        {
+            jobIds[i] = rows[i].JobId;
+            codes[i] = rows[i].ErrorCode;
+            messages[i] = rows[i].ErrorMessage;
+        }
+
+        const string sql = """
+            UPDATE servers.server_transport_apply_jobs j
+            SET
+                state = @failed_state,
+                last_error_code = u.error_code,
+                last_error_message = u.error_message,
+                lease_owner = NULL,
+                lease_until_utc = NULL,
+                updated_at_utc = @utc_now
+            FROM unnest(@job_ids::uuid[], @error_codes::text[], @error_messages::text[])
+                AS u(job_id, error_code, error_message)
+            WHERE j.job_id = u.job_id
+              AND j.lease_owner = @lease_owner
+              AND j.state = @processing_state
+            """;
+
+        return await _db.Database.ExecuteSqlRawAsync(
+            sql,
+            ct,
+            new NpgsqlParameter("failed_state", failedState),
+            new NpgsqlParameter("processing_state", processingState),
+            new NpgsqlParameter("utc_now", utcNow) { NpgsqlDbType = NpgsqlDbType.TimestampTz },
+            new NpgsqlParameter("lease_owner", leaseOwner),
+            new NpgsqlParameter("job_ids", jobIds) { DataTypeName = "uuid[]" },
+            new NpgsqlParameter("error_codes", codes) { DataTypeName = "text[]" },
+            new NpgsqlParameter("error_messages", messages) { DataTypeName = "text[]" });
+    }
+
+    public async Task<int> RescheduleBatchAsync(
+        IReadOnlyList<ServerTransportApplyJobRescheduleBatchRow> rows,
+        string leaseOwner,
+        DateTime utcNow,
+        CancellationToken ct)
+    {
+        if (rows.Count == 0)
+            return 0;
+        if (string.IsNullOrWhiteSpace(leaseOwner))
+            throw new ArgumentException("leaseOwner is required", nameof(leaseOwner));
+
+        leaseOwner = leaseOwner.Trim();
+        utcNow = EnsureUtc(utcNow);
+
+        var pendingState = (int)ServerTransportApplyJobStatus.Pending;
+        var processingState = (int)ServerTransportApplyJobStatus.Processing;
+
+        var n = rows.Count;
+        var jobIds = new Guid[n];
+        var newAttempts = new int[n];
+        var nextAts = new DateTime[n];
+        var codes = new string[n];
+        var messages = new string?[n];
+        for (var i = 0; i < n; i++)
+        {
+            jobIds[i] = rows[i].JobId;
+            newAttempts[i] = rows[i].NewAttempt;
+            nextAts[i] = EnsureUtc(rows[i].NextAttemptAtUtc);
+            codes[i] = rows[i].ErrorCode;
+            messages[i] = rows[i].ErrorMessage;
+        }
+
+        const string sql = """
+            UPDATE servers.server_transport_apply_jobs j
+            SET
+                state = @pending_state,
+                attempt = u.new_attempt,
+                next_attempt_utc = u.next_attempt_at,
+                last_error_code = u.error_code,
+                last_error_message = u.error_message,
+                lease_owner = NULL,
+                lease_until_utc = NULL,
+                updated_at_utc = @utc_now
+            FROM unnest(
+                    @job_ids::uuid[],
+                    @new_attempts::int[],
+                    @next_attempt_ats::timestamptz[],
+                    @error_codes::text[],
+                    @error_messages::text[])
+                AS u(job_id, new_attempt, next_attempt_at, error_code, error_message)
+            WHERE j.job_id = u.job_id
+              AND j.lease_owner = @lease_owner
+              AND j.state = @processing_state
+            """;
+
+        return await _db.Database.ExecuteSqlRawAsync(
+            sql,
+            ct,
+            new NpgsqlParameter("pending_state", pendingState),
+            new NpgsqlParameter("processing_state", processingState),
+            new NpgsqlParameter("utc_now", utcNow) { NpgsqlDbType = NpgsqlDbType.TimestampTz },
+            new NpgsqlParameter("lease_owner", leaseOwner),
+            new NpgsqlParameter("job_ids", jobIds) { DataTypeName = "uuid[]" },
+            new NpgsqlParameter("new_attempts", newAttempts) { NpgsqlDbType = NpgsqlDbType.Array | NpgsqlDbType.Integer },
+            new NpgsqlParameter("next_attempt_ats", nextAts) { NpgsqlDbType = NpgsqlDbType.Array | NpgsqlDbType.TimestampTz },
+            new NpgsqlParameter("error_codes", codes) { DataTypeName = "text[]" },
+            new NpgsqlParameter("error_messages", messages) { DataTypeName = "text[]" });
+    }
+
+    public Task<int> MarkObsoleteAsync(
+        IReadOnlyCollection<Guid> jobIds,
+        string leaseOwner,
+        DateTime utcNow,
+        CancellationToken ct)
+    {
+        utcNow = EnsureUtc(utcNow);
+
         return _db.Set<ServerTransportApplyJob>()
-            .Where(x => x.JobId == jobId
+            .Where(x => jobIds.Contains(x.JobId)
                         && x.LeaseOwner == leaseOwner
                         && x.State == ServerTransportApplyJobStatus.Processing)
             .ExecuteUpdateAsync(set => set
-                .SetProperty(x => x.State, ServerTransportApplyJobStatus.Failed)
-                .SetProperty(x => x.LastErrorCode, code)
-                .SetProperty(x => x.LastErrorMessage, message)
-                .SetProperty(x => x.LeaseOwner, (string?)null)
-                .SetProperty(x => x.LeaseUntilUtc, (DateTime?)null)
-                .SetProperty(x => x.UpdatedAtUtc, utcNow), ct);
+                    .SetProperty(x => x.State, ServerTransportApplyJobStatus.Obsolete)
+                    .SetProperty(x => x.LeaseOwner, (string?)null)
+                    .SetProperty(x => x.LeaseUntilUtc, (DateTime?)null)
+                    .SetProperty(x => x.UpdatedAtUtc, utcNow),
+                ct);
+    }
+
+    private Task<int> SupersedeOlderInFlightJobsAsync(
+        Guid serverId,
+        long targetTransportVersion,
+        DateTime utcNow,
+        CancellationToken ct)
+    {
+        var pending = ServerTransportApplyJobStatus.Pending;
+        var processing = ServerTransportApplyJobStatus.Processing;
+
+        return _db.Set<ServerTransportApplyJob>()
+            .Where(x => x.ServerId == serverId
+                        && x.TargetTransportVersion < targetTransportVersion
+                        && (x.State == pending || x.State == processing))
+            .ExecuteUpdateAsync(set => set
+                    .SetProperty(x => x.State, ServerTransportApplyJobStatus.Obsolete)
+                    .SetProperty(x => x.LeaseOwner, (string?)null)
+                    .SetProperty(x => x.LeaseUntilUtc, (DateTime?)null)
+                    .SetProperty(x => x.UpdatedAtUtc, utcNow),
+                ct);
     }
 
     private Task<Guid> FindActiveJobIdByServerIdAsync(Guid serverId, CancellationToken ct)
         => _db.Set<ServerTransportApplyJob>()
             .AsNoTracking()
             .Where(x => x.ServerId == serverId
-                        && x.State != ServerTransportApplyJobStatus.Completed
-                        && x.State != ServerTransportApplyJobStatus.Failed)
+                        && (x.State == ServerTransportApplyJobStatus.Pending
+                            || x.State == ServerTransportApplyJobStatus.Processing))
             .OrderByDescending(x => x.CreatedAtUtc)
             .Select(x => x.JobId)
             .FirstOrDefaultAsync(ct);

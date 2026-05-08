@@ -1,8 +1,9 @@
+using DrakkarVpn.Admin.Api.Application.Features.Commands.ServerTransportActivations.ActivateServerTransportActivation;
 using DrakkarVpn.Servers.Application.Abstractions.Services;
 using DrakkarVpn.Servers.Application.DTOs.ServerTransportActivations;
 using MediatR;
 
-namespace DrakkarVpn.Admin.Api.Application.Features.Commands.ServerTransportActivations.ActivateServerTransportActivation;
+namespace DrakkarVpn.Admin.Api.Application.Features.Commands.ServerTransportActivations.ActivateServerTransport;
 
 public sealed class ActivateServerTransportHandler
     : IRequestHandler<ActivateServerTransportRequest, Unit>
@@ -20,13 +21,13 @@ public sealed class ActivateServerTransportHandler
 
     public async Task<Unit> Handle(ActivateServerTransportRequest command, CancellationToken ct)
     {
-        await _transportService.ActivateAsync(
+        var targetVersion = await _transportService.ActivateAsync(
             new ActivateServerTransportActivationInput(
                 ServerId: command.ServerId,
                 ActivationId: command.ActivationId),
             ct);
 
-        await _jobService.EnqueueAsync(command.ServerId, command.ActivationId, ct);
+        await _jobService.EnqueueAsync(command.ServerId, command.ActivationId, targetVersion, ct);
 
         return Unit.Value;
     }

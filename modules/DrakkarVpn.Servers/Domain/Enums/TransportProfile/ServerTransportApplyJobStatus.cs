@@ -5,5 +5,6 @@ public enum ServerTransportApplyJobStatus
     Pending = 1,
     Processing = 2,
     Completed = 3,
-    Failed = 4
+    Failed = 4,
+    Obsolete = 5
 }

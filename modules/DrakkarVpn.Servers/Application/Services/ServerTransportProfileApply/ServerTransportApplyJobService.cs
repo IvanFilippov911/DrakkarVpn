@@ -21,14 +21,21 @@ public sealed class ServerTransportApplyJobService : IServerTransportApplyJobSer
         _repo = repo;
     }
 
-    public Task<Guid> EnqueueAsync(Guid serverId, Guid activationId, CancellationToken ct)
+    public Task<Guid> EnqueueAsync(
+        Guid serverId,
+        Guid activationId,
+        long targetTransportVersion,
+        CancellationToken ct)
     {
         if (serverId == Guid.Empty) throw new ArgumentException("serverId is required", nameof(serverId));
         if (activationId == Guid.Empty) throw new ArgumentException("activationId is required", nameof(activationId));
+        if (targetTransportVersion <= 0)
+            throw new ArgumentOutOfRangeException(nameof(targetTransportVersion));
 
         return _repo.CreateOrGetAsync(
             serverId,
             activationId,
+            targetTransportVersion,
             DefaultMaxAttempt,
             DateTime.UtcNow,
             ct);
@@ -74,91 +81,124 @@ public sealed class ServerTransportApplyJobService : IServerTransportApplyJobSer
     }
 
     public Task<int> MarkCompletedAsync(
-        ServerTransportApplyJobDto jobSnapshot,
+        IReadOnlyCollection<Guid> jobIds,
+        string leaseOwner,
         DateTime utcNow,
         CancellationToken ct)
     {
-        if (jobSnapshot is null) throw new ArgumentNullException(nameof(jobSnapshot));
-        if (jobSnapshot.JobId == Guid.Empty) throw new ArgumentException("JobId is required", nameof(jobSnapshot));
-        if (string.IsNullOrWhiteSpace(jobSnapshot.LeaseOwner))
-            throw new ArgumentException("LeaseOwner is required", nameof(jobSnapshot));
+        if (jobIds.Count == 0)
+            return Task.FromResult(0);
+        if (string.IsNullOrWhiteSpace(leaseOwner))
+            throw new ArgumentException("leaseOwner is required", nameof(leaseOwner));
 
         return _repo.MarkCompletedAsync(
-            jobSnapshot.JobId,
-            jobSnapshot.LeaseOwner,
+            jobIds,
+            leaseOwner.Trim(),
             EnsureUtc(utcNow),
             ct);
     }
 
     public Task<int> FailPermanentAsync(
-        ServerTransportApplyJobDto jobSnapshot,
-        string errorCode,
-        string? errorMessage,
+        IReadOnlyCollection<ServerTransportApplyJobFailure> failures,
+        string leaseOwner,
         DateTime utcNow,
         CancellationToken ct)
     {
-        if (jobSnapshot is null) throw new ArgumentNullException(nameof(jobSnapshot));
-        if (jobSnapshot.JobId == Guid.Empty) throw new ArgumentException("JobId is required", nameof(jobSnapshot));
+        if (failures.Count == 0)
+            return Task.FromResult(0);
+        if (string.IsNullOrWhiteSpace(leaseOwner))
+            throw new ArgumentException("leaseOwner is required", nameof(leaseOwner));
 
         utcNow = EnsureUtc(utcNow);
-        var code = NormalizeErrorCode(errorCode);
-        var message = NormalizeErrorMessage(errorMessage);
+        var owner = leaseOwner.Trim();
 
-        if (string.IsNullOrWhiteSpace(jobSnapshot.LeaseOwner))
-            throw new ArgumentException("LeaseOwner is required", nameof(jobSnapshot));
+        var rows = new List<ServerTransportApplyJobMarkFailedBatchRow>(failures.Count);
+        foreach (var failure in failures)
+        {
+            if (failure.Job.JobId == Guid.Empty) continue;
 
-        return _repo.MarkFailedAsync(
-            jobSnapshot.JobId,
-            jobSnapshot.LeaseOwner,
-            code,
-            message,
-            utcNow,
-            ct);
+            rows.Add(new ServerTransportApplyJobMarkFailedBatchRow(
+                failure.Job.JobId,
+                NormalizeErrorCode(failure.ErrorCode),
+                NormalizeErrorMessage(failure.ErrorMessage)));
+        }
+
+        if (rows.Count == 0)
+            return Task.FromResult(0);
+
+        return _repo.MarkFailedBatchAsync(rows, owner, utcNow, ct);
     }
 
-    public Task<int> FailOrRescheduleAsync(
-        ServerTransportApplyJobDto jobSnapshot,
-        string errorCode,
-        string? errorMessage,
+    public async Task<int> FailOrRescheduleAsync(
+        IReadOnlyCollection<ServerTransportApplyJobFailure> failures,
+        string leaseOwner,
         DateTime utcNow,
         Func<int, TimeSpan> backoff,
         CancellationToken ct)
     {
-        if (jobSnapshot is null) throw new ArgumentNullException(nameof(jobSnapshot));
-        if (jobSnapshot.JobId == Guid.Empty) throw new ArgumentException("JobId is required", nameof(jobSnapshot));
-        if (jobSnapshot.MaxAttempt <= 0) throw new ArgumentException("MaxAttempt must be > 0", nameof(jobSnapshot));
-        if (backoff is null) throw new ArgumentNullException(nameof(backoff));
-        if (string.IsNullOrWhiteSpace(jobSnapshot.LeaseOwner))
-            throw new ArgumentException("LeaseOwner is required", nameof(jobSnapshot));
+        if (failures.Count == 0)
+            return 0;
+        if (string.IsNullOrWhiteSpace(leaseOwner))
+            throw new ArgumentException("leaseOwner is required", nameof(leaseOwner));
+        if (backoff is null)
+            throw new ArgumentNullException(nameof(backoff));
 
         utcNow = EnsureUtc(utcNow);
-        var code = NormalizeErrorCode(errorCode);
-        var message = NormalizeErrorMessage(errorMessage);
-        var nextAttempt = jobSnapshot.Attempt + 1;
+        var owner = leaseOwner.Trim();
 
-        if (nextAttempt >= jobSnapshot.MaxAttempt)
+        var toFail = new List<ServerTransportApplyJobMarkFailedBatchRow>();
+        var toReschedule = new List<ServerTransportApplyJobRescheduleBatchRow>();
+
+        foreach (var failure in failures)
         {
-            return _repo.MarkFailedAsync(
-                jobSnapshot.JobId,
-                jobSnapshot.LeaseOwner,
-                code,
-                message,
-                utcNow,
-                ct);
+            var job = failure.Job;
+            if (job.JobId == Guid.Empty) continue;
+            if (job.MaxAttempt <= 0) continue;
+
+            var code = NormalizeErrorCode(failure.ErrorCode);
+            var message = NormalizeErrorMessage(failure.ErrorMessage);
+            var nextAttempt = job.Attempt + 1;
+
+            if (nextAttempt >= job.MaxAttempt)
+                toFail.Add(new ServerTransportApplyJobMarkFailedBatchRow(job.JobId, code, message));
+            else
+            {
+                var delay = backoff(nextAttempt);
+                if (delay < TimeSpan.Zero) delay = TimeSpan.Zero;
+
+                toReschedule.Add(new ServerTransportApplyJobRescheduleBatchRow(
+                    job.JobId,
+                    nextAttempt,
+                    utcNow.Add(delay),
+                    code,
+                    message));
+            }
         }
 
-        var delay = backoff(nextAttempt);
-        if (delay < TimeSpan.Zero) delay = TimeSpan.Zero;
+        var total = 0;
+        if (toFail.Count > 0)
+            total += await _repo.MarkFailedBatchAsync(toFail, owner, utcNow, ct);
+        if (toReschedule.Count > 0)
+            total += await _repo.RescheduleBatchAsync(toReschedule, owner, utcNow, ct);
 
-        return _repo.RescheduleAsync(
-            jobId: jobSnapshot.JobId,
-            leaseOwner: jobSnapshot.LeaseOwner,
-            newAttempt: nextAttempt,
-            nextAttemptAtUtc: utcNow.Add(delay),
-            code: code,
-            message: message,
-            utcNow: utcNow,
-            ct: ct);
+        return total;
+    }
+
+    public Task<int> MarkObsoleteAsync(
+        IReadOnlyCollection<Guid> jobIds,
+        string leaseOwner,
+        DateTime utcNow,
+        CancellationToken ct)
+    {
+        if (jobIds.Count == 0) return Task.FromResult(0);
+        if (string.IsNullOrWhiteSpace(leaseOwner))
+            throw new ArgumentException("LeaseOwner is required");
+        
+        return _repo.MarkObsoleteAsync(
+            jobIds,
+            leaseOwner.Trim(),
+            EnsureUtc(utcNow),
+            ct);
     }
 
     private static ServerTransportApplyJobDto Map(ServerTransportApplyJob row)
@@ -166,6 +206,7 @@ public sealed class ServerTransportApplyJobService : IServerTransportApplyJobSer
             row.JobId,
             row.ServerId,
             row.ActivationId,
+            row.TargetTransportVersion,
             row.State,
             row.LeaseUntilUtc,
             row.LeaseOwner,

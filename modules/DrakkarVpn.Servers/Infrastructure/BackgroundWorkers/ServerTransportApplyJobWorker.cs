@@ -13,7 +13,6 @@ public sealed class ServerTransportApplyJobWorker : BackgroundService
     private static readonly TimeSpan LeaseDuration = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan ErrorBackoff = TimeSpan.FromSeconds(1);
     private const int BatchSize = 20;
-    private const int MaxParallelism = 4;
     private const int StartupJitterMs = 200;
 
     private readonly IServiceScopeFactory _scopeFactory;
@@ -31,10 +30,9 @@ public sealed class ServerTransportApplyJobWorker : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _log.LogInformation(
-            "ServerTransportApplyJobWorker started. Interval={IntervalMs} BatchSize={BatchSize} Parallelism={Parallelism}",
+            "ServerTransportApplyJobWorker started. Interval={IntervalMs} BatchSize={BatchSize}",
             (int)Interval.TotalMilliseconds,
-            BatchSize,
-            MaxParallelism);
+            BatchSize);
 
         if (StartupJitterMs > 0)
         {
@@ -47,7 +45,9 @@ public sealed class ServerTransportApplyJobWorker : BackgroundService
             try
             {
                 using var scope = _scopeFactory.CreateScope();
+
                 var jobsService = scope.ServiceProvider.GetRequiredService<IServerTransportApplyJobService>();
+                var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
                 var jobs = await jobsService.AcquireBatchAsync(
                     take: BatchSize,
@@ -58,19 +58,9 @@ public sealed class ServerTransportApplyJobWorker : BackgroundService
 
                 if (jobs.Count > 0)
                 {
-                    await Parallel.ForEachAsync(
-                        jobs,
-                        new ParallelOptions
-                        {
-                            MaxDegreeOfParallelism = MaxParallelism,
-                            CancellationToken = stoppingToken
-                        },
-                        async (job, ct) =>
-                        {
-                            using var innerScope = _scopeFactory.CreateScope();
-                            var mediator = innerScope.ServiceProvider.GetRequiredService<IMediator>();
-                            await mediator.Send(new RunServerTransportApplyJobRequest(job.JobId), ct);
-                        });
+                    await mediator.Send(
+                        new RunServerTransportApplyJobRequest(jobs, _leaseOwner),
+                        stoppingToken);
                 }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -80,6 +70,7 @@ public sealed class ServerTransportApplyJobWorker : BackgroundService
             catch (Exception ex)
             {
                 _log.LogError(ex, "ServerTransportApplyJobWorker tick failed");
+
                 if (ErrorBackoff > TimeSpan.Zero)
                     await Task.Delay(ErrorBackoff, stoppingToken);
             }

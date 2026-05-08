@@ -37,6 +37,11 @@ public sealed class Server : IAggregateRoot
         Health = new HealthSnapshot(false, 0, DateTime.UtcNow);
         Metrics = MetricsSnapshot.Default;
         Benchmark = BenchmarkSnapshot.Empty;
+        DesiredTransportActivationId = null;
+        DesiredTransportVersion = 0;
+        AppliedTransportActivationId = null;
+        AppliedTransportVersion = 0;
+        AppliedTransportAtUtc = null;
         CreatedAt = DateTime.UtcNow;
     }
 
@@ -53,6 +58,11 @@ public sealed class Server : IAggregateRoot
     public MetricsSnapshot Metrics { get; private set; } = default!;
     public BenchmarkSnapshot Benchmark { get; private set; } = default!;
     public DateTime CreatedAt { get; }
+    public Guid? DesiredTransportActivationId { get; private set; }
+    public long DesiredTransportVersion { get; private set; }
+    public Guid? AppliedTransportActivationId { get; private set; }
+    public long AppliedTransportVersion { get; private set; }
+    public DateTime? AppliedTransportAtUtc { get; private set; }
 
     public IReadOnlyCollection<ServerTransportProfileActivation> TransportActivations => _transportActivations;
 
@@ -106,6 +116,27 @@ public sealed class Server : IAggregateRoot
         }
 
         target.MarkActive(nowUtc);
+
+        DesiredTransportActivationId = activationId;
+        DesiredTransportVersion = checked(DesiredTransportVersion + 1);
+    }
+
+    public void MarkTransportApplied(Guid activationId, long version, DateTime utcNow)
+    {
+        var activation = FindActivationOrThrow(activationId);
+
+        if (activation.Status != TransportActivationStatus.Active)
+            throw new TransportActivationNotActiveException(activationId);
+
+        if (version <= AppliedTransportVersion)
+            throw new TransportAppliedVersionStaleException(version, AppliedTransportVersion);
+
+        if (version > DesiredTransportVersion)
+            throw new TransportAppliedVersionAheadOfDesiredException(version, DesiredTransportVersion);
+
+        AppliedTransportActivationId = activationId;
+        AppliedTransportVersion = version;
+        AppliedTransportAtUtc = DateTime.SpecifyKind(utcNow, DateTimeKind.Utc);
     }
 
     public void UpdateTransportActivation(

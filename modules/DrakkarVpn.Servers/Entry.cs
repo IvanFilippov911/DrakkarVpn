@@ -5,7 +5,9 @@ using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.EF;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.Repositories;
 using DrakkarVpn.Servers.Application.Abstractions.Services;
+using DrakkarVpn.Servers.Application.Abstractions.Services.ServerTransportProfileApply;
 using DrakkarVpn.Servers.Application.Services;
+using DrakkarVpn.Servers.Application.Services.ServerTransportProfileApply;
 using DrakkarVpn.Servers.Infrastructure.Time;
 using DrakkarVpn.Shared.Servers;
 using Microsoft.EntityFrameworkCore;
@@ -29,8 +31,11 @@ public static class Entry
         services.AddScoped<IServerMetricsHistoryService, ServerMetricsHistoryService>();
         services.AddScoped<IServerQueryForPeers, ServersQueryService>();
         services.AddHttpClient<IAgentTransportApiClient, ServerTransportAgentClient>();
+        services.AddScoped<IAgentApplyServerTransportRequestBuilder, AgentApplyServerTransportRequestBuilder>();
+        services.AddScoped<IAgentApplyServerTransportHttpExecutor, AgentApplyServerTransportHttpExecutor>();
         services.AddScoped<IAgentApplyServerTransportService, AgentApplyServerTransportService>();
         services.AddScoped<IServerTransportApplyJobService, ServerTransportApplyJobService>();
+        services.AddScoped<IServerTransportAppliedRecorder, ServerTransportAppliedRecorder>();
         services.AddScoped<IServerTransportApplyJobProcessor, ServerTransportApplyJobProcessor>();
 
         return services;
@@ -60,6 +65,7 @@ public static class Entry
         services.AddScoped<IServerTransportActivationReadRepository, ServerTransportActivationReadRepository>();
         services.AddScoped<IServerTransportActivationWriteRepository, ServerTransportActivationWriteRepository>();
         services.AddScoped<IServerTransportApplyJobRepository, ServerTransportApplyJobRepository>();
+        services.AddScoped<IAgentApplyServerTransportContextRepository, AgentApplyServerTransportContextRepository>();
         services.AddSingleton<IDateTimeProvider, SystemDateTimeProvider>();
 
         return services;

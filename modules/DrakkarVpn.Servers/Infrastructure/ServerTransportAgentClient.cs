@@ -40,7 +40,7 @@ public sealed class ServerTransportAgentClient : IAgentTransportApiClient
             }
             catch (JsonException)
             {
-                // leave wire null → throw below with generic mapping
+               
             }
         }
 
@@ -62,13 +62,9 @@ public sealed class ServerTransportAgentClient : IAgentTransportApiClient
 public sealed class ServerTransportAgentCallFailedException : Exception
 {
     public string Code { get; }
-
     public string Phase { get; }
-
     public string? PayloadHash { get; }
-
     public bool? RollbackAttempted { get; }
-
     public bool? RollbackSucceeded { get; }
 
     public ServerTransportAgentCallFailedException(

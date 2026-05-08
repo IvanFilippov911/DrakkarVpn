@@ -4,7 +4,11 @@ namespace DrakkarVpn.Servers.Application.Abstractions.Services;
 
 public interface IServerTransportApplyJobService
 {
-    Task<Guid> EnqueueAsync(Guid serverId, Guid activationId, CancellationToken ct);
+    Task<Guid> EnqueueAsync(
+        Guid serverId,
+        Guid activationId,
+        long targetTransportVersion,
+        CancellationToken ct);
 
     Task<Guid?> GetActiveJobIdByServerIdAsync(Guid serverId, CancellationToken ct);
 
@@ -18,22 +22,27 @@ public interface IServerTransportApplyJobService
     Task<ServerTransportApplyJobDto?> GetAsync(Guid jobId, CancellationToken ct);
 
     Task<int> MarkCompletedAsync(
-        ServerTransportApplyJobDto jobSnapshot,
+        IReadOnlyCollection<Guid> jobIds,
+        string leaseOwner,
         DateTime utcNow,
         CancellationToken ct);
 
     Task<int> FailPermanentAsync(
-        ServerTransportApplyJobDto jobSnapshot,
-        string errorCode,
-        string? errorMessage,
+        IReadOnlyCollection<ServerTransportApplyJobFailure> failures,
+        string leaseOwner,
         DateTime utcNow,
         CancellationToken ct);
 
     Task<int> FailOrRescheduleAsync(
-        ServerTransportApplyJobDto jobSnapshot,
-        string errorCode,
-        string? errorMessage,
+        IReadOnlyCollection<ServerTransportApplyJobFailure> failures,
+        string leaseOwner,
         DateTime utcNow,
         Func<int, TimeSpan> backoff,
+        CancellationToken ct);
+
+    Task<int> MarkObsoleteAsync(
+        IReadOnlyCollection<Guid> jobIds,
+        string leaseOwner, 
+        DateTime utcNow,
         CancellationToken ct);
 }

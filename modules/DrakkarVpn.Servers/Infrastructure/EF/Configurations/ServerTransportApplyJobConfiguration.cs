@@ -25,6 +25,10 @@ public sealed class ServerTransportApplyJobConfiguration : IEntityTypeConfigurat
             .HasColumnName("activation_id")
             .IsRequired();
 
+        b.Property(x => x.TargetTransportVersion)
+            .HasColumnName("target_transport_version")
+            .IsRequired();
+
         b.Property(x => x.State)
             .HasColumnName("state")
             .HasConversion<int>()
@@ -84,6 +88,10 @@ public sealed class ServerTransportApplyJobConfiguration : IEntityTypeConfigurat
             .HasFilter(
                 $"\"state\" IN ({(int)ServerTransportApplyJobStatus.Pending}, {(int)ServerTransportApplyJobStatus.Processing})")
             .HasDatabaseName("ux_server_transport_apply_jobs_one_in_flight_per_server");
+
+        b.HasIndex(x => new { x.ServerId, x.TargetTransportVersion })
+            .IsUnique()
+            .HasDatabaseName("ux_server_transport_apply_jobs_server_target_transport_version");
 
         b.HasIndex(x => x.LeaseUntilUtc)
             .HasDatabaseName("ix_server_transport_apply_jobs_lease_until");
