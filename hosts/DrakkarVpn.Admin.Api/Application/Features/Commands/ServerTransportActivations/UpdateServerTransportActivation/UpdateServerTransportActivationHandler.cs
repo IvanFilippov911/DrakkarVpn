@@ -1,4 +1,4 @@
-using DrakkarVpn.Servers.Application.Abstractions.Services;
+using DrakkarVpn.Servers.Application.Abstractions.Services.ServerTransportActivations;
 using DrakkarVpn.Servers.Application.DTOs.ServerTransportActivations;
 using MediatR;
 
@@ -7,9 +7,9 @@ namespace DrakkarVpn.Admin.Api.Application.Features.Commands.ServerTransportActi
 public sealed class UpdateServerTransportActivationHandler
     : IRequestHandler<UpdateServerTransportActivationRequest, Unit>
 {
-    private readonly IServerTransportActivationManagementService _service;
+    private readonly IServerTransportManagementService _service;
 
-    public UpdateServerTransportActivationHandler(IServerTransportActivationManagementService service)
+    public UpdateServerTransportActivationHandler(IServerTransportManagementService service)
         => _service = service;
 
     public async Task<Unit> Handle(UpdateServerTransportActivationRequest command, CancellationToken ct)

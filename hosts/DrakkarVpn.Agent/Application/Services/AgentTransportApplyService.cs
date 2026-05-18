@@ -1,10 +1,10 @@
 using DrakkarVpn.Agent.Application.Abstractions.AgentTransport;
 using DrakkarVpn.Agent.Application.DTOs;
 using DrakkarVpn.Agent.Application.DTOs.Enums;
-using Microsoft.Extensions.Logging;
 
 namespace DrakkarVpn.Agent.Application.Services;
 
+//Этот сервис еще в доработке
 public sealed class AgentTransportApplyService : IAgentTransportApplyService
 {
     private static readonly SemaphoreSlim ApplyLock = new(1, 1);
@@ -29,7 +29,7 @@ public sealed class AgentTransportApplyService : IAgentTransportApplyService
     public async Task<AgentTransportApplyResult> ApplyAsync(ApplyServerTransportRequestDto request, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(request);
-        
+
         await ApplyLock.WaitAsync(ct);
         try
         {
@@ -46,9 +46,9 @@ public sealed class AgentTransportApplyService : IAgentTransportApplyService
             if (IsAlreadyApplied(stateStep.State, payloadHash))
                 return OkAlreadyApplied(request, payloadHash);
 
-            var applyError = await ApplyXrayOrErrorAsync(request, payloadHash, ct);
-            if (applyError is not null)
-                return applyError;
+            var xrayError = await _xrayApply.ApplyAsync(request, payloadHash, ct);
+            if (xrayError is not null)
+                return xrayError;
 
             var persistError = await PersistStateOrErrorAsync(request, payloadHash, ct);
             if (persistError is not null)
@@ -70,7 +70,7 @@ public sealed class AgentTransportApplyService : IAgentTransportApplyService
             var hash = _hash.Calculate(request);
             return new HashStep(null, hash);
         }
-        catch (System.OperationCanceledException)
+        catch (OperationCanceledException)
         {
             throw;
         }
@@ -78,8 +78,8 @@ public sealed class AgentTransportApplyService : IAgentTransportApplyService
         {
             _log.LogError(ex, "Payload hash computation failed OperationId={OperationId} ServerId={ServerId}",
                 request.OperationId, request.ServerId);
-            var err = AgentTransportApplyResult.ServerFailure(
-                AgentTransportApplyErrorPhase.Hashing,
+            var err = AgentTransportApplyResult.Failed(
+                AgentTransportApplyPhase.Hashing,
                 "hash_failed",
                 PublicMessages.HashFailed,
                 null);
@@ -105,8 +105,8 @@ public sealed class AgentTransportApplyService : IAgentTransportApplyService
                 request.OperationId,
                 request.ServerId,
                 payloadHash);
-            var err = AgentTransportApplyResult.ServerFailure(
-                AgentTransportApplyErrorPhase.StateRead,
+            var err = AgentTransportApplyResult.Failed(
+                AgentTransportApplyPhase.StateRead,
                 "state_read_failed",
                 PublicMessages.StateReadFailed,
                 payloadHash);
@@ -128,38 +128,7 @@ public sealed class AgentTransportApplyService : IAgentTransportApplyService
             request.ServerId,
             request.ActivationId,
             payloadHash);
-        return AgentTransportApplyResult.Ok(AgentTransportApplyOutcome.AlreadyApplied, payloadHash);
-    }
-
-    private async Task<AgentTransportApplyResult?> ApplyXrayOrErrorAsync(
-        ApplyServerTransportRequestDto request,
-        string payloadHash,
-        CancellationToken ct)
-    {
-        try
-        {
-            await _xrayApply.ApplyAsync(request, payloadHash, ct);
-            return null;
-        }
-        catch (System.OperationCanceledException)
-        {
-            throw;
-        }
-        catch (System.Exception ex)
-        {
-            _log.LogError(
-                ex,
-                "Transport config apply execution failed OperationId={OperationId} ServerId={ServerId} ActivationId={ActivationId} PayloadHash={PayloadHash}",
-                request.OperationId,
-                request.ServerId,
-                request.ActivationId,
-                payloadHash);
-            return AgentTransportApplyResult.ServerFailure(
-                AgentTransportApplyErrorPhase.ConfigApply,
-                "config_apply_failed",
-                PublicMessages.ConfigApplyFailed,
-                payloadHash);
-        }
+        return AgentTransportApplyResult.AlreadyApplied(payloadHash);
     }
 
     private async Task<AgentTransportApplyResult?> PersistStateOrErrorAsync(
@@ -188,8 +157,8 @@ public sealed class AgentTransportApplyService : IAgentTransportApplyService
                 request.ServerId,
                 request.ActivationId,
                 payloadHash);
-            return AgentTransportApplyResult.ServerFailure(
-                AgentTransportApplyErrorPhase.StatePersist,
+            return AgentTransportApplyResult.Failed(
+                AgentTransportApplyPhase.StatePersist,
                 "state_persist_failed",
                 PublicMessages.StatePersistFailed,
                 payloadHash);
@@ -204,7 +173,7 @@ public sealed class AgentTransportApplyService : IAgentTransportApplyService
             request.ServerId,
             request.ActivationId,
             payloadHash);
-        return AgentTransportApplyResult.Ok(AgentTransportApplyOutcome.Applied, payloadHash);
+        return AgentTransportApplyResult.Applied(payloadHash);
     }
 
     private readonly record struct HashStep(AgentTransportApplyResult? ErrorIfAny, string? PayloadHash);
@@ -215,7 +184,6 @@ public sealed class AgentTransportApplyService : IAgentTransportApplyService
     {
         public const string HashFailed = "Unable to compute transport fingerprint.";
         public const string StateReadFailed = "Unable to load applied transport state.";
-        public const string ConfigApplyFailed = "Transport configuration apply failed.";
         public const string StatePersistFailed = "Unable to persist applied transport state.";
     }
 }

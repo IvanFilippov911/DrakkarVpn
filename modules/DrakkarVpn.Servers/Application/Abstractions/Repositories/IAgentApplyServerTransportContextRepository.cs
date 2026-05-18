@@ -1,6 +1,6 @@
 using DrakkarVpn.Servers.Application.DTOs.ServerTransportApplyJobs;
 
-namespace DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
+namespace DrakkarVpn.Servers.Application.Abstractions.Repositories;
 
 public interface IAgentApplyServerTransportContextRepository
 {

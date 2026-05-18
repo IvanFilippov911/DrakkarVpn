@@ -1,5 +1,5 @@
 using DrakkarVpn.Core.Api.Modules.Admin.Application.DTOs;
-using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
+using DrakkarVpn.Servers.Application.Abstractions.Services.Queries;
 using DrakkarVpn.Shared;
 using MediatR;
 

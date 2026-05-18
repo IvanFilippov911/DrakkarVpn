@@ -1,24 +1,24 @@
-using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
+using DrakkarVpn.Servers.Application.Abstractions.Repositories;
 using DrakkarVpn.Servers.Application.Abstractions.Services;
+using DrakkarVpn.Servers.Application.Common.Guards;
 using DrakkarVpn.Servers.Application.DTOs.ServerTransportApplyJobs;
-using DrakkarVpn.Servers.Infrastructure.EF.Entities;
+using DrakkarVpn.Servers.Application.Mappers;
+using DrakkarVpn.Servers.Application.Options;
+using Microsoft.Extensions.Options;
 
-namespace DrakkarVpn.Servers.Application.Services;
+namespace DrakkarVpn.Servers.Application.Services.ServerTransportProfileApply;
 
 public sealed class ServerTransportApplyJobService : IServerTransportApplyJobService
 {
     private readonly IServerTransportApplyJobRepository _repo;
+    private readonly ServerTransportApplyJobOptions _opt;
 
-    private const int DefaultMaxAttempt = 10;
-    private const int MaxTake = 500;
-    private const int MaxErrorCodeLen = 128;
-    private const int MaxErrorMessageLen = 2048;
-    private static readonly TimeSpan MinLease = TimeSpan.FromSeconds(5);
-    private static readonly TimeSpan MaxLease = TimeSpan.FromMinutes(5);
-
-    public ServerTransportApplyJobService(IServerTransportApplyJobRepository repo)
+    public ServerTransportApplyJobService(
+        IServerTransportApplyJobRepository repo,
+        IOptions<ServerTransportApplyJobOptions> options)
     {
         _repo = repo;
+        _opt = options.Value;
     }
 
     public Task<Guid> EnqueueAsync(
@@ -36,17 +36,11 @@ public sealed class ServerTransportApplyJobService : IServerTransportApplyJobSer
             serverId,
             activationId,
             targetTransportVersion,
-            DefaultMaxAttempt,
+            _opt.DefaultMaxAttempts,
             DateTime.UtcNow,
             ct);
     }
-
-    public Task<Guid?> GetActiveJobIdByServerIdAsync(Guid serverId, CancellationToken ct)
-    {
-        if (serverId == Guid.Empty) throw new ArgumentException("serverId is required", nameof(serverId));
-        return _repo.GetActiveJobIdByServerIdAsync(serverId, ct);
-    }
-
+    
     public async Task<IReadOnlyList<ServerTransportApplyJobDto>> AcquireBatchAsync(
         int take,
         TimeSpan lease,
@@ -54,30 +48,29 @@ public sealed class ServerTransportApplyJobService : IServerTransportApplyJobSer
         string leaseOwner,
         CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(leaseOwner))
-            throw new ArgumentException("leaseOwner is required", nameof(leaseOwner));
+        var owner = LeaseOwnerGuard.Require(leaseOwner);
         if (take <= 0)
             return [];
 
-        if (take > MaxTake) take = MaxTake;
-        lease = Clamp(lease, MinLease, MaxLease);
-        utcNow = EnsureUtc(utcNow);
+        if (take > _opt.MaxAcquireBatchSize) take = _opt.MaxAcquireBatchSize;
+        lease = Clamp(lease, _opt.MinLeaseDuration, _opt.MaxLeaseDuration);
+        utcNow = UtcDateTimeGuard.RequireUtc(utcNow);
 
         var rows = await _repo.AcquireBatchAsync(
             take: take,
             lease: lease,
             utcNow: utcNow,
-            leaseOwner: leaseOwner.Trim(),
+            leaseOwner: owner,
             ct: ct);
 
-        return rows.Select(Map).ToList();
+        return rows.Select(x => x.ToDto()).ToList();
     }
 
     public async Task<ServerTransportApplyJobDto?> GetAsync(Guid jobId, CancellationToken ct)
     {
         if (jobId == Guid.Empty) throw new ArgumentException("jobId is required", nameof(jobId));
         var row = await _repo.GetByIdAsync(jobId, ct);
-        return row is null ? null : Map(row);
+        return row is null ? null : row.ToDto();
     }
 
     public Task<int> MarkCompletedAsync(
@@ -86,15 +79,14 @@ public sealed class ServerTransportApplyJobService : IServerTransportApplyJobSer
         DateTime utcNow,
         CancellationToken ct)
     {
+        ArgumentNullException.ThrowIfNull(jobIds);
         if (jobIds.Count == 0)
             return Task.FromResult(0);
-        if (string.IsNullOrWhiteSpace(leaseOwner))
-            throw new ArgumentException("leaseOwner is required", nameof(leaseOwner));
 
         return _repo.MarkCompletedAsync(
             jobIds,
-            leaseOwner.Trim(),
-            EnsureUtc(utcNow),
+            LeaseOwnerGuard.Require(leaseOwner),
+            UtcDateTimeGuard.RequireUtc(utcNow),
             ct);
     }
 
@@ -106,11 +98,9 @@ public sealed class ServerTransportApplyJobService : IServerTransportApplyJobSer
     {
         if (failures.Count == 0)
             return Task.FromResult(0);
-        if (string.IsNullOrWhiteSpace(leaseOwner))
-            throw new ArgumentException("leaseOwner is required", nameof(leaseOwner));
 
-        utcNow = EnsureUtc(utcNow);
-        var owner = leaseOwner.Trim();
+        var owner = LeaseOwnerGuard.Require(leaseOwner);
+        utcNow = UtcDateTimeGuard.RequireUtc(utcNow);
 
         var rows = new List<ServerTransportApplyJobMarkFailedBatchRow>(failures.Count);
         foreach (var failure in failures)
@@ -138,13 +128,10 @@ public sealed class ServerTransportApplyJobService : IServerTransportApplyJobSer
     {
         if (failures.Count == 0)
             return 0;
-        if (string.IsNullOrWhiteSpace(leaseOwner))
-            throw new ArgumentException("leaseOwner is required", nameof(leaseOwner));
-        if (backoff is null)
-            throw new ArgumentNullException(nameof(backoff));
+        ArgumentNullException.ThrowIfNull(backoff);
 
-        utcNow = EnsureUtc(utcNow);
-        var owner = leaseOwner.Trim();
+        var owner = LeaseOwnerGuard.Require(leaseOwner);
+        utcNow = UtcDateTimeGuard.RequireUtc(utcNow);
 
         var toFail = new List<ServerTransportApplyJobMarkFailedBatchRow>();
         var toReschedule = new List<ServerTransportApplyJobRescheduleBatchRow>();
@@ -190,53 +177,35 @@ public sealed class ServerTransportApplyJobService : IServerTransportApplyJobSer
         DateTime utcNow,
         CancellationToken ct)
     {
+        ArgumentNullException.ThrowIfNull(jobIds);
         if (jobIds.Count == 0) return Task.FromResult(0);
-        if (string.IsNullOrWhiteSpace(leaseOwner))
-            throw new ArgumentException("LeaseOwner is required");
-        
+
         return _repo.MarkObsoleteAsync(
             jobIds,
-            leaseOwner.Trim(),
-            EnsureUtc(utcNow),
+            LeaseOwnerGuard.Require(leaseOwner),
+            UtcDateTimeGuard.RequireUtc(utcNow),
             ct);
     }
 
-    private static ServerTransportApplyJobDto Map(ServerTransportApplyJob row)
-        => new(
-            row.JobId,
-            row.ServerId,
-            row.ActivationId,
-            row.TargetTransportVersion,
-            row.State,
-            row.LeaseUntilUtc,
-            row.LeaseOwner,
-            row.Attempt,
-            row.MaxAttempt,
-            row.NextAttemptUtc,
-            row.LastErrorCode,
-            row.LastErrorMessage,
-            row.CreatedAtUtc,
-            row.UpdatedAtUtc,
-            row.CompletedAtUtc);
-
-    private static string NormalizeErrorCode(string errorCode)
+    private string NormalizeErrorCode(string errorCode)
     {
         if (string.IsNullOrWhiteSpace(errorCode))
             errorCode = "Unknown";
         errorCode = errorCode.Trim();
-        return errorCode.Length > MaxErrorCodeLen ? errorCode[..MaxErrorCodeLen] : errorCode;
+        return errorCode.Length > _opt.MaxErrorCodeLength
+            ? errorCode[.._opt.MaxErrorCodeLength]
+            : errorCode;
     }
 
-    private static string? NormalizeErrorMessage(string? message)
+    private string? NormalizeErrorMessage(string? message)
     {
         if (string.IsNullOrWhiteSpace(message))
             return null;
         message = message.Trim();
-        return message.Length > MaxErrorMessageLen ? message[..MaxErrorMessageLen] : message;
+        return message.Length > _opt.MaxErrorMessageLength
+            ? message[.._opt.MaxErrorMessageLength]
+            : message;
     }
-
-    private static DateTime EnsureUtc(DateTime dt)
-        => DateTime.SpecifyKind(dt, DateTimeKind.Utc);
 
     private static TimeSpan Clamp(TimeSpan value, TimeSpan min, TimeSpan max)
         => value < min ? min : (value > max ? max : value);

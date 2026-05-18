@@ -1,26 +1,27 @@
 using System.Collections.Concurrent;
-using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
-using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure;
+using DrakkarVpn.Servers.Application.Abstractions;
 using DrakkarVpn.Servers.Application.Abstractions.Services;
 using DrakkarVpn.Servers.Application.DTOs.ServerTransportApplyJobs;
 using DrakkarVpn.Servers.Application.DTOs.TransportProfiles;
+using DrakkarVpn.Servers.Application.Options;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
-namespace DrakkarVpn.Servers.Application.Services;
+namespace DrakkarVpn.Servers.Application.Services.ServerTransportProfileApply.AgentApply;
 
 public sealed class AgentApplyServerTransportHttpExecutor : IAgentApplyServerTransportHttpExecutor
 {
-    private const string ErrorAgentApply = "ServerTransportAgentApplyFailed";
-    private const int MaxParallelRequests = 50;
-
     private readonly IAgentTransportApiClient _client;
+    private readonly ServerTransportAgentApplyOptions _opt;
     private readonly ILogger<AgentApplyServerTransportHttpExecutor> _log;
 
     public AgentApplyServerTransportHttpExecutor(
         IAgentTransportApiClient client,
+        IOptions<ServerTransportAgentApplyOptions> options,
         ILogger<AgentApplyServerTransportHttpExecutor> log)
     {
         _client = client;
+        _opt = options.Value;
         _log = log;
     }
 
@@ -28,6 +29,7 @@ public sealed class AgentApplyServerTransportHttpExecutor : IAgentApplyServerTra
         IReadOnlyList<PreparedAgentTransportApplyRequest> requests,
         CancellationToken ct)
     {
+        ArgumentNullException.ThrowIfNull(requests);
         if (requests.Count == 0)
             return new Dictionary<Guid, AgentApplyResult>();
 
@@ -36,7 +38,7 @@ public sealed class AgentApplyServerTransportHttpExecutor : IAgentApplyServerTra
         var options = new ParallelOptions
         {
             CancellationToken = ct,
-            MaxDegreeOfParallelism = Math.Min(requests.Count, MaxParallelRequests)
+            MaxDegreeOfParallelism = Math.Min(requests.Count, _opt.MaxParallelRequests)
         };
 
         await Parallel.ForEachAsync(requests, options, async (req, token) =>
@@ -55,32 +57,12 @@ public sealed class AgentApplyServerTransportHttpExecutor : IAgentApplyServerTra
     {
         try
         {
-            var result = await _client.ApplyServerTransportAsync(agentUrl, request, ct);
-            return new AgentApplyResult(
-                AgentApplyOutcome.Applied,
-                PayloadHash: result.PayloadHash,
-                Phase: result.Phase,
-                RollbackAttempted: result.RollbackAttempted,
-                RollbackSucceeded: result.RollbackSucceeded);
+            var call = await _client.ApplyServerTransportAsync(agentUrl, request, ct);
+            return AgentTransportApplyOutcomeMapper.ToJobResult(call);
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
             throw;
-        }
-        catch (ServerTransportAgentCallFailedException ex)
-        {
-            var outcome = IsPermanentAgentFailure(ex.Code)
-                ? AgentApplyOutcome.PermanentFailed
-                : AgentApplyOutcome.RetryableFailed;
-
-            return new AgentApplyResult(
-                outcome,
-                ErrorCode: ex.Code,
-                ErrorMessage: CompositeAgentErrorDetail(ex),
-                Phase: ex.Phase,
-                PayloadHash: ex.PayloadHash,
-                RollbackAttempted: ex.RollbackAttempted,
-                RollbackSucceeded: ex.RollbackSucceeded);
         }
         catch (Exception ex)
         {
@@ -92,32 +74,8 @@ public sealed class AgentApplyServerTransportHttpExecutor : IAgentApplyServerTra
 
             return new AgentApplyResult(
                 AgentApplyOutcome.RetryableFailed,
-                ErrorCode: ErrorAgentApply,
+                ErrorCode: "ServerTransportAgentApplyFailed",
                 ErrorMessage: ex.Message);
         }
-    }
-
-    private static string CompositeAgentErrorDetail(ServerTransportAgentCallFailedException ex)
-    {
-        var parts = new List<string>();
-        parts.Add(ex.Message);
-        if (!string.IsNullOrWhiteSpace(ex.Phase))
-            parts.Add($"phase={ex.Phase}");
-        if (!string.IsNullOrWhiteSpace(ex.PayloadHash))
-            parts.Add($"payloadHash={ex.PayloadHash}");
-        if (ex.RollbackAttempted is not null || ex.RollbackSucceeded is not null)
-            parts.Add($"rollbackAttempted={ex.RollbackAttempted};rollbackSucceeded={ex.RollbackSucceeded}");
-        return string.Join("; ", parts);
-    }
-
-    private static bool IsPermanentAgentFailure(string code)
-    {
-        if (!code.StartsWith("HTTP_", StringComparison.OrdinalIgnoreCase))
-            return false;
-
-        if (!int.TryParse(code["HTTP_".Length..], out var statusCode))
-            return false;
-
-        return statusCode is >= 400 and < 500 and not 408 and not 429;
     }
 }

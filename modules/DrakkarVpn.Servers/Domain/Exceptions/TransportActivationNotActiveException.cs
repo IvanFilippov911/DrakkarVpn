@@ -1,4 +1,4 @@
-namespace DrakkarVpn.Core.Api.Modules.Servers.Domain.Exceptions;
+namespace DrakkarVpn.Servers.Domain.Exceptions;
 
 public sealed class TransportActivationNotActiveException : InvalidOperationException
 {

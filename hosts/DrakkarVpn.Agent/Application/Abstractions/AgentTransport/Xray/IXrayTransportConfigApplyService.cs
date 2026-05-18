@@ -4,5 +4,9 @@ namespace DrakkarVpn.Agent.Application.Abstractions.AgentTransport;
 
 public interface IXrayTransportConfigApplyService
 {
-    Task ApplyAsync(ApplyServerTransportRequestDto request, string payloadHash, CancellationToken ct);
+    /// <returns>null when the xray pipeline succeeded; otherwise Rejected or Failed.</returns>
+    Task<AgentTransportApplyResult?> ApplyAsync(
+        ApplyServerTransportRequestDto request,
+        string payloadHash,
+        CancellationToken ct);
 }

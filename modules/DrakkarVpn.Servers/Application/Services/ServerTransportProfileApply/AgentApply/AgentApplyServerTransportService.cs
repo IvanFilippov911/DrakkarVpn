@@ -2,7 +2,7 @@ using DrakkarVpn.Servers.Application.Abstractions.Services;
 using DrakkarVpn.Servers.Application.DTOs.ServerTransportApplyJobs;
 using Microsoft.Extensions.Logging;
 
-namespace DrakkarVpn.Servers.Application.Services;
+namespace DrakkarVpn.Servers.Application.Services.ServerTransportProfileApply.AgentApply;
 
 public sealed class AgentApplyServerTransportService : IAgentApplyServerTransportService
 {
@@ -28,18 +28,18 @@ public sealed class AgentApplyServerTransportService : IAgentApplyServerTranspor
         
         var results = new Dictionary<Guid, AgentApplyResult>(jobs.Count);
         
-        var buildAgentRequests = await _builder.BuildAsync(jobs, ct);
+        var buildResult = await _builder.BuildAsync(jobs, ct);
 
-        foreach (var failed in buildAgentRequests.Failed)
+        foreach (var failed in buildResult.Failed)
         {
             results[failed.Key] = failed.Value;
         }
         
-        if (buildAgentRequests.Requests.Count == 0)
+        if (buildResult.Requests.Count == 0)
             return results;
 
         var httpResults = await _httpExecutor.ExecuteAsync(
-            buildAgentRequests.Requests, ct);
+            buildResult.Requests, ct);
         
         foreach (var result in httpResults)
         {
@@ -52,7 +52,7 @@ public sealed class AgentApplyServerTransportService : IAgentApplyServerTranspor
 
         LogApplyBatchResult(jobs.Count, results);
 
-        return results;
+        return results.AsReadOnly();;
     }
     
     private static void AddMissingResultsAsRetryable(

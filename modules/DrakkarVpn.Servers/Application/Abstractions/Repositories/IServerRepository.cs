@@ -3,11 +3,13 @@ using DrakkarVpn.Core.Api.Modules.Servers.Domain;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.EF.ReadModels;
 using DrakkarVpn.Servers.Domain.Aggregates;
 
-namespace DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
+namespace DrakkarVpn.Servers.Application.Abstractions.Repositories;
 
 public interface IServerRepository
 {
     Task<Server?> GetAsync(Guid id, CancellationToken ct);
+
+    Task<Server?> GetForTransportActivationUpdateAsync(Guid serverId, CancellationToken ct);
     Task<Dictionary<Guid, Server>> GetByIdsAsync(Guid[] ids, CancellationToken ct);
     Task<Dictionary<Guid, Server>> GetWithActivationsAsync(
         IReadOnlyCollection<Guid> ids,

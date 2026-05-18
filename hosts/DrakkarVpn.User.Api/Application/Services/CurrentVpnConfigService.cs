@@ -1,18 +1,18 @@
 using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
-using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
+using DrakkarVpn.Servers.Application.Abstractions.Services.Queries;
 
 namespace DrakkarVpn.Core.Api.Application.Services;
 
 public sealed class CurrentVpnConfigService : ICurrentVpnConfigService
 {
     private readonly IPeersQueryService _peers;
-    private readonly IServersQueryService _servers;
+    private readonly IServerConfigQueryService _servers;
     private readonly IVpnBuildArtifactsService _builder;
 
     public CurrentVpnConfigService(
         IPeersQueryService peers,
-        IServersQueryService servers,
+        IServerConfigQueryService servers,
         IVpnBuildArtifactsService builder)
     {
         _peers = peers;

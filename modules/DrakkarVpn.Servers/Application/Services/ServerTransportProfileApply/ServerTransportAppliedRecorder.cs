@@ -1,8 +1,9 @@
-using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
-using DrakkarVpn.Core.Api.Modules.Servers.Domain.Exceptions;
 using DrakkarVpn.Servers.Application.Abstractions;
+using DrakkarVpn.Servers.Application.Abstractions.Repositories;
 using DrakkarVpn.Servers.Application.Abstractions.Services.ServerTransportProfileApply;
+using DrakkarVpn.Servers.Application.Common.Guards;
 using DrakkarVpn.Servers.Application.DTOs.ServerTransportApplyJobs;
+using DrakkarVpn.Servers.Domain.Exceptions;
 using Microsoft.Extensions.Logging;
 
 namespace DrakkarVpn.Servers.Application.Services.ServerTransportProfileApply;
@@ -34,11 +35,13 @@ public sealed class ServerTransportAppliedRecorder : IServerTransportAppliedReco
     {
         if (applied.Count == 0)
             return Task.FromResult(0);
-        if (string.IsNullOrWhiteSpace(leaseOwner))
-            throw new ArgumentException("leaseOwner is required", nameof(leaseOwner));
 
         return _uow.ExecuteInTransactionAsync(
-            innerCt => RecordCoreAsync(applied, leaseOwner.Trim(), EnsureUtc(utcNow), innerCt),
+            innerCt => RecordCoreAsync(
+                applied,
+                LeaseOwnerGuard.Require(leaseOwner),
+                UtcDateTimeGuard.RequireUtc(utcNow),
+                innerCt),
             ct);
     }
 
@@ -55,6 +58,8 @@ public sealed class ServerTransportAppliedRecorder : IServerTransportAppliedReco
 
         var servers = await _servers.GetWithActivationsAsync(serverIds, ct);
 
+        var completedJobIds = new List<Guid>(applied.Count);
+
         foreach (var outcome in applied)
         {
             if (!servers.TryGetValue(outcome.ServerId, out var server))
@@ -63,12 +68,14 @@ public sealed class ServerTransportAppliedRecorder : IServerTransportAppliedReco
                     "Applied job references missing server. JobId={JobId} ServerId={ServerId}",
                     outcome.JobId,
                     outcome.ServerId);
+
                 continue;
             }
 
             try
             {
                 server.MarkTransportApplied(outcome.ActivationId, outcome.Version, utcNow);
+                completedJobIds.Add(outcome.JobId);
             }
             catch (TransportAppliedVersionStaleException ex)
             {
@@ -78,18 +85,16 @@ public sealed class ServerTransportAppliedRecorder : IServerTransportAppliedReco
                     outcome.ServerId,
                     ex.IncomingVersion,
                     ex.CurrentAppliedVersion);
+
+                completedJobIds.Add(outcome.JobId);
             }
         }
 
+        if (completedJobIds.Count == 0)
+            return 0;
+
         await _uow.SaveChangesAsync(ct);
 
-        var jobIds = applied
-            .Select(x => x.JobId)
-            .ToArray();
-
-        return await _jobs.MarkCompletedAsync(jobIds, leaseOwner, utcNow, ct);
+        return await _jobs.MarkCompletedAsync(completedJobIds, leaseOwner, utcNow, ct);
     }
-
-    private static DateTime EnsureUtc(DateTime dt)
-        => DateTime.SpecifyKind(dt, DateTimeKind.Utc);
 }

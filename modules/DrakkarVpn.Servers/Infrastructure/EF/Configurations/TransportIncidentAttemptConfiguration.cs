@@ -1,4 +1,5 @@
 using DrakkarVpn.Servers.Domain.Aggregates;
+using DrakkarVpn.Servers.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

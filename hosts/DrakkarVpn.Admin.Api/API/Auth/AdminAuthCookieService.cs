@@ -59,7 +59,7 @@ public sealed class AdminAuthCookieService : IAdminAuthCookieService
         {
             HttpOnly = true,
             Secure = true,
-            SameSite = SameSiteMode.None, // required for cross-origin (e.g. localhost frontend → this API)
+            SameSite = SameSiteMode.None,
             Path = RefreshTokenCookiePath,
             IsEssential = true,
             Expires = expiresAtUtc is null ? null : new DateTimeOffset(expiresAtUtc.Value)

@@ -1,16 +1,13 @@
-using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Queries.GetServers;
 using DrakkarVpn.Core.Api.Modules.Servers.Domain;
-using DrakkarVpn.Core.Api.Modules.Servers.Domain.VO;
-using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.EF;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.EF.ReadModels;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.Entities;
+using DrakkarVpn.Servers.Application.Abstractions.Repositories;
 using DrakkarVpn.Servers.Domain.Aggregates;
 using DrakkarVpn.Servers.Infrastructure.EF.Extensions;
-using DrakkarVpn.Shared;
 using Microsoft.EntityFrameworkCore;
 
-namespace DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.Repositories;
+namespace DrakkarVpn.Servers.Infrastructure.EF.Repositories;
 
 public sealed class ServerRepository : IServerRepository
 {
@@ -20,18 +17,35 @@ public sealed class ServerRepository : IServerRepository
 
     public Task<Server?> GetAsync(Guid id, CancellationToken ct) =>
         _db.Servers
-            .Include("_transportActivations")
+            .Include(s => s.TransportActivations)
             .FirstOrDefaultAsync(s => s.Id == id, ct);
-    
+
+    public async Task<Server?> GetForTransportActivationUpdateAsync(Guid serverId, CancellationToken ct)
+    {
+        await _db.Database.ExecuteSqlInterpolatedAsync(
+            $"""
+             SELECT id
+             FROM servers.servers
+             WHERE id = {serverId}
+             FOR UPDATE
+             """,
+            ct);
+
+        return await _db.Servers
+            .Include(s => s.TransportActivations)
+            .FirstOrDefaultAsync(s => s.Id == serverId, ct);
+    }
+
     public async Task AddAsync(Server server, CancellationToken ct)
     {
         await _db.Servers.AddAsync(server, ct);
         await _db.ServerPollStates.AddAsync(new ServerPollState(server.Id), ct);
     }
 
-    public async Task DeleteAsync(Server server, CancellationToken ct)
+    public Task DeleteAsync(Server server, CancellationToken ct)
     {
         _db.Servers.Remove(server);
+        return Task.CompletedTask;
     }
     
     public IQueryable<Server> Query() => _db.Servers.AsNoTracking();
@@ -54,7 +68,7 @@ public sealed class ServerRepository : IServerRepository
             return new();
 
         return await _db.Servers
-            .Include("_transportActivations")
+            .Include(s => s.TransportActivations)
             .Where(s => ids.Contains(s.Id))
             .ToDictionaryAsync(s => s.Id, ct);
     }
@@ -81,7 +95,7 @@ public sealed class ServerRepository : IServerRepository
         var items = await servers
             .WithRealtimeStats(_db.ServerRealtimeStats.AsNoTracking())
             .OrderByDescending(x => x.Server.Health.Reachable)
-            .ThenBy(x => x.Server.Health.PeersActive)
+            .ThenByDescending(x => x.Server.Health.PeersActive)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ProjectToAdminIndex()

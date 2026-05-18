@@ -1,6 +1,7 @@
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.EF;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.EF.ReadModels;
+using DrakkarVpn.Servers.Infrastructure.EF;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using NpgsqlTypes;

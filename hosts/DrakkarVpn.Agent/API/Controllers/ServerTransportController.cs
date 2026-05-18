@@ -1,4 +1,5 @@
 using DrakkarVpn.Agent.Application.DTOs;
+using DrakkarVpn.Agent.Application.DTOs.Enums;
 using DrakkarVpn.Agent.Application.Feature.Commands.ApplyServerTransport;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -23,16 +24,21 @@ public sealed class ServerTransportController : ControllerBase
     public async Task<IActionResult> Apply([FromBody] ApplyServerTransportRequestDto? body, CancellationToken ct)
     {
         if (body is null)
-            return BadRequest(new { code = "bad_request", message = "body required" });
+        {
+            var rejected = AgentTransportApplyResult.Rejected(
+                AgentTransportApplyPhase.Validation,
+                "body_required",
+                "body required");
+            return BadRequest(AgentTransportApplyWireMapper.ToWireResponse(rejected));
+        }
 
         var result = await _mediator.Send(new ApplyServerTransportCommand(body), ct);
-
         var wire = AgentTransportApplyWireMapper.ToWireResponse(result);
 
-        if (result is { IsSuccess: true })
+        if (result.IsSuccess)
             return Ok(wire);
 
-        if (result.IsClientError)
+        if (result.IsRejected)
             return BadRequest(wire);
 
         return StatusCode(StatusCodes.Status500InternalServerError, wire);

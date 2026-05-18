@@ -2,24 +2,29 @@ using DrakkarVpn.Admin.Api.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Admin.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
+using DrakkarVpn.Servers.Application.Abstractions.Services;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.EF.ReadModels;
+using DrakkarVpn.Servers.Application.Abstractions.Services.Queries;
 
 namespace DrakkarVpn.Core.Api.Modules.Admin.Application.Features.Services;
 
 public sealed class ServerRealtimeStatsUpdater : IServerRealtimeStatsUpdater
 {
-    private readonly IServersQueryService _serversQuery;
+    private readonly IServerConfigQueryService _serverConfig;
+    private readonly IServerMetricsQueryService _serverMetrics;
     private readonly IPeersQueryService _peersQuery;
     private readonly IServerRealtimeStatsUpsertService _upsert;
 
     public ServerRealtimeStatsUpdater(
-        IServersQueryService serversQuery,
+        IServerConfigQueryService serverConfig,
+        IServerMetricsQueryService serverMetrics,
         IPeersQueryService peersQuery,
         IServerRealtimeStatsUpsertService upsert)
     {
-        _serversQuery = serversQuery;
-        _peersQuery   = peersQuery;
-        _upsert       = upsert;
+        _serverConfig = serverConfig;
+        _serverMetrics = serverMetrics;
+        _peersQuery = peersQuery;
+        _upsert = upsert;
     }
 
     public async Task<int> UpdateNowAsync(DateTime nowUtc, CancellationToken ct)
@@ -27,13 +32,13 @@ public sealed class ServerRealtimeStatsUpdater : IServerRealtimeStatsUpdater
         var from1h  = nowUtc.AddHours(-1);
         var from24h = nowUtc.AddHours(-24);
 
-        var serverIds = await _serversQuery.GetEnabledServerIdsAsync(ct);
+        var serverIds = await _serverConfig.GetEnabledServerIdsAsync(ct);
         if (serverIds.Length == 0)
             return 0;
 
         var onlineDict     = await _peersQuery.GetServersOnlinePeersSummaryAsync(serverIds, ct);
-        var traffic1hDict  = await _serversQuery.GetTrafficSummaryAsync(serverIds, from1h, ct);
-        var traffic24hDict = await _serversQuery.GetTrafficSummaryAsync(serverIds, from24h, ct);
+        var traffic1hDict  = await _serverMetrics.GetTrafficSummaryAsync(serverIds, from1h, ct);
+        var traffic24hDict = await _serverMetrics.GetTrafficSummaryAsync(serverIds, from24h, ct);
 
         var rows = new List<ServerRealtimeStatsUpsertRow>(serverIds.Length);
 

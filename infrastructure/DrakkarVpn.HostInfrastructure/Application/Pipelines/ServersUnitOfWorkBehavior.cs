@@ -14,13 +14,16 @@ public sealed class ServersUnitOfWorkBehavior<TRequest, TResponse>
         _uow = uow;
     }
 
-    public async Task<TResponse> Handle(
+    public Task<TResponse> Handle(
         TRequest request,
         RequestHandlerDelegate<TResponse> next,
         CancellationToken ct)
     {
-        var response = await next();
-        await _uow.SaveChangesAsync(ct);
-        return response;
+        return _uow.ExecuteInTransactionAsync(async innerCt =>
+        {
+            var response = await next();
+            await _uow.SaveChangesAsync(innerCt);
+            return response;
+        }, ct);
     }
 }

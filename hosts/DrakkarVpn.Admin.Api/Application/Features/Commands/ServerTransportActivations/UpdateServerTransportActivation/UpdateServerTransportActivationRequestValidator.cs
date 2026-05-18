@@ -1,3 +1,4 @@
+using DrakkarVpn.Servers.Domain.Aggregates;
 using DrakkarVpn.Servers.Domain.Entities;
 using FluentValidation;
 

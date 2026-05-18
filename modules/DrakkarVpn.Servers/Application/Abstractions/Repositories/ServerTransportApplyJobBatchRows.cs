@@ -1,4 +1,4 @@
-namespace DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
+namespace DrakkarVpn.Servers.Application.Abstractions.Repositories;
 
 public readonly record struct ServerTransportApplyJobMarkFailedBatchRow(
     Guid JobId,

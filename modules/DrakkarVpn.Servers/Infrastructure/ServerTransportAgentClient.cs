@@ -1,10 +1,11 @@
 using System.Net.Http.Json;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
+using DrakkarVpn.Servers.Application.Abstractions;
+using DrakkarVpn.Servers.Application.Abstractions.Repositories;
 using DrakkarVpn.Servers.Application.DTOs.TransportProfiles;
+using DrakkarVpn.Servers.Application.DTOs.TransportProfiles.AgentApply;
 
-namespace DrakkarVpn.Core.Api.Modules.Servers.Infrastructure;
+namespace DrakkarVpn.Servers.Infrastructure;
 
 public sealed class ServerTransportAgentClient : IAgentTransportApiClient
 {
@@ -14,7 +15,7 @@ public sealed class ServerTransportAgentClient : IAgentTransportApiClient
 
     public ServerTransportAgentClient(HttpClient http) => _http = http;
 
-    public async Task<AgentApplyServerTransportWireResponse> ApplyServerTransportAsync(
+    public async Task<AgentTransportApplyCallResult> ApplyServerTransportAsync(
         string agentBaseUrl,
         AgentApplyServerTransportRequest request,
         CancellationToken ct)
@@ -26,10 +27,31 @@ public sealed class ServerTransportAgentClient : IAgentTransportApiClient
         var baseUrl = agentBaseUrl.TrimEnd('/');
         var url = $"{baseUrl}/server-transport/apply";
 
-        var resp = await _http.PostAsJsonAsync(url, request, JsonOptions, ct);
+        HttpResponseMessage response;
+        try
+        {
+            response = await _http.PostAsJsonAsync(url, request, JsonOptions, ct);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (OperationCanceledException ex)
+        {
+            return AgentTransportApplyCallResult.TransportFailure(
+                "agent_timeout",
+                ex.Message);
+        }
+        catch (HttpRequestException ex)
+        {
+            return AgentTransportApplyCallResult.TransportFailure(
+                "agent_http_request_failed",
+                ex.Message);
+        }
 
-        var json = await resp.Content.ReadAsStringAsync(ct);
+        var json = await response.Content.ReadAsStringAsync(ct);
         AgentApplyServerTransportWireResponse? wire = null;
+
         if (!string.IsNullOrWhiteSpace(json))
         {
             try
@@ -38,47 +60,19 @@ public sealed class ServerTransportAgentClient : IAgentTransportApiClient
                     json,
                     JsonOptions);
             }
-            catch (JsonException)
+            catch (JsonException ex)
             {
-               
+                return AgentTransportApplyCallResult.TransportFailure(
+                    "agent_response_malformed",
+                    ex.Message);
             }
         }
 
-        if (wire?.Success == true)
-            return wire;
+        if (wire is not null)
+            return AgentTransportApplyCallResult.FromWire(wire);
 
-        var code = wire?.Code ?? $"HTTP_{(int)resp.StatusCode}";
-        var msg = wire?.Message ?? "Agent refused, malformed agent response, or apply did not succeed.";
-        throw new ServerTransportAgentCallFailedException(
-            code,
-            msg,
-            phase: wire?.Phase ?? string.Empty,
-            payloadHash: wire?.PayloadHash,
-            rollbackAttempted: wire?.RollbackAttempted,
-            rollbackSucceeded: wire?.RollbackSucceeded);
-    }
-}
-
-public sealed class ServerTransportAgentCallFailedException : Exception
-{
-    public string Code { get; }
-    public string Phase { get; }
-    public string? PayloadHash { get; }
-    public bool? RollbackAttempted { get; }
-    public bool? RollbackSucceeded { get; }
-
-    public ServerTransportAgentCallFailedException(
-        string code,
-        string message,
-        string? phase = null,
-        string? payloadHash = null,
-        bool? rollbackAttempted = null,
-        bool? rollbackSucceeded = null) : base(message)
-    {
-        Code = code;
-        Phase = phase ?? string.Empty;
-        PayloadHash = payloadHash;
-        RollbackAttempted = rollbackAttempted;
-        RollbackSucceeded = rollbackSucceeded;
+        return AgentTransportApplyCallResult.TransportFailure(
+            code: $"HTTP_{(int)response.StatusCode}",
+            message: $"Agent returned HTTP {(int)response.StatusCode} without a valid apply payload.");
     }
 }

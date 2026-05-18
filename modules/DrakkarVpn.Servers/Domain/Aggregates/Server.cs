@@ -1,10 +1,12 @@
-using DrakkarVpn.Core.Api.Modules.Servers.Domain.Abstractions;
-using DrakkarVpn.Core.Api.Modules.Servers.Domain.Exceptions;
+using DrakkarVpn.Core.Api.Modules.Servers.Domain;
 using DrakkarVpn.Core.Api.Modules.Servers.Domain.VO;
+using DrakkarVpn.Servers.Domain.Abstractions;
 using DrakkarVpn.Servers.Domain.Entities;
 using DrakkarVpn.Servers.Domain.Enums;
+using DrakkarVpn.Servers.Domain.Exceptions;
+using DrakkarVpn.Servers.Domain.VO;
 
-namespace DrakkarVpn.Core.Api.Modules.Servers.Domain;
+namespace DrakkarVpn.Servers.Domain.Aggregates;
 
 public sealed class Server : IAggregateRoot
 {
@@ -84,6 +86,12 @@ public sealed class Server : IAggregateRoot
         int localPriority,
         DateTime utcNow)
     {
+        if (activationId == Guid.Empty)
+            throw new ArgumentException("ActivationId must not be empty.", nameof(activationId));
+
+        if (transportProfileId == Guid.Empty)
+            throw new ArgumentException("TransportProfileId must not be empty.", nameof(transportProfileId));
+        
         ArgumentException.ThrowIfNullOrWhiteSpace(realityPublicKey);
 
         if (_transportActivations.Exists(x => x.TransportProfileId == transportProfileId))
@@ -103,6 +111,11 @@ public sealed class Server : IAggregateRoot
     public void ActivateTransportActivation(Guid activationId, DateTimeOffset nowUtc)
     {
         var target = FindActivationOrThrow(activationId);
+        
+        if (DesiredTransportActivationId == activationId
+            && target.Status == TransportActivationStatus.Active)
+            return;
+
 
         var utcNow = nowUtc.UtcDateTime;
 
@@ -187,7 +200,7 @@ public sealed class Server : IAggregateRoot
     private static string NormalizeRequired(string value, string paramName, int? maxLength = null)
     {
         if (string.IsNullOrWhiteSpace(value))
-            throw new ArgumentNullException(paramName);
+            throw new ArgumentException("Value must not be empty.", paramName);
 
         var normalized = value.Trim();
         if (maxLength.HasValue && normalized.Length > maxLength.Value)

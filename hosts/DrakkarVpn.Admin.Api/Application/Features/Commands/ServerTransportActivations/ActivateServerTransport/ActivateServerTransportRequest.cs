@@ -1,3 +1,4 @@
+using DrakkarVpn.Admin.Api.Application.DTOs.ServerTransportActivations;
 using DrakkarVpn.Servers.Application.Abstractions;
 using MediatR;
 
@@ -5,4 +6,4 @@ namespace DrakkarVpn.Admin.Api.Application.Features.Commands.ServerTransportActi
 
 public sealed record ActivateServerTransportRequest(
     Guid ServerId,
-    Guid ActivationId) : IServersCommand<Unit>;
+    Guid ActivationId) : IServersCommand<ActivateServerTransportResultDto>;

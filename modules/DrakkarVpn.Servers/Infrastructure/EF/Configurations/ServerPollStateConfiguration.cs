@@ -1,8 +1,9 @@
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.Entities;
+using DrakkarVpn.Servers.Domain.Aggregates;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.EF.Configurations;
+namespace DrakkarVpn.Servers.Infrastructure.EF.Configurations;
 
 internal sealed class ServerPollStateConfiguration : IEntityTypeConfiguration<ServerPollState>
 {
@@ -11,6 +12,11 @@ internal sealed class ServerPollStateConfiguration : IEntityTypeConfiguration<Se
         b.ToTable("server_poll_states");
 
         b.HasKey(x => x.ServerId);
+
+        b.HasOne<Server>()
+            .WithOne()
+            .HasForeignKey<ServerPollState>(x => x.ServerId)
+            .OnDelete(DeleteBehavior.Cascade);
         
         b.Property(x => x.ServerId)
             .ValueGeneratedNever();

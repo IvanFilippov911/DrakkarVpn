@@ -1,10 +1,9 @@
-using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
-using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.EF;
+using DrakkarVpn.Servers.Application.Abstractions.Repositories;
 using DrakkarVpn.Servers.Application.DTOs.ServerTransportApplyJobs;
 using DrakkarVpn.Servers.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.Repositories;
+namespace DrakkarVpn.Servers.Infrastructure.EF.Repositories.ServerTransportActivation;
 
 public sealed class AgentApplyServerTransportContextRepository : IAgentApplyServerTransportContextRepository
 {

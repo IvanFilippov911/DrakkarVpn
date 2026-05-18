@@ -1,3 +1,4 @@
+using DrakkarVpn.Servers.Application.Common.Guards;
 using DrakkarVpn.Servers.Domain.Enums.TransportProfile;
 
 namespace DrakkarVpn.Servers.Infrastructure.EF.Entities;
@@ -41,7 +42,7 @@ public sealed class ServerTransportApplyJob
             throw new ArgumentOutOfRangeException(nameof(targetTransportVersion));
         if (maxAttempt <= 0) throw new ArgumentException("maxAttempt must be > 0", nameof(maxAttempt));
 
-        utcNow = DateTime.SpecifyKind(utcNow, DateTimeKind.Utc);
+        utcNow = UtcDateTimeGuard.RequireUtc(utcNow);
 
         return new ServerTransportApplyJob
         {

@@ -1,4 +1,4 @@
-using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
+using DrakkarVpn.Servers.Application.Abstractions.Services.Queries;
 using DrakkarVpn.Core.Api.Modules.Servers.Application.Features.Queries.GetServers;
 using MediatR;
 

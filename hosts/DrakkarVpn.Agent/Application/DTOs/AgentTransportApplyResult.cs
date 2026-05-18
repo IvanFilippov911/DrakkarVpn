@@ -4,69 +4,62 @@ namespace DrakkarVpn.Agent.Application.DTOs;
 
 public sealed record AgentTransportApplyResult
 {
-    public bool IsSuccess { get; init; }
-    public AgentTransportApplyOutcome? Outcome { get; init; }
-    public AgentTransportApplyErrorPhase Phase { get; init; } = AgentTransportApplyErrorPhase.None;
+    public AgentTransportApplyOutcome Outcome { get; init; }
+    public AgentTransportApplyPhase Phase { get; init; } = AgentTransportApplyPhase.None;
+
+    public string? Code { get; init; }
+    public string? Message { get; init; }
 
     public string? PayloadHash { get; init; }
-
-    public string? ErrorCode { get; init; }
-    public string? ErrorMessage { get; init; }
 
     public bool RollbackAttempted { get; init; }
     public bool RollbackSucceeded { get; init; }
 
-    public bool IsClientError =>
-        !IsSuccess && Phase is AgentTransportApplyErrorPhase.FluentValidation or AgentTransportApplyErrorPhase.Preconditions;
+    public bool IsSuccess =>
+        Outcome is AgentTransportApplyOutcome.Applied
+            or AgentTransportApplyOutcome.AlreadyApplied;
 
-    public static AgentTransportApplyResult Ok(
-        AgentTransportApplyOutcome outcome,
-        string payloadHash,
-        bool rollbackAttempted = false,
-        bool rollbackSucceeded = false) =>
-        new()
-        {
-            IsSuccess = true,
-            Phase = AgentTransportApplyErrorPhase.None,
-            Outcome = outcome,
-            PayloadHash = payloadHash,
-            RollbackAttempted = rollbackAttempted,
-            RollbackSucceeded = rollbackSucceeded
-        };
+    public bool IsRejected => Outcome == AgentTransportApplyOutcome.Rejected;
 
-    public static AgentTransportApplyResult ClientError(
-        AgentTransportApplyErrorPhase phase,
+    public static AgentTransportApplyResult Applied(string payloadHash) => new()
+    {
+        Outcome = AgentTransportApplyOutcome.Applied,
+        PayloadHash = payloadHash
+    };
+
+    public static AgentTransportApplyResult AlreadyApplied(string payloadHash) => new()
+    {
+        Outcome = AgentTransportApplyOutcome.AlreadyApplied,
+        PayloadHash = payloadHash
+    };
+
+    public static AgentTransportApplyResult Rejected(
+        AgentTransportApplyPhase phase,
+        string code,
+        string message,
+        string? payloadHash = null) => new()
+    {
+        Outcome = AgentTransportApplyOutcome.Rejected,
+        Phase = phase,
+        Code = code,
+        Message = message,
+        PayloadHash = payloadHash
+    };
+
+    public static AgentTransportApplyResult Failed(
+        AgentTransportApplyPhase phase,
         string code,
         string message,
         string? payloadHash = null,
         bool rollbackAttempted = false,
-        bool rollbackSucceeded = false) =>
-        new()
-        {
-            IsSuccess = false,
-            Phase = phase,
-            ErrorCode = code,
-            ErrorMessage = message,
-            PayloadHash = payloadHash,
-            RollbackAttempted = rollbackAttempted,
-            RollbackSucceeded = rollbackSucceeded
-        };
-
-    public static AgentTransportApplyResult ServerFailure(
-        AgentTransportApplyErrorPhase phase,
-        string code,
-        string message,
-        string? payloadHash,
-        bool rollbackAttempted = false,
-        bool rollbackSucceeded = false) =>
-        new()
-        {
-            IsSuccess = false,
-            Phase = phase,
-            ErrorCode = code,
-            ErrorMessage = message,
-            PayloadHash = payloadHash,
-            RollbackAttempted = rollbackAttempted,
-            RollbackSucceeded = rollbackSucceeded
-        };
+        bool rollbackSucceeded = false) => new()
+    {
+        Outcome = AgentTransportApplyOutcome.Failed,
+        Phase = phase,
+        Code = code,
+        Message = message,
+        PayloadHash = payloadHash,
+        RollbackAttempted = rollbackAttempted,
+        RollbackSucceeded = rollbackSucceeded
+    };
 }

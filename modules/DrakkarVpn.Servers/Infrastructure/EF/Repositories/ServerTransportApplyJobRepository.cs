@@ -1,12 +1,12 @@
-using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
-using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.EF;
+using DrakkarVpn.Servers.Application.Abstractions.Repositories;
+using DrakkarVpn.Servers.Application.Common.Guards;
 using DrakkarVpn.Servers.Domain.Enums.TransportProfile;
 using DrakkarVpn.Servers.Infrastructure.EF.Entities;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using NpgsqlTypes;
 
-namespace DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.Repositories;
+namespace DrakkarVpn.Servers.Infrastructure.EF.Repositories;
 
 public sealed class ServerTransportApplyJobRepository : IServerTransportApplyJobRepository
 {
@@ -25,15 +25,20 @@ public sealed class ServerTransportApplyJobRepository : IServerTransportApplyJob
         DateTime utcNow,
         CancellationToken ct)
     {
-        if (serverId == Guid.Empty) throw new ArgumentException("serverId is required", nameof(serverId));
-        if (activationId == Guid.Empty) throw new ArgumentException("activationId is required", nameof(activationId));
-        if (targetTransportVersion <= 0)
-            throw new ArgumentOutOfRangeException(nameof(targetTransportVersion));
-        if (maxAttempt <= 0) throw new ArgumentException("maxAttempt must be > 0", nameof(maxAttempt));
+        if (maxAttempt <= 0)
+            throw new ArgumentOutOfRangeException(nameof(maxAttempt));
 
-        utcNow = EnsureUtc(utcNow);
+        utcNow = UtcDateTimeGuard.RequireUtc(utcNow);
 
-        await SupersedeOlderInFlightJobsAsync(serverId, targetTransportVersion, utcNow, ct);
+        await SupersedeOlderInFlightJobsAsync(
+            serverId,
+            targetTransportVersion,
+            utcNow,
+            ct);
+
+        var existingJobId = await FindInFlightJobIdAsync(serverId, targetTransportVersion, ct);
+        if (existingJobId.HasValue)
+            return existingJobId.Value;
 
         var job = ServerTransportApplyJob.CreateNew(
             serverId,
@@ -42,16 +47,9 @@ public sealed class ServerTransportApplyJobRepository : IServerTransportApplyJob
             maxAttempt,
             utcNow);
 
-        await _db.Set<ServerTransportApplyJob>().AddAsync(job, ct);
+        _db.Set<ServerTransportApplyJob>().Add(job);
+
         return job.JobId;
-    }
-
-    public async Task<Guid?> GetActiveJobIdByServerIdAsync(Guid serverId, CancellationToken ct)
-    {
-        if (serverId == Guid.Empty) throw new ArgumentException("serverId is required", nameof(serverId));
-
-        var id = await FindActiveJobIdByServerIdAsync(serverId, ct);
-        return id == Guid.Empty ? null : id;
     }
 
     public Task<ServerTransportApplyJob?> GetByIdAsync(Guid jobId, CancellationToken ct)
@@ -69,10 +67,8 @@ public sealed class ServerTransportApplyJobRepository : IServerTransportApplyJob
         if (take <= 0)
             return Array.Empty<ServerTransportApplyJob>();
 
-        if (string.IsNullOrWhiteSpace(leaseOwner))
-            throw new ArgumentException("leaseOwner is required", nameof(leaseOwner));
-
-        utcNow = EnsureUtc(utcNow);
+        leaseOwner = LeaseOwnerGuard.Require(leaseOwner);
+        utcNow = UtcDateTimeGuard.RequireUtc(utcNow);
         var leaseUntilUtc = utcNow.Add(lease);
 
         var pending = (short)ServerTransportApplyJobStatus.Pending;
@@ -132,7 +128,8 @@ public sealed class ServerTransportApplyJobRepository : IServerTransportApplyJob
         if (jobIds.Count == 0)
             return Task.FromResult(0);
 
-        utcNow = EnsureUtc(utcNow);
+        leaseOwner = LeaseOwnerGuard.Require(leaseOwner);
+        utcNow = UtcDateTimeGuard.RequireUtc(utcNow);
 
         return _db.Set<ServerTransportApplyJob>()
             .Where(x => jobIds.Contains(x.JobId)
@@ -148,37 +145,6 @@ public sealed class ServerTransportApplyJobRepository : IServerTransportApplyJob
                 .SetProperty(x => x.UpdatedAtUtc, utcNow), ct);
     }
 
-    public Task<int> RescheduleAsync(
-        Guid jobId,
-        string leaseOwner,
-        int newAttempt,
-        DateTime nextAttemptAtUtc,
-        string code,
-        string? message,
-        DateTime utcNow,
-        CancellationToken ct)
-    {
-        utcNow = EnsureUtc(utcNow);
-        nextAttemptAtUtc = EnsureUtc(nextAttemptAtUtc);
-
-        var row = new ServerTransportApplyJobRescheduleBatchRow(jobId, newAttempt, nextAttemptAtUtc, code, message);
-        return RescheduleBatchAsync([row], leaseOwner, utcNow, ct);
-    }
-
-    public Task<int> MarkFailedAsync(
-        Guid jobId,
-        string leaseOwner,
-        string code,
-        string? message,
-        DateTime utcNow,
-        CancellationToken ct)
-    {
-        utcNow = EnsureUtc(utcNow);
-
-        var row = new ServerTransportApplyJobMarkFailedBatchRow(jobId, code, message);
-        return MarkFailedBatchAsync([row], leaseOwner, utcNow, ct);
-    }
-
     public async Task<int> MarkFailedBatchAsync(
         IReadOnlyList<ServerTransportApplyJobMarkFailedBatchRow> rows,
         string leaseOwner,
@@ -187,11 +153,9 @@ public sealed class ServerTransportApplyJobRepository : IServerTransportApplyJob
     {
         if (rows.Count == 0)
             return 0;
-        if (string.IsNullOrWhiteSpace(leaseOwner))
-            throw new ArgumentException("leaseOwner is required", nameof(leaseOwner));
 
-        leaseOwner = leaseOwner.Trim();
-        utcNow = EnsureUtc(utcNow);
+        leaseOwner = LeaseOwnerGuard.Require(leaseOwner);
+        utcNow = UtcDateTimeGuard.RequireUtc(utcNow);
 
         var failedState = (int)ServerTransportApplyJobStatus.Failed;
         var processingState = (int)ServerTransportApplyJobStatus.Processing;
@@ -243,11 +207,9 @@ public sealed class ServerTransportApplyJobRepository : IServerTransportApplyJob
     {
         if (rows.Count == 0)
             return 0;
-        if (string.IsNullOrWhiteSpace(leaseOwner))
-            throw new ArgumentException("leaseOwner is required", nameof(leaseOwner));
 
-        leaseOwner = leaseOwner.Trim();
-        utcNow = EnsureUtc(utcNow);
+        leaseOwner = LeaseOwnerGuard.Require(leaseOwner);
+        utcNow = UtcDateTimeGuard.RequireUtc(utcNow);
 
         var pendingState = (int)ServerTransportApplyJobStatus.Pending;
         var processingState = (int)ServerTransportApplyJobStatus.Processing;
@@ -262,7 +224,7 @@ public sealed class ServerTransportApplyJobRepository : IServerTransportApplyJob
         {
             jobIds[i] = rows[i].JobId;
             newAttempts[i] = rows[i].NewAttempt;
-            nextAts[i] = EnsureUtc(rows[i].NextAttemptAtUtc);
+            nextAts[i] = UtcDateTimeGuard.RequireUtc(rows[i].NextAttemptAtUtc);
             codes[i] = rows[i].ErrorCode;
             messages[i] = rows[i].ErrorMessage;
         }
@@ -310,7 +272,11 @@ public sealed class ServerTransportApplyJobRepository : IServerTransportApplyJob
         DateTime utcNow,
         CancellationToken ct)
     {
-        utcNow = EnsureUtc(utcNow);
+        if (jobIds.Count == 0)
+            return Task.FromResult(0);
+
+        leaseOwner = LeaseOwnerGuard.Require(leaseOwner);
+        utcNow = UtcDateTimeGuard.RequireUtc(utcNow);
 
         return _db.Set<ServerTransportApplyJob>()
             .Where(x => jobIds.Contains(x.JobId)
@@ -345,16 +311,17 @@ public sealed class ServerTransportApplyJobRepository : IServerTransportApplyJob
                 ct);
     }
 
-    private Task<Guid> FindActiveJobIdByServerIdAsync(Guid serverId, CancellationToken ct)
+    private Task<Guid?> FindInFlightJobIdAsync(
+        Guid serverId,
+        long targetTransportVersion,
+        CancellationToken ct)
         => _db.Set<ServerTransportApplyJob>()
             .AsNoTracking()
             .Where(x => x.ServerId == serverId
+                        && x.TargetTransportVersion == targetTransportVersion
                         && (x.State == ServerTransportApplyJobStatus.Pending
                             || x.State == ServerTransportApplyJobStatus.Processing))
             .OrderByDescending(x => x.CreatedAtUtc)
-            .Select(x => x.JobId)
+            .Select(x => (Guid?)x.JobId)
             .FirstOrDefaultAsync(ct);
-
-    private static DateTime EnsureUtc(DateTime dt)
-        => DateTime.SpecifyKind(dt, DateTimeKind.Utc);
 }

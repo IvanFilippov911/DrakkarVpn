@@ -12,14 +12,11 @@ public static class MediatRExtensions
         services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
-            services.AddTransient<IRequestHandler<RunServersPollingCommand, Unit>, RunServersPollingHandler>();
-            services.AddTransient<
-                IRequestHandler<CleanupServerMetricsHistoryRequest, Unit>,
-                CleanupServerMetricsHistoryHandler>();
-            services.AddTransient<
-                IRequestHandler<RunServerTransportApplyJobRequest, Unit>,
-                RunServerTransportApplyJobHandler>();
         });
+
+        services.AddTransient<IRequestHandler<RunServersPollingCommand, Unit>, RunServersPollingHandler>();
+        services.AddTransient<IRequestHandler<CleanupServerMetricsHistoryRequest, Unit>, CleanupServerMetricsHistoryHandler>();
+        services.AddTransient<IRequestHandler<RunServerTransportApplyJobRequest, Unit>, RunServerTransportApplyJobHandler>();
 
         return services;
     }

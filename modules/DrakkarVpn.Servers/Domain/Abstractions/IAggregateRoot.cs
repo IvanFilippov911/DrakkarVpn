@@ -1,3 +1,3 @@
-namespace DrakkarVpn.Core.Api.Modules.Servers.Domain.Abstractions;
+namespace DrakkarVpn.Servers.Domain.Abstractions;
 
 public interface IAggregateRoot { }

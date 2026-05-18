@@ -1,4 +1,5 @@
-using DrakkarVpn.Core.Api.Modules.Servers.Domain.Abstractions;
+using DrakkarVpn.Servers.Domain.Abstractions;
+using DrakkarVpn.Servers.Domain.Entities;
 using DrakkarVpn.Servers.Domain.Enums.Incidents;
 
 namespace DrakkarVpn.Servers.Domain.Aggregates;

@@ -1,5 +1,6 @@
 using DrakkarVpn.Admin.Api.Application.Features.Commands.Servers.RegisterServer;
 using DrakkarVpn.Servers.Application.Abstractions.Services;
+using DrakkarVpn.Servers.Application.Abstractions.Services.ServerTransportActivations;
 using DrakkarVpn.Servers.Application.DTOs.ServerTransportActivations;
 using MediatR;
 
@@ -10,14 +11,14 @@ public sealed class RegisterServerHandler
     : IRequestHandler<RegisterServerRequest, Guid>
 {
     private readonly IServerManagementService _serverManagementService;
-    private readonly IServerTransportActivationManagementService _transportActivationManagementService;
+    private readonly IServerTransportManagementService _transportManagementService;
 
     public RegisterServerHandler(
         IServerManagementService serverManagementService,
-        IServerTransportActivationManagementService transportActivationManagementService)
+        IServerTransportManagementService transportManagementService)
     {
         _serverManagementService = serverManagementService;
-        _transportActivationManagementService = transportActivationManagementService;
+        _transportManagementService = transportManagementService;
     }
 
     public async Task<Guid> Handle(RegisterServerRequest c, CancellationToken ct)
@@ -45,7 +46,7 @@ public sealed class RegisterServerHandler
                 .ToList(),
             ActivateProfileId: c.ActivateProfileId);
 
-        await _transportActivationManagementService.AttachProfilesAsync(attachInput, ct);
+        await _transportManagementService.AttachProfilesAsync(attachInput, ct);
         return serverId;
     }
 }

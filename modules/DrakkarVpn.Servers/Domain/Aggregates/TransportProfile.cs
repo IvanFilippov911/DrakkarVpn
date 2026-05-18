@@ -1,4 +1,4 @@
-using DrakkarVpn.Core.Api.Modules.Servers.Domain.Abstractions;
+using DrakkarVpn.Servers.Domain.Abstractions;
 using DrakkarVpn.Servers.Domain.Enums;
 using DrakkarVpn.Servers.Domain.Policies;
 

@@ -1,11 +1,11 @@
 using DrakkarVpn.Agent.Application.Abstractions;
 using DrakkarVpn.Agent.Application.Abstractions.AgentTransport;
 using DrakkarVpn.Agent.Application.Services;
+using DrakkarVpn.Agent.Application.Services.XrayApply;
 using DrakkarVpn.Agent.Infrastructure.Config;
 using DrakkarVpn.Agent.Infrastructure.EF;
 using DrakkarVpn.Agent.Infrastructure.EF.Repositories;
 using DrakkarVpn.Agent.Infrastructure.Services.Grpc;
-using DrakkarVpn.Agent.Infrastructure.Services.Transport;
 using Grpc.Net.Client;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -24,6 +24,11 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAgentTransportStateRepository, AgentTransportStateRepository>();
         services.AddScoped<IAgentTransportStateService, AgentTransportStateService>();
         services.AddSingleton<IAgentTransportPayloadHashService, AgentTransportPayloadHashService>();
+
+        services.AddScoped<IXrayServerConfigBuilder, XrayServerConfigBuilder>();
+        services.AddScoped<IXrayConfigFileService, XrayConfigFileService>();
+        services.AddScoped<IXrayRuntimeService, XrayRuntimeService>();
+        services.AddScoped<IXrayHealthCheckService, XrayHealthCheckService>();
         services.AddScoped<IXrayTransportConfigApplyService, XrayTransportConfigApplyService>();
         services.AddScoped<IAgentTransportApplyService, AgentTransportApplyService>();
 
@@ -40,7 +45,7 @@ public static class ServiceCollectionExtensions
             var opts     = sp.GetRequiredService<IOptions<XrayOptions>>();
             return new XrayPeerGrpcClient(channels, opts);
         });
-        
+
         services.AddSingleton<IXrayStatsClient>(sp =>
         {
             var channels = sp.GetRequiredService<IGrpcChannelProvider>();

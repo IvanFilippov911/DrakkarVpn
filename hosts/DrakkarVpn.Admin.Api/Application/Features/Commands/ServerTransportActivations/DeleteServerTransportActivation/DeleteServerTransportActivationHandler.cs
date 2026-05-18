@@ -1,4 +1,4 @@
-using DrakkarVpn.Servers.Application.Abstractions.Services;
+using DrakkarVpn.Servers.Application.Abstractions.Services.ServerTransportActivations;
 using DrakkarVpn.Servers.Application.DTOs.ServerTransportActivations;
 using MediatR;
 
@@ -7,9 +7,9 @@ namespace DrakkarVpn.Admin.Api.Application.Features.Commands.ServerTransportActi
 public sealed class DeleteServerTransportActivationHandler
     : IRequestHandler<DeleteServerTransportActivationRequest, Unit>
 {
-    private readonly IServerTransportActivationManagementService _service;
+    private readonly IServerTransportManagementService _service;
 
-    public DeleteServerTransportActivationHandler(IServerTransportActivationManagementService service)
+    public DeleteServerTransportActivationHandler(IServerTransportManagementService service)
         => _service = service;
 
     public async Task<Unit> Handle(DeleteServerTransportActivationRequest command, CancellationToken ct)

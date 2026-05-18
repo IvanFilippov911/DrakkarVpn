@@ -1,10 +1,10 @@
-using DrakkarVpn.Core.Api.Modules.Servers.Domain;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.Entities;
-using DrakkarVpn.Servers.Infrastructure.EF.Entities;
 using DrakkarVpn.Servers.Domain.Aggregates;
+using DrakkarVpn.Servers.Domain.Entities;
+using DrakkarVpn.Servers.Infrastructure.EF.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.EF;
+namespace DrakkarVpn.Servers.Infrastructure.EF;
 
 public sealed class ServerDbContext : DbContext
 {
@@ -26,12 +26,6 @@ public sealed class ServerDbContext : DbContext
     {
         modelBuilder.HasDefaultSchema("servers");
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ServerDbContext).Assembly);
-        
-        modelBuilder.Entity<Server>()
-            .HasOne<ServerPollState>()
-            .WithOne()
-            .HasForeignKey<ServerPollState>(x => x.ServerId)
-            .OnDelete(DeleteBehavior.Cascade);
 
         base.OnModelCreating(modelBuilder);
     }

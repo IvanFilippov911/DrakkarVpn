@@ -1,11 +1,12 @@
-using DrakkarVpn.Agent.Application.DTOs;
+using DrakkarVpn.Agent.Application.Abstractions.AgentTransport;
 
 namespace DrakkarVpn.Agent.Application.Services.XrayApply;
 
-public interface IXrayTransportConfigApplyService
+public sealed class XrayHealthCheckService : IXrayHealthCheckService
 {
-    Task ApplyAsync(
-        ApplyServerTransportRequestDto request,
-        string payloadHash,
-        CancellationToken ct);
+    public Task EnsureHealthyAsync(CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+        return Task.CompletedTask;
+    }
 }

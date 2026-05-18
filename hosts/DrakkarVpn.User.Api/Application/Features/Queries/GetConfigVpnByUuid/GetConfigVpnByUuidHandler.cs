@@ -1,7 +1,7 @@
 using DrakkarVpn.Core.Api.Application.Features.Queries.GetPeerByUuid;
 using DrakkarVpn.Core.Api.Modules.Orchestrator.Application.DTOs;
 using DrakkarVpn.Core.Api.Modules.Peers.Application.Abstractions;
-using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
+using DrakkarVpn.Servers.Application.Abstractions.Services.Queries;
 using MediatR;
 
 namespace DrakkarVpn.Core.Api.Modules.Orchestrator.Application.Features.Queries.GetPeerByUuid;
@@ -10,12 +10,12 @@ public sealed class GetConfigVpnByUuidHandler
     : IRequestHandler<GetConfigVpnByUuidQuery, string?>
 {
     private readonly IPeersQueryService _peers;
-    private readonly IServersQueryService _servers;
+    private readonly IServerConfigQueryService _servers;
     private readonly IVpnBuildArtifactsService _builder;
 
     public GetConfigVpnByUuidHandler(
         IPeersQueryService peers,
-        IServersQueryService servers,
+        IServerConfigQueryService servers,
         IVpnBuildArtifactsService builder)
     {
         _peers = peers;

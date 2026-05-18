@@ -26,8 +26,8 @@ public sealed class ApplyServerTransportHandler
         if (!validation.IsValid)
         {
             var first = validation.Errors[0];
-            return AgentTransportApplyResult.ClientError(
-                AgentTransportApplyErrorPhase.FluentValidation,
+            return AgentTransportApplyResult.Rejected(
+                AgentTransportApplyPhase.Validation,
                 string.IsNullOrWhiteSpace(first.ErrorCode) ? "validation_error" : first.ErrorCode,
                 first.ErrorMessage);
         }

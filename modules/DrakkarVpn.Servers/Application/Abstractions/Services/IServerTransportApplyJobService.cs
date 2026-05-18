@@ -10,8 +10,6 @@ public interface IServerTransportApplyJobService
         long targetTransportVersion,
         CancellationToken ct);
 
-    Task<Guid?> GetActiveJobIdByServerIdAsync(Guid serverId, CancellationToken ct);
-
     Task<IReadOnlyList<ServerTransportApplyJobDto>> AcquireBatchAsync(
         int take,
         TimeSpan lease,

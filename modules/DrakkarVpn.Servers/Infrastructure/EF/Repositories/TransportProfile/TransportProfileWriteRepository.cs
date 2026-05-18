@@ -2,6 +2,7 @@ using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.EF;
 using DrakkarVpn.Servers.Domain.Aggregates;
 using DrakkarVpn.Servers.Domain.Entities;
+using DrakkarVpn.Servers.Infrastructure.EF;
 using Microsoft.EntityFrameworkCore;
 
 namespace DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.Repositories;

@@ -1,3 +1,4 @@
+using DrakkarVpn.Servers.Domain.Aggregates;
 using DrakkarVpn.Servers.Domain.Enums.TransportProfile;
 using DrakkarVpn.Servers.Infrastructure.EF.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -96,7 +97,7 @@ public sealed class ServerTransportApplyJobConfiguration : IEntityTypeConfigurat
         b.HasIndex(x => x.LeaseUntilUtc)
             .HasDatabaseName("ix_server_transport_apply_jobs_lease_until");
 
-        b.HasOne<Core.Api.Modules.Servers.Domain.Server>()
+        b.HasOne<Server>()
             .WithMany()
             .HasForeignKey(x => x.ServerId)
             .OnDelete(DeleteBehavior.Cascade);

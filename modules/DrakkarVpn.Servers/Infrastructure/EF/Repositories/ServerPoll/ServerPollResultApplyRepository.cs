@@ -6,6 +6,7 @@ using DrakkarVpn.Core.Api.Modules.Servers.Domain;
 using DrakkarVpn.Core.Api.Modules.Servers.Infrastructure.EF;
 using DrakkarVpn.Observability.Application.DTOs;
 using DrakkarVpn.Servers.Application.DTOs.ServerState;
+using DrakkarVpn.Servers.Infrastructure.EF;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using NpgsqlTypes;

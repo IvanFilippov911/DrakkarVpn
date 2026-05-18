@@ -1,6 +1,7 @@
+using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
 using DrakkarVpn.Servers.Infrastructure.EF.Entities;
 
-namespace DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
+namespace DrakkarVpn.Servers.Application.Abstractions.Repositories;
 
 public interface IServerTransportApplyJobRepository
 {
@@ -11,8 +12,6 @@ public interface IServerTransportApplyJobRepository
         int maxAttempt,
         DateTime utcNow,
         CancellationToken ct);
-
-    Task<Guid?> GetActiveJobIdByServerIdAsync(Guid serverId, CancellationToken ct);
 
     Task<ServerTransportApplyJob?> GetByIdAsync(Guid jobId, CancellationToken ct);
 
@@ -26,24 +25,6 @@ public interface IServerTransportApplyJobRepository
     Task<int> MarkCompletedAsync(
         IReadOnlyCollection<Guid> jobIds,
         string leaseOwner,
-        DateTime utcNow,
-        CancellationToken ct);
-
-    Task<int> RescheduleAsync(
-        Guid jobId,
-        string leaseOwner,
-        int newAttempt,
-        DateTime nextAttemptAtUtc,
-        string code,
-        string? message,
-        DateTime utcNow,
-        CancellationToken ct);
-
-    Task<int> MarkFailedAsync(
-        Guid jobId,
-        string leaseOwner,
-        string code,
-        string? message,
         DateTime utcNow,
         CancellationToken ct);
 

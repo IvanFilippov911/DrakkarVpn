@@ -1,4 +1,4 @@
-namespace DrakkarVpn.Core.Api.Modules.Servers.Domain.VO;
+namespace DrakkarVpn.Servers.Domain.VO;
 
 public readonly record struct Region(string Code)
 {

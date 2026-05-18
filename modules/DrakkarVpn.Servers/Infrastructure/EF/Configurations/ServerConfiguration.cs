@@ -1,6 +1,7 @@
 using DrakkarVpn.Core.Api.Modules.Servers.Domain;
 using DrakkarVpn.Core.Api.Modules.Servers.Domain.VO;
-using DrakkarVpn.Servers.Domain.Entities;
+using DrakkarVpn.Servers.Domain.Aggregates;
+using DrakkarVpn.Servers.Domain.VO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

@@ -11,6 +11,7 @@ using DrakkarVpn.Observability;
 using DrakkarVpn.Observability.Infrastructure.EF;
 using DrakkarVpn.Peers;
 using DrakkarVpn.Servers;
+using DrakkarVpn.Servers.Infrastructure.EF;
 using DrakkarVpn.Subscriptions;
 using DrakkarVpn.Tariffs;
 using DrakkarVpn.Users;

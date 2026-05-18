@@ -1,27 +1,30 @@
-using DrakkarVpn.Core.Api.Modules.Servers.Application.Abstractions;
+using DrakkarVpn.Servers.Application.Abstractions.Repositories;
 using DrakkarVpn.Servers.Application.Abstractions.Services;
 using DrakkarVpn.Servers.Application.DTOs.ServerTransportApplyJobs;
 using DrakkarVpn.Servers.Application.DTOs.TransportProfiles;
+using DrakkarVpn.Servers.Application.Options;
+using Microsoft.Extensions.Options;
 
-namespace DrakkarVpn.Servers.Application.Services;
+namespace DrakkarVpn.Servers.Application.Services.ServerTransportProfileApply.AgentApply;
 
 public sealed class AgentApplyServerTransportRequestBuilder : IAgentApplyServerTransportRequestBuilder
 {
-    private const string InboundTag = "vless-reality-in";
-    private const string Flow = "xtls-rprx-vision";
-    private const string Encryption = "none";
-
     private readonly IAgentApplyServerTransportContextRepository _contexts;
+    private readonly ServerTransportAgentApplyOptions _opt;
 
-    public AgentApplyServerTransportRequestBuilder(IAgentApplyServerTransportContextRepository contexts)
+    public AgentApplyServerTransportRequestBuilder(
+        IAgentApplyServerTransportContextRepository contexts,
+        IOptions<ServerTransportAgentApplyOptions> options)
     {
         _contexts = contexts;
+        _opt = options.Value;
     }
 
     public async Task<AgentApplyRequestBuildResult> BuildAsync(
         IReadOnlyCollection<ServerTransportApplyJobDto> jobs,
         CancellationToken ct)
     {
+        ArgumentNullException.ThrowIfNull(jobs);
         if (jobs.Count == 0)
         {
             return new AgentApplyRequestBuildResult(
@@ -66,7 +69,9 @@ public sealed class AgentApplyServerTransportRequestBuilder : IAgentApplyServerT
 
             if (string.IsNullOrWhiteSpace(ctx.RealitySni)
                 || string.IsNullOrWhiteSpace(ctx.RealityShortId)
-                || string.IsNullOrWhiteSpace(ctx.RealityFingerprint))
+                || string.IsNullOrWhiteSpace(ctx.RealityFingerprint)
+                || string.IsNullOrWhiteSpace(ctx.RealityPublicKey)
+                || string.IsNullOrWhiteSpace(ctx.RealityDest))
             {
                 failed[job.JobId] = new AgentApplyResult(
                     AgentApplyOutcome.PermanentFailed,
@@ -77,7 +82,7 @@ public sealed class AgentApplyServerTransportRequestBuilder : IAgentApplyServerT
             }
 
             var request = new AgentApplyServerTransportRequest(
-                OperationId: Guid.NewGuid(),
+                OperationId: job.JobId,
                 ServerId: ctx.ServerId,
                 ActivationId: ctx.ActivationId,
                 PublicHost: ctx.PublicHost,
@@ -91,9 +96,9 @@ public sealed class AgentApplyServerTransportRequestBuilder : IAgentApplyServerT
                 RealityDest: ctx.RealityDest,
                 GrpcServiceName: ctx.GrpcServiceName,
                 GrpcAuthority: ctx.GrpcAuthority,
-                InboundTag: InboundTag,
-                Flow: Flow,
-                Encryption: Encryption);
+                InboundTag: _opt.InboundTag,
+                Flow: _opt.Flow,
+                Encryption: _opt.Encryption);
 
             requests.Add(new PreparedAgentTransportApplyRequest(
                 JobId: job.JobId,
